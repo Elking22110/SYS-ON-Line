@@ -379,5 +379,6 @@ export const EVENTS = {
   INVOICES_CHANGED: 'invoices:changed',
   USERS_CHANGED: 'users:changed',
   DATA_IMPORTED: 'data:imported',
-  DATA_BACKED_UP: 'data:backed_up'
+  DATA_BACKED_UP: 'data:backed_up',
+  SYNC_ERROR: 'sync:error'
 };

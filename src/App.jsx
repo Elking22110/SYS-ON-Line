@@ -227,9 +227,9 @@ function App() {
       <DataLoader>
         <NotificationProvider>
           <AuthProvider>
-            <div className="flex flex-1 w-full overflow-hidden bg-[#5235E8]">
+            <div className="flex flex-col md:flex-row flex-1 w-full overflow-hidden bg-[#5235E8]">
               <Sidebar />
-              <div className="flex-1 h-full overflow-y-auto overflow-x-hidden min-w-0 max-w-full bg-[#F3F4F9] rounded-l-[2.5rem] shadow-[-5px_0_20px_rgba(0,0,0,0.1)] relative ipad-main-content ipad-pro-main-content">
+              <div className="flex-1 h-full overflow-y-auto overflow-x-hidden min-w-0 max-w-full bg-[#F3F4F9] rounded-none md:rounded-l-[2.5rem] shadow-[-5px_0_20px_rgba(0,0,0,0.1)] relative ipad-main-content ipad-pro-main-content">
                 <Routes>
                   <Route path="/" element={
                     <ProtectedRoute>

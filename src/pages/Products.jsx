@@ -1123,8 +1123,8 @@ const Products = () => {
                 </div>
 
                 {/* معاينة الفئة */}
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-slate-600 mb-2">معاينة الفئة:</h4>
+                <div className="bg-white border border-slate-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-slate-500 mb-2">معاينة الفئة:</h4>
                   <div className="flex items-center space-x-2">
                     <span className="text-slate-800 font-medium">
                       {newCategory.name || 'اسم الفئة'}
@@ -1435,8 +1435,8 @@ const Products = () => {
               </div>
 
               {/* معاينة الفئة */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-slate-600 mb-2">معاينة الفئة:</h4>
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-slate-500 mb-2">معاينة الفئة:</h4>
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <span className="text-blue-400 font-medium">{newCategory.name || 'اسم الفئة'}</span>
                   <span className="text-slate-500 text-sm">({newCategory.description || 'وصف الفئة'})</span>

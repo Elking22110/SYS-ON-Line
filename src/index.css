@@ -102,10 +102,10 @@ body::before {
 .pos-product-card {
   display: flex;
   flex-direction: column;
-  height: 190px;
-  /* زيادة الارتفاع الأساسي */
-  width: 100%;
+  min-height: 150px;
+  height: 100%;
   /* عرض كامل */
+  width: 100%;
   border: 2px solid rgba(75, 85, 99, 0.3);
   /* حدود واضحة */
   border-radius: 12px;
@@ -116,6 +116,14 @@ body::before {
   overflow: hidden;
   /* منع تجاوز المحتوى */
   position: relative;
+}
+
+/* Global safeguards for icons and images to prevent stretching/squishing */
+svg {
+  flex-shrink: 0;
+}
+img {
+  object-fit: contain;
 }
 
 .pos-product-card:hover {
@@ -157,8 +165,8 @@ body::before {
 }
 
 .pos-product-card .product-title {
-  height: 40px;
-  /* ارتفاع ثابت للعنوان */
+  min-height: 40px;
+  /* ارتفاع مرن للعنوان */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,7 +178,7 @@ body::before {
 
 .pos-product-card .product-details {
   margin-top: auto;
-  height: 70px;
+  min-height: 70px;
   /* زيادة الارتفاع لضمان عدم التداخل */
   display: flex;
   flex-direction: column;
@@ -224,36 +232,33 @@ body::before {
 /* تحسين التخطيط للشاشات المختلفة */
 @media (max-width: 640px) {
   .pos-product-card {
-    height: 170px;
-    /* زيادة الارتفاع */
+    min-height: 140px;
   }
 
   .pos-product-card .product-title {
-    height: 35px;
+    min-height: 35px;
     font-size: 0.75rem;
   }
 
   .pos-product-card .product-details {
-    height: 65px;
-    /* زيادة الارتفاع */
+    min-height: 65px;
   }
 }
 
 /* تحسينات خاصة بالآيباد */
 @media (min-width: 768px) and (max-width: 1024px) {
   .pos-product-card {
-    height: 220px;
-    /* ارتفاع أكبر للآيباد */
+    min-height: 180px;
     padding: 16px;
   }
 
   .pos-product-card .product-title {
-    height: 50px;
+    min-height: 45px;
     font-size: 0.9rem;
   }
 
   .pos-product-card .product-details {
-    height: 85px;
+    min-height: 75px;
   }
 
   .pos-product-card .product-icon {
@@ -265,18 +270,17 @@ body::before {
 /* تحسينات خاصة بالآيباد برو */
 @media (min-width: 1024px) and (max-width: 1366px) {
   .pos-product-card {
-    height: 240px;
-    /* ارتفاع أكبر للآيباد برو */
+    min-height: 190px;
     padding: 20px;
   }
 
   .pos-product-card .product-title {
-    height: 55px;
+    min-height: 50px;
     font-size: 1rem;
   }
 
   .pos-product-card .product-details {
-    height: 95px;
+    min-height: 80px;
   }
 
   .pos-product-card .product-icon {
@@ -287,18 +291,16 @@ body::before {
 
 @media (min-width: 1366px) {
   .pos-product-card {
-    height: 200px;
-    /* زيادة الارتفاع */
+    min-height: 160px;
   }
 
   .pos-product-card .product-title {
-    height: 45px;
+    min-height: 45px;
     font-size: 0.875rem;
   }
 
   .pos-product-card .product-details {
-    height: 75px;
-    /* زيادة الارتفاع */
+    min-height: 70px;
   }
 }
 

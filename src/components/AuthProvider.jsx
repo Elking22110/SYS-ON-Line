@@ -59,6 +59,8 @@ export const AuthProvider = ({ children }) => {
       let userEmail = '';
       let foundUserInLocalStorage = null;
 
+      const savedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+
       // 0. التحقق من سوبا بيز أولاً (لضمان المزامنة بين الأجهزة)
       let foundUserInSupabase = null;
       try {
@@ -83,8 +85,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (!isValidUser) {
-        const savedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-
         // 1. التحقق من الحساب الجديد الإجباري أولاً
         if (username.toLowerCase() === 'admin' && password === 'admin') {
           isValidUser = true;

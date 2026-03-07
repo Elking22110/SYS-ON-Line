@@ -130,8 +130,8 @@ const Dashboard = () => {
   const refreshData = async () => {
     setIsRefreshing(true);
     soundManager.play('refresh');
+    analyzeRealData(); // Load local instantly
     await syncWithSupabase();
-    analyzeRealData();
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
@@ -152,8 +152,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    syncWithSupabase();
-    analyzeRealData();
+    analyzeRealData(); // Load local state instantly
+    syncWithSupabase(); // Then sync in background
     const handleStorageChange = () => analyzeRealData();
     const interval = setInterval(analyzeRealData, 10000);
     window.addEventListener('storage', handleStorageChange);

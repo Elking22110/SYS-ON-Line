@@ -7,6 +7,7 @@ import storageOptimizer from '../utils/storageOptimizer.js';
 import { formatDate, formatTimeOnly, formatDateTime, formatDateOnly, getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
 import { useAuth } from '../components/AuthProvider';
+import supabaseService from '../utils/supabaseService';
 import {
   Calendar,
   Download,
@@ -670,10 +671,10 @@ const Reports = () => {
           isOpen: true,
           title: 'تأكيد حذف جميع المنتجات',
           content: (
-            <div className="mb-4 p-4 bg-gray-700 rounded-lg text-right">
+            <div className="mb-4 p-4 bg-white border border-slate-200 rounded-lg text-right">
               <p className="text-slate-800 font-medium">فاتورة #{invoice.id}</p>
-              <p className="text-slate-600 text-sm">عدد المنتجات: {invoice.items.length}</p>
-              <p className="text-slate-600 text-sm">إجمالي الفاتورة: {invoice.total} جنيه</p>
+              <p className="text-slate-500 text-sm">عدد المنتجات: {invoice.items.length}</p>
+              <p className="text-slate-500 text-sm">إجمالي الفاتورة: {invoice.total} جنيه</p>
             </div>
           ),
           message: 'هل أنت متأكد من حذف جميع المنتجات من هذه الفاتورة؟',
@@ -773,11 +774,11 @@ const Reports = () => {
           isOpen: true,
           title: 'تأكيد حذف المنتج',
           content: (
-            <div className="mb-4 p-4 bg-gray-700 rounded-lg text-right">
+            <div className="mb-4 p-4 bg-white border border-slate-200 rounded-lg text-right">
               <p className="text-slate-800 font-medium">{itemToRemove.name}</p>
-              <p className="text-slate-600 text-sm">الكمية: {itemToRemove.quantity}</p>
-              <p className="text-slate-600 text-sm">السعر: {itemToRemove.price} جنيه</p>
-              <p className="text-slate-600 text-sm">المجموع: {safeMath.multiply(itemToRemove.price, itemToRemove.quantity)} جنيه</p>
+              <p className="text-slate-500 text-sm">الكمية: {itemToRemove.quantity}</p>
+              <p className="text-slate-500 text-sm">السعر: {itemToRemove.price} جنيه</p>
+              <p className="text-slate-500 text-sm">المجموع: {safeMath.multiply(itemToRemove.price, itemToRemove.quantity)} جنيه</p>
             </div>
           ),
           message: 'هل أنت متأكد من حذف هذا المنتج من الفاتورة؟',
@@ -1710,11 +1711,13 @@ const Reports = () => {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '12px',
-                    color: 'white'
+                    color: '#1e293b',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                   }}
+                  itemStyle={{ color: '#475569', fontWeight: '500' }}
                 />
               </RechartsPieChart>
             </ResponsiveContainer>

@@ -42,8 +42,19 @@ const ShiftManager = () => {
   const loadShifts = async () => {
     try {
       setIsLoading(true);
-      const onlineShifts = await supabaseService.getShifts();
+
+      // 1. تحميل البيانات المحلية وعرضها فوراً (Optimistic UI)
       const localShifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+      if (localShifts && localShifts.length > 0) {
+        setShifts(localShifts);
+        const activeLocal = localShifts.find(s => s.status === 'active');
+        if (activeLocal) {
+          setCurrentShift(activeLocal);
+        }
+      }
+
+      // 2. المزامنة في الخلفية
+      const onlineShifts = await supabaseService.getShifts();
 
       const combined = [...localShifts, ...(onlineShifts || [])];
 

@@ -1524,32 +1524,32 @@ const POSMain = () => {
 
             {/* معلومات الفاتورة */}
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-gray-700 p-4 rounded-lg">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
                 <div className="flex justify-between mb-2">
-                  <span className="text-slate-600">رقم الفاتورة:</span>
+                  <span className="text-slate-500">رقم الفاتورة:</span>
                   <span className="text-slate-800 font-bold">#{invoiceData?.invoiceId || getNextInvoiceId()}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-slate-600">التاريخ:</span>
+                  <span className="text-slate-500">التاريخ:</span>
                   <span className="text-slate-800">{invoiceData?.timestamp || formatDateTime(getCurrentDate())}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">طريقة الدفع:</span>
+                  <span className="text-slate-500">طريقة الدفع:</span>
                   <span className="text-slate-800">{(invoiceData?.paymentMethod || paymentMethod) === 'cash' ? 'نقدي' : (invoiceData?.paymentMethod || paymentMethod) === 'wallet' ? 'محفظة إلكترونية' : (invoiceData?.paymentMethod || paymentMethod) === 'instapay' ? 'انستا باي' : 'غير محدد'}</span>
                 </div>
               </div>
 
-              <div className="bg-gray-700 p-4 rounded-lg">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
                 <div className="flex justify-between mb-2">
-                  <span className="text-slate-600">العميل:</span>
+                  <span className="text-slate-500">العميل:</span>
                   <span className="text-slate-800">{invoiceData?.customer?.name || customerInfo?.name || 'غير محدد'}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-slate-600">الهاتف:</span>
+                  <span className="text-slate-500">الهاتف:</span>
                   <span className="text-slate-800">{invoiceData?.customer?.phone || customerInfo?.phone || 'غير محدد'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">الكاشير:</span>
+                  <span className="text-slate-500">الكاشير:</span>
                   <span className="text-slate-800">{invoiceData?.cashier || user?.username || 'غير محدد'}</span>
                 </div>
               </div>
@@ -1558,15 +1558,15 @@ const POSMain = () => {
             {/* تفاصيل المنتجات */}
             <div className="mb-6">
               <h4 className="text-lg font-semibold text-slate-800 mb-3">تفاصيل المنتجات</h4>
-              <div className="bg-gray-700 rounded-lg overflow-hidden">
-                <div className="grid grid-cols-4 gap-2 p-3 bg-gray-600 text-sm font-semibold text-slate-800">
+              <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                <div className="grid grid-cols-4 gap-2 p-3 bg-slate-100 text-sm font-semibold text-slate-800">
                   <div>المنتج</div>
                   <div className="text-center">الكمية</div>
                   <div className="text-center">السعر</div>
                   <div className="text-center">الإجمالي</div>
                 </div>
                 {(invoiceData?.items || []).map((item, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-2 p-3 border-b border-slate-400 last:border-b-0">
+                  <div key={index} className="grid grid-cols-4 gap-2 p-3 border-b border-slate-200 last:border-b-0">
                     <div className="text-slate-800 text-sm">{item.name}</div>
                     <div className="text-center text-slate-800 text-sm">{Number(item.quantity || 0)}</div>
                     <div className="text-center text-slate-800 text-sm">{(Number(item.price) || 0).toLocaleString('en-US')} جنيه</div>
@@ -1574,7 +1574,7 @@ const POSMain = () => {
                   </div>
                 ))}
                 {(!invoiceData?.items || invoiceData.items.length === 0) && (
-                  <div className="p-3 text-center text-slate-600">لا توجد عناصر في هذه الفاتورة</div>
+                  <div className="p-3 text-center text-slate-400">لا توجد عناصر في هذه الفاتورة</div>
                 )}
               </div>
             </div>
@@ -1582,40 +1582,40 @@ const POSMain = () => {
             {/* ملخص المبالغ */}
             <div className="mb-6">
               <h4 className="text-lg font-semibold text-slate-800 mb-3">ملخص المبالغ</h4>
-              <div className="bg-gray-700 rounded-lg p-4 space-y-2">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">الإجمالي الفرعي:</span>
+                  <span className="text-slate-500">الإجمالي الفرعي:</span>
                   <span className="text-slate-800">{(invoiceData?.subtotal ?? safeMath.calculateSubtotal(invoiceData?.items || [])).toLocaleString('en-US')} جنيه</span>
                 </div>
 
                 {(invoiceData?.discountAmount || 0) > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-slate-600">الخصم:</span>
-                    <span className="text-red-400">-{(invoiceData.discountAmount || 0).toLocaleString('en-US')} جنيه</span>
+                    <span className="text-slate-500">الخصم:</span>
+                    <span className="text-red-600">-{(invoiceData.discountAmount || 0).toLocaleString('en-US')} جنيه</span>
                   </div>
                 )}
 
                 {((invoiceData?.taxAmount || 0) > 0) && (
                   <div className="flex justify-between">
-                    <span className="text-slate-600">الضريبة:</span>
-                    <span className="text-orange-400">+{(invoiceData.taxAmount || 0).toLocaleString('en-US')} جنيه</span>
+                    <span className="text-slate-500">الضريبة:</span>
+                    <span className="text-orange-600">+{(invoiceData.taxAmount || 0).toLocaleString('en-US')} جنيه</span>
                   </div>
                 )}
 
                 {(invoiceData?.downPayment?.enabled) && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">العربون:</span>
-                      <span className="text-blue-400">{(invoiceData.downPayment.amount || 0).toLocaleString('en-US')} جنيه</span>
+                      <span className="text-slate-500">العربون:</span>
+                      <span className="text-blue-600">{(invoiceData.downPayment.amount || 0).toLocaleString('en-US')} جنيه</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">المبلغ المتبقي:</span>
-                      <span className="text-yellow-400">{(Math.max(0, (invoiceData.total || 0) - (parseFloat(invoiceData.downPayment.amount) || 0))).toLocaleString('en-US')} جنيه</span>
+                      <span className="text-slate-500">المبلغ المتبقي:</span>
+                      <span className="text-amber-600">{(Math.max(0, (invoiceData.total || 0) - (parseFloat(invoiceData.downPayment.amount) || 0))).toLocaleString('en-US')} جنيه</span>
                     </div>
                   </>
                 )}
 
-                <div className="border-t border-slate-400 pt-2">
+                <div className="border-t border-slate-300 pt-2">
                   <div className="flex justify-between">
                     <span className="text-slate-800 font-bold text-lg">
                       {invoiceData?.downPayment?.enabled ? 'المبلغ المتبقي:' : 'إجمالي الفاتورة:'}
@@ -1635,9 +1635,9 @@ const POSMain = () => {
             {downPayment.enabled && downPayment.deliveryDate && (
               <div className="mb-6">
                 <h4 className="text-lg font-semibold text-slate-800 mb-3">معلومات الاستلام</h4>
-                <div className="bg-gray-700 rounded-lg p-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">تاريخ الاستلام:</span>
+                    <span className="text-slate-500">تاريخ الاستلام:</span>
                     <span className="text-slate-800">{formatDateToDDMMYYYY(downPayment.deliveryDate)}</span>
                   </div>
                 </div>

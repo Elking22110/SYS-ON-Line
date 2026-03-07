@@ -98,12 +98,20 @@ class SyncManager {
             } catch (error) {
                 console.error(`❌ Sync failed for ${op.id}:`, error);
 
-                op.retryCount++;
-                // Keep in queue if retry count is low
-                if (op.retryCount < 5) {
-                    remainingQueue.push(op);
+                const isFatal = error?.code === '23505' || error?.code === '23503' || (error?.status >= 400 && error?.status < 500 && error?.status !== 408 && error?.status !== 429);
+
+                if (isFatal) {
+                    console.error(`🚫 Fatal error for operation ${op.id}. Moving to failed queue.`);
+                    this.saveToFailedQueue(op, error);
                 } else {
-                    console.error(`🚫 Max retries reached for operation ${op.id}. Dropping.`);
+                    op.retryCount = (op.retryCount || 0) + 1;
+                    // Keep in queue if retry count is low
+                    if (op.retryCount < 10) {
+                        remainingQueue.push(op);
+                    } else {
+                        console.error(`🚫 Max retries reached for operation ${op.id}. Moving to failed queue.`);
+                        this.saveToFailedQueue(op, error);
+                    }
                 }
             }
         }
@@ -127,6 +135,31 @@ class SyncManager {
             isSyncing: this.isSyncing,
             isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true
         };
+    }
+
+    /**
+     * Save failed operations to a separate queue to prevent data loss
+     */
+    saveToFailedQueue(op, error) {
+        try {
+            const failedQueue = JSON.parse(localStorage.getItem('pos_failed_sync') || '[]');
+            failedQueue.push({
+                ...op,
+                failedAt: new Date().toISOString(),
+                error: error?.message || String(error)
+            });
+            // Keep only latest 100 failed operations to avoid localStorage bloat
+            if (failedQueue.length > 100) failedQueue.shift();
+
+            localStorage.setItem('pos_failed_sync', JSON.stringify(failedQueue));
+
+            // Notify UI
+            if (typeof publish === 'function') {
+                publish(EVENTS.SYNC_ERROR, { op, error: error?.message || 'Sync failed' });
+            }
+        } catch (e) {
+            console.error('Error saving to failed queue', e);
+        }
     }
 }
 

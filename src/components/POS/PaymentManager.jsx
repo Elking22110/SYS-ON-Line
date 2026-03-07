@@ -426,12 +426,12 @@ const PaymentManager = ({
       </div>
 
       {/* ملخص الدفع */}
-      <div className="bg-gray-700 rounded-lg p-4 mb-6">
+      <div className="bg-slate-100 border border-slate-200 rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-slate-800 mb-3">ملخص الدفع</h3>
 
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-slate-600">إجمالي الفاتورة:</span>
+            <span className="text-slate-500">إجمالي الفاتورة:</span>
             <span className="text-slate-800 font-semibold">
               {(getTotal || 0).toLocaleString('en-US')} جنيه
             </span>
@@ -440,22 +440,22 @@ const PaymentManager = ({
           {downPayment.enabled && (
             <>
               <div className="flex justify-between">
-                <span className="text-slate-600">العربون:</span>
-                <span className="text-blue-400 font-semibold">
+                <span className="text-slate-500">العربون:</span>
+                <span className="text-blue-600 font-semibold">
                   {(downPayment.amount || 0).toLocaleString('en-US')} جنيه
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-slate-600">المتبقي:</span>
-                <span className="text-yellow-300 font-semibold">
+                <span className="text-slate-500">المتبقي:</span>
+                <span className="text-amber-600 font-semibold">
                   {(getRemainingAmount || 0).toLocaleString('en-US')} جنيه
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-slate-600">تاريخ الاستلام:</span>
-                <span className="text-green-400 font-semibold">
+                <span className="text-slate-500">تاريخ الاستلام:</span>
+                <span className="text-green-600 font-semibold">
                   {formatDateToDDMMYYYY(downPayment.deliveryDate)}
                 </span>
               </div>
