@@ -115,22 +115,20 @@ const Reports = () => {
   // تحليل البيانات الحقيقية من المزامنة
   const fetchAllFromSupabase = async () => {
     try {
-      if (window.supabaseDB) {
-        const [onlineSales, onlineShifts, onlineExpenses] = await Promise.all([
-          supabaseService.getSales(),
-          supabaseService.getShifts(),
-          supabaseService.getExpenses()
-        ]);
+      const [onlineSales, onlineShifts, onlineExpenses] = await Promise.all([
+        supabaseService.getSales(),
+        supabaseService.getShifts(),
+        supabaseService.getExpenses()
+      ]);
 
-        if (onlineSales) {
-          localStorage.setItem('sales', JSON.stringify(onlineSales));
-        }
-        if (onlineShifts) {
-          localStorage.setItem('shifts', JSON.stringify(onlineShifts));
-        }
-        if (onlineExpenses) {
-          localStorage.setItem('expenses', JSON.stringify(onlineExpenses));
-        }
+      if (onlineSales && onlineSales.length) {
+        localStorage.setItem('sales', JSON.stringify(onlineSales));
+      }
+      if (onlineShifts && onlineShifts.length) {
+        localStorage.setItem('shifts', JSON.stringify(onlineShifts));
+      }
+      if (onlineExpenses && onlineExpenses.length) {
+        localStorage.setItem('expenses', JSON.stringify(onlineExpenses));
       }
     } catch (error) {
       console.error('Error fetching data from Supabase for reports:', error);

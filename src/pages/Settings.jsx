@@ -55,8 +55,8 @@ const Settings = () => {
 
   const loadSettingsFromSupabase = async () => {
     try {
-      if (window.supabaseDB) {
-        const onlineSettings = await supabaseService.getSettings();
+      const onlineSettings = await supabaseService.getSettings();
+      if (onlineSettings && onlineSettings.length > 0) {
         const posSet = onlineSettings.find(s => s.key === 'pos-settings');
         if (posSet) {
           const parsed = typeof posSet.value === 'string' ? JSON.parse(posSet.value) : posSet.value;
@@ -117,17 +117,15 @@ const Settings = () => {
 
   const loadUsersFromSupabase = async () => {
     try {
-      if (window.supabaseDB) {
-        const onlineUsers = await supabaseService.getUsers();
-        if (onlineUsers && onlineUsers.length > 0) {
-          const mapped = onlineUsers.map(u => ({
-            ...u,
-            name: u.username // Map username to name for frontend compatibility
-          }));
-          setUsers(mapped);
-          localStorage.setItem('users', JSON.stringify(mapped));
-          return;
-        }
+      const onlineUsers = await supabaseService.getUsers();
+      if (onlineUsers && onlineUsers.length > 0) {
+        const mapped = onlineUsers.map(u => ({
+          ...u,
+          name: u.username // Map username to name for frontend compatibility
+        }));
+        setUsers(mapped);
+        localStorage.setItem('users', JSON.stringify(mapped));
+        return;
       }
       // Fallback
       setUsers(JSON.parse(localStorage.getItem('users') || '[]'));
@@ -414,9 +412,7 @@ const Settings = () => {
     };
 
     try {
-      if (window.supabaseDB) {
-        await supabaseService.addUser(userToSave);
-      }
+      await supabaseService.addUser(userToSave).catch(err => console.error('Supabase addUser error:', err));
 
       const userForState = {
         ...userToSave,
@@ -787,9 +783,11 @@ const Settings = () => {
       localStorage.setItem('pos-settings', JSON.stringify(settings));
 
       // مزامنة مع Supabase
-      if (window.supabaseDB) {
+      try {
         await supabaseService.updateSetting('pos-settings', settings);
         console.log('✅ تم حفظ الإعدادات في سوبا بيز');
+      } catch (syncErr) {
+        console.error('فشل حفظ الإعدادات في Supabase:', syncErr);
       }
 
       try { publish(EVENTS.SETTINGS_CHANGED, { type: 'save_all', settings }); } catch (_) { }

@@ -62,21 +62,20 @@ export const AuthProvider = ({ children }) => {
       // 0. التحقق من سوبا بيز أولاً (لضمان المزامنة بين الأجهزة)
       let foundUserInSupabase = null;
       try {
-        if (window.supabaseDB) {
-          const onlineUsers = await window.supabaseDB.getUsers();
-          foundUserInSupabase = onlineUsers.find(u =>
-            u.username.toLowerCase() === username.toLowerCase() &&
-            u.status === 'active'
-          );
+        const supabaseService = (await import('../utils/supabaseService.js')).default;
+        const onlineUsers = await supabaseService.getUsers();
+        foundUserInSupabase = (onlineUsers || []).find(u =>
+          (u.username || '').toLowerCase() === username.toLowerCase() &&
+          u.status === 'active'
+        );
 
-          if (foundUserInSupabase) {
-            const isMatch = (foundUserInSupabase.password === hashPassword(password));
-            if (isMatch) {
-              isValidUser = true;
-              userRole = foundUserInSupabase.role;
-              userEmail = foundUserInSupabase.email;
-              foundUserInLocalStorage = { ...foundUserInSupabase, name: foundUserInSupabase.username };
-            }
+        if (foundUserInSupabase) {
+          const isMatch = (foundUserInSupabase.password === hashPassword(password));
+          if (isMatch) {
+            isValidUser = true;
+            userRole = foundUserInSupabase.role;
+            userEmail = foundUserInSupabase.email;
+            foundUserInLocalStorage = { ...foundUserInSupabase, name: foundUserInSupabase.username };
           }
         }
       } catch (e) {

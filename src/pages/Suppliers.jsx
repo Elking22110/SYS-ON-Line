@@ -155,9 +155,7 @@ const Suppliers = () => {
 
       try {
         setLoading(true);
-        if (window.supabaseDB) {
-          await supabaseService.updateSupplier(editingSupplier.id, updatedData);
-        }
+        await supabaseService.updateSupplier(editingSupplier.id, updatedData).catch(err => console.error('Supabase update error:', err));
 
         const updatedSuppliers = suppliers.map(c => c.id === editingSupplier.id ? updatedData : c);
         setSuppliers(updatedSuppliers);
@@ -187,9 +185,7 @@ const Suppliers = () => {
     if (window.confirm('هل أنت متأكد من حذف هذا المورد؟')) {
       try {
         setLoading(true);
-        if (window.supabaseDB) {
-          await supabaseService.deleteSupplier(id);
-        }
+        await supabaseService.deleteSupplier(id).catch(err => console.error('Supabase delete error:', err));
         const updatedSuppliers = suppliers.filter(c => c.id !== id);
         setSuppliers(updatedSuppliers);
         localStorage.setItem('suppliers', JSON.stringify(updatedSuppliers));
