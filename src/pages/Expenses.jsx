@@ -1,0 +1,422 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Search, Trash2, Edit, X, Filter, FileText, Check, DollarSign } from 'lucide-react';
+import soundManager from '../utils/soundManager';
+import { getCurrentDate } from '../utils/dateUtils';
+import safeMath from '../utils/safeMath';
+import { useNotifications } from '../components/NotificationSystem';
+
+import supabaseService from '../utils/supabaseService';
+
+const Expenses = () => {
+    const [expenses, setExpenses] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('all'); // all, labor, general, other
+    const [showAddModal, setShowAddModal] = useState(false);
+    const { notifySuccess, notifyError } = useNotifications();
+
+    // نموذج إضافة/تعديل مصروف
+    const [formData, setFormData] = useState({
+        id: null,
+        type: 'labor', // labor, general, other
+        amount: '',
+        description: '',
+        date: getCurrentDate().split('T')[0],
+    });
+
+    const expenseTypes = {
+        labor: 'يوميات عمالة',
+        general: 'مصروفات نثريات',
+        other: 'مصروفات أخرى'
+    };
+
+    const loadExpensesFromSupabase = async () => {
+        try {
+            setLoading(true);
+            const onlineExpenses = await supabaseService.getExpenses();
+            if (onlineExpenses && onlineExpenses.length > 0) {
+                const mapped = onlineExpenses.map(e => ({
+                    ...e,
+                    date: e.date instanceof Date ? e.date.toISOString().split('T')[0] : String(e.date).split('T')[0]
+                }));
+                setExpenses(mapped);
+                localStorage.setItem('expenses', JSON.stringify(mapped));
+                return;
+            }
+            // Fallback
+            const storedExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            setExpenses(storedExpenses);
+        } catch (error) {
+            console.error("Error loading expenses:", error);
+            const storedExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            setExpenses(storedExpenses);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadExpensesFromSupabase();
+    }, []);
+
+    const saveExpensesToSupabase = async (expense, isUpdate = false) => {
+        try {
+            if (isUpdate) {
+                await supabaseService.updateExpense(expense.id, expense);
+            } else {
+                const { id, ...data } = expense;
+                await supabaseService.addExpense(data);
+            }
+        } catch (error) {
+            console.error("Error syncing expense to Supabase:", error);
+            notifyError('خطأ في المزامنة', 'تم الحفظ محلياً فقط');
+        }
+    };
+
+    const deleteExpenseFromSupabase = async (id) => {
+        try {
+            await supabaseService.deleteExpense(id);
+        } catch (error) {
+            console.error("Error deleting expense from Supabase:", error);
+        }
+    };
+
+    const saveExpenses = (newExpenses) => {
+        try {
+            localStorage.setItem('expenses', JSON.stringify(newExpenses));
+            setExpenses(newExpenses);
+            window.dispatchEvent(new Event('storage'));
+        } catch (error) {
+            console.error("Error saving expenses:", error);
+            notifyError('خطأ', 'حدث خطأ أثناء حفظ المصروفات');
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        soundManager.play('click');
+
+        if (!formData.amount || Number(formData.amount) <= 0) {
+            notifyError('تنبيه', 'برجاء إدخال مبلغ صحيح أكبر من الصفر');
+            return;
+        }
+
+        if (!formData.description.trim()) {
+            notifyError('تنبيه', 'برجاء إدخال بيان/وصف للمصروف');
+            return;
+        }
+
+        const newExpense = {
+            ...formData,
+            amount: Number(formData.amount),
+        };
+
+        if (!formData.id) {
+            newExpense.id = Date.now().toString(); // Temporary id if not from DB
+        }
+
+        try {
+            setLoading(true);
+            let updatedExpenses;
+            if (formData.id) {
+                // وضع التعديل
+                await saveExpensesToSupabase(newExpense, true);
+                updatedExpenses = expenses.map(exp => exp.id === formData.id ? newExpense : exp);
+                notifySuccess('نجاح', 'تم تعديل المصروف بنجاح بنجاح');
+            } else {
+                // إضافة جديدة
+                const savedOnline = await supabaseService.addExpense(newExpense);
+                const finalExpense = savedOnline ? { ...savedOnline, date: String(savedOnline.date).split('T')[0] } : newExpense;
+                updatedExpenses = [finalExpense, ...expenses];
+                notifySuccess('نجاح', 'تم تسجيل المصروف بنجاح');
+            }
+
+            saveExpenses(updatedExpenses);
+            closeModal();
+        } catch (error) {
+            notifyError('خطأ', 'فشل حفظ المصروف سحابياً');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        soundManager.play('delete');
+        if (window.confirm('هل أنت متأكد من حذف هذا المصروف؟')) {
+            try {
+                setLoading(true);
+                await deleteExpenseFromSupabase(id);
+                const updatedExpenses = expenses.filter(exp => exp.id !== id);
+                saveExpenses(updatedExpenses);
+                notifySuccess('نجاح', 'تم حذف المصروف بنجاح');
+            } catch (error) {
+                notifyError('خطأ', 'فشل الحذف من السحابة');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const openEditModal = (expense) => {
+        soundManager.play('click');
+        setFormData(expense);
+        setShowAddModal(true);
+    };
+
+    const closeModal = () => {
+        soundManager.play('closeWindow');
+        setShowAddModal(false);
+        setFormData({
+            id: null,
+            type: 'labor',
+            amount: '',
+            description: '',
+            date: getCurrentDate().split('T')[0],
+        });
+    };
+
+    // تصفية وبحث
+    const filteredExpenses = useMemo(() => {
+        return expenses.filter(exp => {
+            const matchesSearch = exp.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesType = filterType === 'all' || exp.type === filterType;
+            return matchesSearch && matchesType;
+        });
+    }, [expenses, searchTerm, filterType]);
+
+    // حساب الإجماليات
+    const totals = useMemo(() => {
+        return filteredExpenses.reduce((acc, curr) => {
+            return safeMath.add(acc, curr.amount);
+        }, 0);
+    }, [filteredExpenses]);
+
+    return (
+        <div className="p-4 md:p-6 lg:p-8  h-full flex flex-col">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800 flex items-center">
+                        <DollarSign className="w-8 h-8 mr-3 text-purple-400" />
+                        المصروفات اليومية والعمالة
+                    </h1>
+                    <p className="text-slate-500 mt-1">تتبع وإدارة مصاريف العمالة والمصروفات النثرية</p>
+                </div>
+
+                <button
+                    onClick={() => { soundManager.play('click'); setShowAddModal(true); }}
+                    className="bg-purple-600 hover:bg-purple-700 text-slate-800 px-6 py-2 rounded-lg flex items-center transition-colors shadow-lg shadow-purple-900/50 disabled:opacity-50"
+                    disabled={loading}
+                >
+                    <Plus className="w-5 h-5 ml-2" />
+                    {loading ? 'جاري التحميل...' : 'إضافة مصروف جديد'}
+                </button>
+            </div>
+
+            {loading && !expenses.length && (
+                <div className="flex justify-center p-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+                </div>
+            )}
+
+            {/* لوحة الإحصائيات والبحث */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div className="md:col-span-8 glass-card p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
+                    <div className="relative flex-1 w-full">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="ابحث في المصروفات (بالبيان)..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-white text-slate-800 rounded-lg pl-4 pr-10 py-2.5 border border-slate-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        />
+                    </div>
+                    <div className="relative w-full md:w-48">
+                        <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 pointer-events-none" />
+                        <select
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                            className="w-full bg-white text-slate-800 rounded-lg pl-4 pr-10 py-2.5 border border-slate-300 outline-none appearance-none cursor-pointer"
+                        >
+                            <option value="all">كل المصروفات</option>
+                            <option value="labor">يوميات عمالة</option>
+                            <option value="general">نثريات</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="md:col-span-4 glass-card p-4 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-slate-300 flex flex-col justify-center items-center">
+                    <p className="text-sm text-slate-500 mb-1">إجمالي المصروفات المعروضة</p>
+                    <p className="text-3xl font-bold text-red-400">{Number(totals).toLocaleString('en-US')} ج.م</p>
+                </div>
+            </div>
+
+            {/* جدول المصروفات */}
+            <div className="glass-card flex-1 overflow-hidden relative rounded-xl border border-slate-300/50">
+                <div className="overflow-x-auto h-full custom-scrollbar">
+                    <table className="w-full text-right text-sm">
+                        <thead className="text-xs text-slate-500 uppercase bg-white/90 sticky top-0 z-10 backdrop-blur-sm">
+                            <tr>
+                                <th className="px-6 py-4 font-semibold">تاريخ المصروف</th>
+                                <th className="px-6 py-4 font-semibold">بند المصروف</th>
+                                <th className="px-6 py-4 font-semibold">المبلغ (ج.م)</th>
+                                <th className="px-6 py-4 font-semibold w-2/5">البيان / الملاحظات</th>
+                                <th className="px-6 py-4 font-semibold text-center">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-700/50 text-slate-600">
+                            {filteredExpenses.length > 0 ? (
+                                filteredExpenses.map((expense) => (
+                                    <tr key={expense.id} className="hover:bg-gray-700/30 transition-colors group">
+                                        <td className="px-6 py-4 whitespace-nowrap">{expense.date}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${expense.type === 'labor' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                                                expense.type === 'general' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                                                    'bg-gray-500/20 text-slate-500 border border-gray-500/30'
+                                                }`}>
+                                                {expenseTypes[expense.type]}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="font-bold text-red-300">{Number(expense.amount).toLocaleString('en-US')}</span>
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-slate-800">{expense.description}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="flex justify-center space-x-2 space-x-reverse opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => openEditModal(expense)}
+                                                    className="p-1.5 bg-gray-700 hover:bg-blue-600 rounded text-slate-600 hover:text-slate-800 transition-colors"
+                                                    title="تعديل"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(expense.id)}
+                                                    className="p-1.5 bg-gray-700 hover:bg-red-600 rounded text-slate-600 hover:text-slate-800 transition-colors"
+                                                    title="حذف"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <FileText className="w-12 h-12 mb-3 text-gray-600" />
+                                            <p>لا توجد مصروفات مسجلة بهذا التصنيف.</p>
+                                            {searchTerm && <p className="text-sm mt-1">جرب تغيير شروط البحث.</p>}
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* نافذة إضافة/تعديل مصروف */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => { if (false /* Prevent closing on backdrop click */) closeModal(); }}>
+                    <div className="bg-slate-50 border border-slate-300 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-scaleIn relative">
+                        <button
+                            onClick={closeModal}
+                            className="absolute top-4 left-4 p-2 bg-white hover:bg-red-500 hover:text-slate-800 rounded-full text-slate-500 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <h2 className="text-xl font-bold text-slate-800 mb-6 pr-2 border-r-4 border-purple-500">
+                            {formData.id ? 'تعديل المصروف' : 'تسجيل مصروف جديد'}
+                        </h2>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">بند المصروف <span className="text-red-500">*</span></label>
+                                <select
+                                    name="type"
+                                    value={formData.type}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none appearance-none"
+                                    required
+                                >
+                                    <option value="labor">يوميات عمالة</option>
+                                    <option value="general">مصروفات نثريات</option>
+                                    <option value="other">أخرى</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">المبلغ (ج.م) <span className="text-red-500">*</span></label>
+                                <input
+                                    type="number"
+                                    name="amount"
+                                    min="0"
+                                    step="any"
+                                    value={formData.amount}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr font-bold text-lg text-left"
+                                    placeholder="0.00"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">التاريخ</label>
+                                <input
+                                    type="date"
+                                    name="date"
+                                    value={formData.date}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">البيان / الملاحظات <span className="text-red-500">*</span></label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none min-h-[100px] resize-y"
+                                    placeholder="اكتب بيان المصروف هنا..."
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={closeModal}
+                                    className="flex-1 px-4 py-3 bg-white hover:bg-slate-200 text-slate-800 rounded-lg transition-colors font-medium border border-slate-300"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-slate-800 rounded-lg transition-colors font-bold flex items-center justify-center flex-[2]"
+                                >
+                                    <Check className="w-5 h-5 ml-2" />
+                                    {formData.id ? 'حفظ التعديلات' : 'حفظ المصروف'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default Expenses;
