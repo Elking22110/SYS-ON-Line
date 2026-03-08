@@ -46,22 +46,24 @@ const Sidebar = () => {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden bg-[#5235E8] text-white p-4 flex justify-between items-center z-50 flex-shrink-0">
+      <div className="md:hidden bg-[#5235E8] text-white p-4 flex justify-between items-center z-50 flex-shrink-0 shadow-md">
         <div className="flex items-center">
-          <span className="text-2xl drop-shadow-md mr-2">👑</span>
-          <h1 className="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200">ELKING PRO</h1>
+          <span className="text-2xl drop-shadow-md">👑</span>
         </div>
+
         {/* اسم الصفحة النشطة في المنتصف */}
-        <div className="flex-1 text-center">
-          <span className="text-sm font-bold text-white/90 bg-white/10 px-3 py-1 rounded-full">
+        <div className="flex-1 flex justify-center px-2">
+          <h1 className="text-lg font-bold tracking-wide text-white drop-shadow-md select-none">
             {menuItems.find(item => item.path === location.pathname)?.label || 'لوحة التحكم'}
-          </span>
+          </h1>
         </div>
+
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+          className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/30"
+          aria-label="Toggle menu"
         >
-          {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileOpen ? <X size={24} strokeWidth={2.5} /> : <Menu size={24} strokeWidth={2.5} />}
         </button>
       </div>
 
@@ -116,6 +118,7 @@ const Sidebar = () => {
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
+              const shouldShowLabels = isExpanded || isMobileOpen;
 
               return (
                 <Link
@@ -127,7 +130,7 @@ const Sidebar = () => {
                   }}
                   className={`
                   relative flex items-center rounded-2xl group transition-all duration-300 font-medium overflow-hidden
-                  ${isExpanded ? 'px-4 py-3.5 mx-1' : 'px-0 py-3 mx-1 justify-center'}
+                  ${shouldShowLabels ? 'px-4 py-3.5 mx-1' : 'px-0 py-3 mx-1 justify-center'}
                   ${isActive
                       ? 'bg-gradient-to-r from-white to-indigo-50 text-[#5235E8] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] border border-white/20'
                       : 'text-white/80 hover:bg-white/10 hover:text-white hover:shadow-lg'
@@ -146,7 +149,7 @@ const Sidebar = () => {
                   <span
                     className={`
                     whitespace-nowrap text-[14px] transition-all duration-300 ease-out
-                    ${isExpanded
+                    ${shouldShowLabels
                         ? 'ml-3 opacity-100 translate-x-0 w-auto'
                         : 'ml-0 opacity-0 -translate-x-4 w-0 overflow-hidden'
                       }
@@ -157,7 +160,7 @@ const Sidebar = () => {
                   </span>
 
                   {/* Active indicator dot (when collapsed) */}
-                  {isActive && !isExpanded && (
+                  {isActive && !shouldShowLabels && (
                     <div className="absolute -left-[2px] top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
                   )}
                 </Link>
