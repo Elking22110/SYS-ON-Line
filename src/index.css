@@ -2550,3 +2550,184 @@ select.input-modern {
 .group:hover .hover-3d-effect {
   transform: translateZ(20px) scale(1.05);
 }
+
+
+/* ====================================================
+   Magic Navigation Menu 3 | @coding.stella
+   EXACT source code, converted to vertical
+   ==================================================== */
+
+:root {
+  --clr: #5235E8;
+}
+
+.navigation {
+  width: 100%;
+  height: auto;
+  background: #fff;
+  /* Change Navigation Color here */
+  position: relative;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.navigation ul {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.navigation ul li {
+  position: relative;
+  list-style: none;
+  width: 100%;
+  height: 70px;
+  z-index: 1;
+}
+
+.navigation ul li a {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+  gap: 14px;
+  text-align: center;
+  font-weight: 500;
+  text-decoration: none;
+  color: #333;
+}
+
+.navigation ul li a .icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  line-height: 75px;
+  font-size: 1.5em;
+  text-align: center;
+  transition: 0.5s;
+  color: #333;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.navigation ul li a .icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.navigation ul li.active a .icon {
+  transform: translateX(-8px);
+  opacity: 1;
+  color: #29fd;
+}
+
+.navigation ul li a .nav-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+  transition: 0.5s;
+}
+
+.navigation ul li.active a .nav-text {
+  color: #29fd;
+  font-weight: 700;
+}
+
+.navigation ul li:not(.active) a:hover .icon {
+  opacity: 1;
+  color: #29fd;
+}
+
+.indicator {
+  position: absolute;
+  left: -10px;
+  width: 70px;
+  height: 70px;
+  border-top-right-radius: 35px;
+  border-bottom-right-radius: 35px;
+  border: 6px solid var(--clr);
+  background: var(--clr);
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+.indicator::before {
+  content: "";
+  position: absolute;
+  top: -25.75px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 4px 6px 0 2px var(--clr);
+}
+
+.indicator::after {
+  content: "";
+  position: absolute;
+  bottom: -25.75px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 4px -6px 0 2px var(--clr);
+  z-index: -1;
+}
+
+.navigation ul li:nth-child(2).active ~ .indicator {
+  transform: translateY(calc(70px * 1));
+}
+
+.navigation ul li:nth-child(3).active ~ .indicator {
+  transform: translateY(calc(70px * 2));
+}
+
+.navigation ul li:nth-child(4).active ~ .indicator {
+  transform: translateY(calc(70px * 3));
+}
+
+.navigation ul li:nth-child(5).active ~ .indicator {
+  transform: translateY(calc(70px * 4));
+}
+
+.navigation ul li:nth-child(6).active ~ .indicator {
+  transform: translateY(calc(70px * 5));
+}
+
+.navigation ul li:nth-child(7).active ~ .indicator {
+  transform: translateY(calc(70px * 6));
+}
+
+.navigation ul li:nth-child(8).active ~ .indicator {
+  transform: translateY(calc(70px * 7));
+}
+
+.navigation ul li:nth-child(9).active ~ .indicator {
+  transform: translateY(calc(70px * 8));
+}
+
+.indicator span {
+  position: absolute;
+  top: 3px;
+  left: -1px;
+  width: 60px;
+  height: 60px;
+  border: 4px solid #29fd;
+  background: #fff;
+  border-radius: 50%;
+  transform-origin: bottom;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  transform: scale(0.85);
+}

@@ -204,8 +204,8 @@ const Dashboard = () => {
 
         {/* Card 1 - Total Products */}
         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
-            <Package className="w-32 h-32 animate-float-slow" />
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">📦</span>
           </div>
           <div className="relative z-10">
             <p className="text-indigo-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي المنتجات</p>
@@ -220,8 +220,8 @@ const Dashboard = () => {
 
         {/* Card 2 - Total Sales Today */}
         <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-0 right-0 p-4 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
-            <DollarSign className="w-32 h-32 animate-pulse-glow" />
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">💰</span>
           </div>
           <div className="relative z-10">
             <p className="text-fuchsia-100 text-sm font-semibold mb-2 tracking-wide uppercase">مبيعات الوردية</p>
@@ -243,8 +243,8 @@ const Dashboard = () => {
 
         {/* Card 3 - Total Orders */}
         <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
-            <ShoppingCart className="w-32 h-32 animate-float-reverse" />
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">🛒</span>
           </div>
           <div className="relative z-10">
             <p className="text-blue-100 text-sm font-semibold mb-2 tracking-wide uppercase">عدد الطلبات</p>
@@ -266,8 +266,8 @@ const Dashboard = () => {
 
         {/* Card 4 - Customers */}
         <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
-            <Users className="w-32 h-32 animate-float-slow" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">👥</span>
           </div>
           <div className="relative z-10">
             <p className="text-pink-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي العملاء</p>
