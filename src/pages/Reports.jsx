@@ -1500,7 +1500,7 @@ const Reports = () => {
             <h1 className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 mb-2 md:mb-3">
               التقارير والإحصائيات
             </h1>
-            <p className="text-slate-600 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">تحليل شامل لأداء مبيعات الملابس الرجالية</p>
+            <p className="text-slate-600 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">تحليل شامل لأداء مبيعات مصنع MS Group</p>
           </div>
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
             <button

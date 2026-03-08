@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Package, Shirt, Footprints, Watch, Headphones, Smartphone, Laptop, Home, Car, Gamepad2, Book, Camera, Gift } from 'lucide-react';
+import { Search, Package, Footprints, Watch, Headphones, Smartphone, Laptop, Home, Car, Gamepad2, Book, Camera, Gift } from 'lucide-react';
 import storageOptimizer from '../../utils/storageOptimizer.js';
 import errorHandler from '../../utils/errorHandler.js';
 import searchOptimizer from '../../utils/searchOptimizer.js';
@@ -23,7 +23,7 @@ const ProductGrid = ({
   // دالة للحصول على الأيقونة المناسبة لكل فئة
   const getCategoryIcon = (categoryName) => {
     const categoryIcons = {
-      'ملابس': <Shirt className="h-8 w-8 text-blue-400" />,
+      'نايلون': <Package className="h-8 w-8 text-blue-400" />,
       'أحذية': <Footprints className="h-8 w-8 text-brown-400" />,
       'ساعات': <Watch className="h-8 w-8 text-yellow-400" />,
       'إلكترونيات': <Smartphone className="h-8 w-8 text-purple-400" />,

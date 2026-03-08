@@ -51,6 +51,12 @@ const Sidebar = () => {
           <span className="text-2xl drop-shadow-md mr-2">👑</span>
           <h1 className="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200">ELKING PRO</h1>
         </div>
+        {/* اسم الصفحة النشطة في المنتصف */}
+        <div className="flex-1 text-center">
+          <span className="text-sm font-bold text-white/90 bg-white/10 px-3 py-1 rounded-full">
+            {menuItems.find(item => item.path === location.pathname)?.label || 'لوحة التحكم'}
+          </span>
+        </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
