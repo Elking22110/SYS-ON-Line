@@ -212,7 +212,7 @@ const Expenses = () => {
 
                 <button
                     onClick={() => { soundManager.play('click'); setShowAddModal(true); }}
-                    className="bg-purple-600 hover:bg-purple-700 text-slate-800 px-6 py-2 rounded-lg flex items-center transition-colors shadow-lg shadow-purple-900/50 disabled:opacity-50"
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl flex items-center transition-all shadow-lg hover:shadow-purple-500/30 font-semibold disabled:opacity-50"
                     disabled={loading}
                 >
                     <Plus className="w-5 h-5 ml-2" />
@@ -328,27 +328,31 @@ const Expenses = () => {
 
             {/* نافذة إضافة/تعديل مصروف */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => { if (false /* Prevent closing on backdrop click */) closeModal(); }}>
-                    <div className="bg-slate-50 border border-slate-300 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-scaleIn relative">
-                        <button
-                            onClick={closeModal}
-                            className="absolute top-4 left-4 p-2 bg-white hover:bg-red-500 hover:text-slate-800 rounded-full text-slate-500 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={closeModal}>
+                    <div className="bg-white border border-slate-300 rounded-2xl p-6 w-full max-w-md shadow-2xl relative flex flex-col" onClick={(e) => e.stopPropagation()}>
 
-                        <h2 className="text-xl font-bold text-slate-800 mb-6 pr-2 border-r-4 border-purple-500">
-                            {formData.id ? 'تعديل المصروف' : 'تسجيل مصروف جديد'}
-                        </h2>
+                        {/* Header Content Fixed */}
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 pr-3 border-r-4 border-purple-600">
+                                {formData.id ? 'تعديل المصروف' : 'تسجيل مصروف جديد'}
+                            </h2>
+                            <button
+                                type="button"
+                                onClick={closeModal}
+                                className="p-2 bg-slate-100 hover:bg-red-500 hover:text-white rounded-full text-slate-500 transition-colors shadow-sm"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 flex-1">
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">بند المصروف <span className="text-red-500">*</span></label>
                                 <select
                                     name="type"
                                     value={formData.type}
                                     onChange={handleInputChange}
-                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none appearance-none"
+                                    className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none appearance-none"
                                     required
                                 >
                                     <option value="labor">يوميات عمالة</option>
@@ -359,17 +363,21 @@ const Expenses = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">المبلغ (ج.م) <span className="text-red-500">*</span></label>
-                                <input
-                                    type="number"
-                                    name="amount"
-                                    min="0"
-                                    step="any"
-                                    value={formData.amount}
-                                    onChange={handleInputChange}
-                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr font-bold text-lg text-left"
-                                    placeholder="0.00"
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        min="0"
+                                        step="any"
+                                        value={formData.amount}
+                                        onChange={handleInputChange}
+                                        className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr font-bold text-xl text-left pl-10 transition-colors focus:bg-white"
+                                        placeholder="0.00"
+                                        autoComplete="off"
+                                        required
+                                    />
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                                </div>
                             </div>
 
                             <div>
@@ -379,7 +387,7 @@ const Expenses = () => {
                                     name="date"
                                     value={formData.date}
                                     onChange={handleInputChange}
-                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr"
+                                    className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr transition-colors focus:bg-white"
                                 />
                             </div>
 
@@ -389,7 +397,7 @@ const Expenses = () => {
                                     name="description"
                                     value={formData.description}
                                     onChange={handleInputChange}
-                                    className="w-full bg-white text-slate-800 rounded-lg p-3 border border-slate-300 focus:border-purple-500 outline-none min-h-[100px] resize-y"
+                                    className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none min-h-[90px] resize-none transition-colors focus:bg-white"
                                     placeholder="اكتب بيان المصروف هنا..."
                                     required
                                 ></textarea>
@@ -399,16 +407,16 @@ const Expenses = () => {
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="flex-1 px-4 py-3 bg-white hover:bg-slate-200 text-slate-800 rounded-lg transition-colors font-medium border border-slate-300"
+                                    className="flex-1 px-4 py-3 bg-white hover:bg-slate-200 text-slate-800 rounded-xl transition-colors font-medium border border-slate-300 shadow-sm"
                                 >
                                     إلغاء
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-slate-800 rounded-lg transition-colors font-bold flex items-center justify-center flex-[2]"
+                                    className="flex-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md rounded-xl transition-all font-bold flex items-center justify-center flex-[2] hover:shadow-lg hover:shadow-purple-500/30"
                                 >
                                     <Check className="w-5 h-5 ml-2" />
-                                    {formData.id ? 'حفظ التعديلات' : 'حفظ المصروف'}
+                                    {formData.id ? 'تأكيد التعديل' : 'حفظ المصروف'}
                                 </button>
                             </div>
                         </form>

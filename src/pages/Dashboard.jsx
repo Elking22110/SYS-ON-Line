@@ -203,122 +203,141 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
 
         {/* Card 1 - Total Products */}
-        <div className="bg-[#785EED] rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer hover:bg-[#6b51e0] transition-colors">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500">
-            <Package className="w-24 h-24" />
+        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
+            <Package className="w-32 h-32 animate-float-slow" />
           </div>
-          <p className="text-white/80 text-sm font-medium mb-1">إجمالي المنتجات</p>
-          <h3 className="text-3xl font-bold mb-4">{stats.totalProducts.toLocaleString()}</h3>
-          <div className="flex items-center text-xs font-semibold">
-            <span className="flex items-center bg-white/20 px-2 py-1 rounded-full">
-              <Package className="w-3 h-3 mr-1" /> في المخزون
-            </span>
+          <div className="relative z-10">
+            <p className="text-indigo-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي المنتجات</p>
+            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm">{stats.totalProducts.toLocaleString()}</h3>
+            <div className="flex items-center text-xs font-semibold">
+              <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
+                <Package className="w-3.5 h-3.5 mr-1 text-indigo-200" /> في المخزون
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Card 2 - Total Sales Today */}
-        <div className="bg-[#7C63F5] rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer hover:bg-[#6c54e0] transition-colors">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500">
-            <DollarSign className="w-24 h-24" />
+        <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-0 right-0 p-4 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
+            <DollarSign className="w-32 h-32 animate-pulse-glow" />
           </div>
-          <p className="text-white/80 text-sm font-medium mb-1">مبيعات الوردية</p>
-          <h3 className="text-3xl font-bold mb-4">{stats.totalSales.toLocaleString()} ج.م</h3>
-          <div className="flex items-center text-xs font-semibold">
-            {salesChange >= 0 ? (
-              <span className="flex items-center bg-white/20 px-2 py-1 rounded-full text-green-200">
-                <TrendingUp className="w-3 h-3 mr-1" /> {salesChange > 0 ? `+${salesChange}%` : 'ثابت'}
-              </span>
-            ) : (
-              <span className="flex items-center bg-white/20 px-2 py-1 rounded-full text-red-200">
-                <TrendingDown className="w-3 h-3 mr-1" /> {salesChange}%
-              </span>
-            )}
-            <span className="mr-2 text-white/60">عن أمس</span>
+          <div className="relative z-10">
+            <p className="text-fuchsia-100 text-sm font-semibold mb-2 tracking-wide uppercase">مبيعات الوردية</p>
+            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm">{stats.totalSales.toLocaleString()} <span className="text-lg font-bold text-fuchsia-200">ج.م</span></h3>
+            <div className="flex items-center text-xs font-semibold">
+              {salesChange >= 0 ? (
+                <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full text-green-300 border border-green-400/20 shadow-sm">
+                  <TrendingUp className="w-3.5 h-3.5 mr-1" /> {salesChange > 0 ? `+${salesChange}%` : 'ثابت'}
+                </span>
+              ) : (
+                <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full text-red-300 border border-red-400/20 shadow-sm">
+                  <TrendingDown className="w-3.5 h-3.5 mr-1" /> {salesChange}%
+                </span>
+              )}
+              <span className="mr-2 text-white/70 font-medium">عن أمس</span>
+            </div>
           </div>
         </div>
 
         {/* Card 3 - Total Orders */}
-        <div className="bg-[#836AF5] rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer hover:bg-[#7259e0] transition-colors">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500">
-            <ShoppingCart className="w-24 h-24" />
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
+            <ShoppingCart className="w-32 h-32 animate-float-reverse" />
           </div>
-          <p className="text-white/80 text-sm font-medium mb-1">عدد الطلبات</p>
-          <h3 className="text-3xl font-bold mb-4">{stats.totalOrders.toLocaleString()}</h3>
-          <div className="flex items-center text-xs font-semibold">
-            {ordersChange >= 0 ? (
-              <span className="flex items-center bg-white/20 px-2 py-1 rounded-full text-green-200">
-                <TrendingUp className="w-3 h-3 mr-1" /> {ordersChange > 0 ? `+${ordersChange}%` : 'ثابت'}
-              </span>
-            ) : (
-              <span className="flex items-center bg-white/20 px-2 py-1 rounded-full text-red-200">
-                <TrendingDown className="w-3 h-3 mr-1" /> {ordersChange}%
-              </span>
-            )}
-            <span className="mr-2 text-white/60">عن أمس</span>
+          <div className="relative z-10">
+            <p className="text-blue-100 text-sm font-semibold mb-2 tracking-wide uppercase">عدد الطلبات</p>
+            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm">{stats.totalOrders.toLocaleString()}</h3>
+            <div className="flex items-center text-xs font-semibold">
+              {ordersChange >= 0 ? (
+                <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full text-green-300 border border-green-400/20 shadow-sm">
+                  <TrendingUp className="w-3.5 h-3.5 mr-1" /> {ordersChange > 0 ? `+${ordersChange}%` : 'ثابت'}
+                </span>
+              ) : (
+                <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full text-red-300 border border-red-400/20 shadow-sm">
+                  <TrendingDown className="w-3.5 h-3.5 mr-1" /> {ordersChange}%
+                </span>
+              )}
+              <span className="mr-2 text-white/70 font-medium">عن أمس</span>
+            </div>
           </div>
         </div>
 
         {/* Card 4 - Customers */}
-        <div className="bg-[#8B75FF] rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer hover:bg-[#7a64e6] transition-colors">
-          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500">
-            <Users className="w-24 h-24" />
+        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500 z-0">
+            <Users className="w-32 h-32 animate-float-slow" style={{ animationDelay: '1s' }} />
           </div>
-          <p className="text-white/80 text-sm font-medium mb-1">إجمالي العملاء</p>
-          <h3 className="text-3xl font-bold mb-4">{stats.totalCustomers.toLocaleString()}</h3>
-          <div className="flex items-center text-xs font-semibold">
-            <span className="flex items-center bg-white/20 px-2 py-1 rounded-full">
-              <Users className="w-3 h-3 mr-1" /> مسجلين
-            </span>
+          <div className="relative z-10">
+            <p className="text-pink-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي العملاء</p>
+            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm">{stats.totalCustomers.toLocaleString()}</h3>
+            <div className="flex items-center text-xs font-semibold">
+              <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm text-pink-50">
+                <Users className="w-3.5 h-3.5 mr-1" /> مسجلين
+              </span>
+            </div>
           </div>
         </div>
 
       </div>
 
       {/* --- RECENT ORDERS LIST --- */}
-      <div className="bg-white rounded-[24px] p-6 shadow-sm mb-6 ">
-        <h2 className="text-[#1E1B4B] font-bold text-lg mb-4">آخر الطلبات</h2>
+      <div className="bg-white/80 backdrop-blur-md border border-white/50 rounded-[28px] p-8 shadow-xl shadow-slate-200/40 mb-8 transition-all hover:shadow-slate-300/50">
+        <h2 className="text-[#1E1B4B] font-black text-xl mb-6 flex items-center">
+          <Activity className="w-5 h-5 ml-2 text-indigo-500" />
+          آخر الطلبات
+        </h2>
 
-        <div className="space-y-0">
+        <div className="space-y-3">
           {recentOrders.length > 0 ? recentOrders.map((order) => (
-            <div key={order.id} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors px-2 rounded-xl group">
+            <div key={order.id} className="flex items-center justify-between py-4 px-6 bg-slate-50/50 border border-slate-100/80 rounded-2xl hover:bg-indigo-50/50 hover:border-indigo-100 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
               <div className="flex items-center min-w-[200px]">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold mr-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold ml-4 shadow-inner group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors">
                   {order.customer.charAt(0)}
                 </div>
-                <span className="font-semibold text-gray-700">{order.customer}</span>
+                <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors">{order.customer}</span>
               </div>
 
-              <div className="min-w-[120px] font-bold text-gray-800">
-                {order.amount.toLocaleString()} ج.م
+              <div className="min-w-[120px] font-black text-slate-800 text-lg">
+                {order.amount.toLocaleString()} <span className="text-sm text-slate-500 font-semibold">ج.م</span>
               </div>
 
-              <div className="min-w-[120px] text-gray-500 text-sm font-medium">
-                {order.items} منتج
+              <div className="min-w-[120px] text-slate-500 text-sm font-semibold flex items-center">
+                <Package className="w-4 h-4 ml-1 opacity-70" />
+                {order.items} منتجات
               </div>
 
-              <div className="min-w-[120px] text-gray-500 text-sm font-medium">
+              <div className="min-w-[120px] text-slate-500 text-sm font-semibold flex items-center">
+                <Clock className="w-4 h-4 ml-1 opacity-70" />
                 {order.time}
               </div>
 
-              <div className={`min-w-[80px] font-semibold text-sm ${order.paymentMethod === 'cash' ? 'text-green-500' : 'text-blue-500'}`}>
+              <div className={`min-w-[100px] font-bold text-sm px-4 py-1.5 rounded-full text-center ${order.paymentMethod === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
                 {order.paymentMethod === 'cash' ? 'نقدي' : order.paymentMethod === 'card' ? 'بطاقة' : order.paymentMethod}
               </div>
             </div>
           )) : (
-            <div className="text-center py-8 text-gray-400 font-medium">
-              لا توجد طلبات حتى الآن في هذه الوردية
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                <FileText className="w-8 h-8 text-slate-300" />
+              </div>
+              <span className="font-semibold">لا توجد طلبات حتى الآن في هذه الوردية</span>
             </div>
           )}
         </div>
       </div>
 
       {/* --- CHARTS ROW --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* BIG CHART: Sales over the last 7 days */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-[24px] shadow-sm">
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-white/50 p-8 rounded-[28px] shadow-xl shadow-slate-200/40">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-[#1E1B4B] font-bold text-lg">نشاط المبيعات (آخر 7 أيام)</h3>
+            <h3 className="text-[#1E1B4B] font-black text-lg flex items-center">
+              <TrendingUp className="w-5 h-5 ml-2 text-indigo-500" />
+              نشاط المبيعات (آخر 7 أيام)
+            </h3>
             <div className="flex items-center space-x-4 text-sm font-semibold">
               <div className="flex items-center text-[#5235E8]">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#5235E8] mr-2"></span> الإيرادات
@@ -379,37 +398,49 @@ const Dashboard = () => {
         </div>
 
         {/* SUMMARY CARD */}
-        <div className="bg-[#4834D4] rounded-[24px] p-6 shadow-lg relative overflow-hidden text-white flex flex-col justify-between">
-          {/* Background Texture */}
-          <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(255,255,255,0.8), transparent)', backgroundSize: '150% 150%' }}></div>
+        {/* SUMMARY CARD */}
+        <div className="bg-gradient-to-br from-indigo-900 via-[#362082] to-purple-950 border border-purple-500/30 rounded-[28px] p-8 shadow-2xl shadow-indigo-900/40 relative overflow-hidden text-white flex flex-col justify-between group">
+          {/* Background Texture & Glow */}
+          <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-400/20 via-transparent to-transparent z-0 transition-opacity group-hover:opacity-60"></div>
 
           <div className="relative z-10">
-            <h3 className="text-white/90 font-medium mb-1 text-sm">ملخص اليوم</h3>
-            <h2 className="text-4xl font-bold mb-1">{todayStats.sales.toLocaleString()}</h2>
-            <p className="text-white/80 text-sm font-medium">ج.م إيرادات اليوم</p>
+            <h3 className="text-indigo-200 font-semibold mb-2 text-sm tracking-widest uppercase flex items-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mr-2 animate-pulse"></span>
+              ملخص واحصائيات اليوم
+            </h3>
+            <h2 className="text-5xl font-black mb-1 drop-shadow-md tracking-tight text-white z-20">
+              {todayStats.sales.toLocaleString()}
+            </h2>
+            <p className="text-purple-200/80 text-sm font-medium mt-2 z-20">إجمالي الإيرادات <span className="text-xs">ج.م</span></p>
           </div>
 
-          <div className="relative z-10 mt-8 mb-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-white/80 text-sm">عدد الفواتير اليوم</span>
-              <span className="text-xl font-bold">{todayStats.orders}</span>
+          <div className="relative z-10 mt-10 mb-6 space-y-3 p-1">
+            <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
+              <span className="text-indigo-100 text-sm font-medium flex items-center">
+                <ShoppingCart className="w-4 h-4 mr-2 text-indigo-300" /> عدد الفواتير
+              </span>
+              <span className="text-2xl font-black text-white">{todayStats.orders}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-white/80 text-sm">إجمالي العملاء</span>
-              <span className="text-xl font-bold">{stats.totalCustomers}</span>
+            <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
+              <span className="text-indigo-100 text-sm font-medium flex items-center">
+                <Users className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي العملاء
+              </span>
+              <span className="text-2xl font-black text-white">{stats.totalCustomers}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-white/80 text-sm">إجمالي المنتجات</span>
-              <span className="text-xl font-bold">{stats.totalProducts}</span>
+            <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
+              <span className="text-indigo-100 text-sm font-medium flex items-center">
+                <Package className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي المنتجات
+              </span>
+              <span className="text-2xl font-black text-white">{stats.totalProducts}</span>
             </div>
           </div>
 
           {salesChange !== 0 && (
-            <div className="relative z-10 flex items-center text-xs text-white/80 font-medium bg-white/10 rounded-full px-3 py-2 w-fit">
+            <div className="relative z-10 flex items-center text-xs font-bold bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 text-center w-full justify-center shadow-inner">
               {salesChange >= 0 ? (
-                <><TrendingUp className="w-3 h-3 mr-1 text-green-300" /> +{salesChange}% عن أمس</>
+                <><TrendingUp className="w-4 h-4 mr-2 text-emerald-400" /> <span className="text-emerald-50">+{salesChange}% ارتفاع عن أمس</span></>
               ) : (
-                <><TrendingDown className="w-3 h-3 mr-1 text-red-300" /> {salesChange}% عن أمس</>
+                <><TrendingDown className="w-4 h-4 mr-2 text-rose-400" /> <span className="text-rose-50">{salesChange}% تراجع عن أمس</span></>
               )}
             </div>
           )}

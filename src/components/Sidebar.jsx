@@ -68,16 +68,8 @@ const Sidebar = () => {
       {/* Mobile Top Bar */}
       <div className="md:hidden bg-[#5235E8] text-white p-4 flex justify-between items-center z-50 flex-shrink-0">
         <div className="flex items-center">
-          <img
-            src="./logo.png"
-            alt="Elking Logo"
-            className="w-8 h-8 object-contain mr-3 bg-white/10 rounded-lg p-1"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.style.display = 'none';
-            }}
-          />
-          <h1 className="text-xl font-black tracking-wider text-white">Elking</h1>
+          <span className="text-2xl drop-shadow-md mr-2">👑</span>
+          <h1 className="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 indent-1 drop-shadow-sm">ELKING PRO</h1>
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -102,20 +94,22 @@ const Sidebar = () => {
         w-64 md:w-75 lg:w-[280px] bg-[#5235E8] text-white flex flex-col h-full md:h-screen flex-shrink-0 overflow-y-auto custom-scrollbar shadow-2xl md:shadow-none
       `}>
 
-        {/* Header Logo (Hidden on mobile inside sidebar as it's in top bar, or keep if preferred? Actually let's hide on mobile) */}
-        <div className="hidden md:flex p-8 pb-4 items-center mb-6 mt-4">
-          <img
-            src="./logo.png"
-            alt="Elking Logo"
-            className="w-10 h-10 object-contain mr-3 shrink-0 bg-white/10 rounded-lg p-1"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.style.display = 'none';
-            }}
-          />
-          <h1 className="text-2xl font-black tracking-wider text-white shrink-0">
-            Elking
-          </h1>
+        {/* Premium Header Crown Box */}
+        <div className="hidden md:block p-6 pt-12 mt-4 mb-2">
+          <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-3xl p-6 text-center relative shadow-2xl overflow-visible border border-purple-700/50 group">
+            {/* Crown illustration */}
+            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 flex items-center justify-center">
+              <div className="relative w-full h-full flex flex-col items-center justify-center animate-bounce">
+                <span className="text-6xl drop-shadow-[0_0_20px_rgba(255,215,0,0.8)] pb-4 shrink-0 transition-transform group-hover:scale-110">👑</span>
+                <div className="absolute bottom-2 w-16 h-4 bg-black/50 rounded-[100%] blur-md opacity-60 z-[-1]"></div>
+              </div>
+            </div>
+
+            <div className="mt-8 shrink-0">
+              <h1 className="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 drop-shadow-sm mb-1">ELKING PRO V2</h1>
+              <p className="text-xs text-purple-300 font-medium">نظام إدارة متكامل</p>
+            </div>
+          </div>
         </div>
 
 
@@ -133,16 +127,16 @@ const Sidebar = () => {
                   soundManager.play('click');
                   setIsMobileOpen(false);
                 }}
-                className={`flex items-center space-x-4 px-6 py-3.5 mx-2 rounded-2xl group transition-all duration-300 font-medium ${isActive
-                  ? 'bg-white text-[#5235E8] shadow-lg scale-105'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+                className={`flex items-center space-x-4 px-6 py-4 mx-2 rounded-2xl group transition-all duration-300 font-medium perspective-1000 ${isActive
+                  ? 'bg-gradient-to-r from-white to-indigo-50 text-[#5235E8] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] border border-white/20'
+                  : 'text-white/80 hover:bg-white/10 hover:text-white hover:shadow-lg'
                   }`}
               >
-                <div className="flex items-center justify-center shrink-0">
+                <div className={`flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-300 ${isActive ? 'bg-indigo-100 shadow-inner' : 'group-hover:bg-white/10'}`}>
                   {/* Fixed space issue by removing margin right if no RTL and applying standard space */}
-                  <Icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? 'text-[#5235E8]' : 'text-white/70 group-hover:text-white'}`} strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon className={`h-5 w-5 shrink-0 transition-all duration-300 animate-wiggle-icon hover-3d-effect ${isActive ? 'text-[#5235E8] drop-shadow-md' : 'text-white/70 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`} strokeWidth={isActive ? 2.5 : 2} />
                 </div>
-                <span className={`text-[15px] shrink-0 ml-4 ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                <span className={`text-[15px] shrink-0 ml-3 transition-all duration-300 ${isActive ? 'font-black tracking-wide text-indigo-900 drop-shadow-sm' : 'font-semibold tracking-wide group-hover:translate-x-1'}`}>{item.label}</span>
               </Link>
             );
           })}
@@ -178,26 +172,6 @@ const Sidebar = () => {
             >
               <LogOut className="h-4 w-4 shrink-0" />
               تسجيل الخروج
-            </button>
-          </div>
-        </div>
-
-        {/* Upgrade Box (From Design) */}
-        <div className="p-6 mt-auto">
-          <div className="bg-white rounded-3xl p-6 text-center relative shadow-2xl overflow-visible">
-            {/* Rocket illustration placeholder */}
-            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 flex items-center justify-center">
-              <div className="relative w-full h-full flex flex-col items-center justify-center animate-bounce">
-                <span className="text-6xl drop-shadow-md pb-4 shrink-0">🚀</span>
-                <div className="absolute bottom-2 w-16 h-4 bg-gray-200 rounded-[100%] blur-sm opacity-50 z-[-1]"></div>
-              </div>
-            </div>
-
-            <div className="mt-8 mb-4 shrink-0">
-              <h3 className="text-[#1E1B4B] font-bold text-sm mb-1">Want to upgrade</h3>
-            </div>
-            <button className="w-full shrink-0 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-transform hover:scale-105 shadow-md border-0">
-              Upgrade now
             </button>
           </div>
         </div>

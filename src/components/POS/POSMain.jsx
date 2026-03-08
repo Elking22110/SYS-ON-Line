@@ -1198,14 +1198,27 @@ const POSMain = () => {
     <div className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-4 py-6">
         {/* العنوان */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            نقطة البيع - {user?.username || 'غير محدد'}
-          </h1>
-          <p className="text-slate-500">
-            الوردية: {activeShift ? `#${activeShift.id}` : 'غير نشطة'} |
-            التاريخ: {getCurrentDate()}
-          </p>
+        <div className="mb-8 bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xl shadow-slate-200/40 flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 opacity-50 z-0 pointer-events-none"></div>
+          <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-indigo-500 to-purple-600"></div>
+
+          <div className="relative z-10">
+            <h1 className="text-3xl font-black text-slate-800 mb-2 tracking-tight flex items-center">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">نقطة البيع</span>
+              <span className="mx-3 text-slate-300 font-light">|</span>
+              <span className="text-xl text-slate-600 font-bold">{user?.username || 'غير محدد'}</span>
+            </h1>
+            <p className="text-slate-500 font-medium flex items-center space-x-4 space-x-reverse">
+              <span className="flex items-center">
+                <span className={`w-2 h-2 rounded-full mr-1.5 ml-1 ${activeShift ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
+                الوردية: {activeShift ? `#${activeShift.id}` : 'غير نشطة'}
+              </span>
+              <span className="text-slate-300 px-1">•</span>
+              <span className="flex items-center text-slate-500">
+                {getCurrentDate()}
+              </span>
+            </p>
+          </div>
         </div>
 
         {/* المحتوى الرئيسي */}

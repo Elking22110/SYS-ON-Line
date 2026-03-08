@@ -122,6 +122,7 @@ body::before {
 svg {
   flex-shrink: 0;
 }
+
 img {
   object-fit: contain;
 }
@@ -2507,4 +2508,45 @@ select.input-modern {
     background-color: currentColor;
     color: white;
   }
+}
+
+@keyframes wiggleIcon {
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  25% {
+    transform: scale(1.15) rotate(-10deg);
+  }
+
+  50% {
+    transform: scale(1.15) rotate(10deg);
+  }
+
+  75% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+}
+
+.animate-wiggle-icon {
+  transition: transform 0.2s ease;
+}
+
+.group:active .animate-wiggle-icon,
+.animate-wiggle-icon:active {
+  animation: wiggleIcon 0.4s ease-in-out;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.hover-3d-effect {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.group:hover .hover-3d-effect {
+  transform: translateZ(20px) scale(1.05);
 }
