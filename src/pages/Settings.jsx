@@ -509,6 +509,8 @@ const Settings = () => {
       user.id === editingUser.id ? updatedUser : user
     );
 
+    supabaseService.updateUser(updatedUser.id, updatedUser).catch(console.error);
+
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     setShowEditUserModal(false);
@@ -537,6 +539,7 @@ const Settings = () => {
 
     const confirmMessage = `هل أنت متأكد من حذف المستخدم "${userToDelete?.name}"؟\n\nهذا الإجراء لا يمكن التراجع عنه.`;
     if (window.confirm(confirmMessage)) {
+      supabaseService.deleteUser(userId).catch(console.error);
       const updatedUsers = users.filter(user => user.id !== userId);
       setUsers(updatedUsers);
       localStorage.setItem('users', JSON.stringify(updatedUsers));
@@ -565,9 +568,12 @@ const Settings = () => {
       }
     }
 
+    const newStatus = userToToggle.status === 'active' ? 'inactive' : 'active';
+    supabaseService.updateUser(userId, { status: newStatus }).catch(console.error);
+
     const updatedUsers = users.map(user =>
       user.id === userId
-        ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
+        ? { ...user, status: newStatus }
         : user
     );
 

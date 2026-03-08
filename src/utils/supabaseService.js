@@ -91,6 +91,8 @@ const dbApi = {
             : await supabase.from('Sale').insert(cleanPayload).select().single();
         if (error) throw error; return res;
     },
+    deleteSale: async (id) => { const { error } = await supabase.from('Sale').delete().eq('id', id); if (error) throw error; return true; },
+
 
     getShifts: async () => { const { data } = await supabase.from('Shift').select('*'); return data || []; },
     startShift: async (dataArg) => {
@@ -185,6 +187,15 @@ const dbApi = {
             : await supabase.from('User').insert(cleanPayload).select().single();
         if (error) throw error; return res;
     },
+    updateUser: async (id, data) => {
+        const allowed = ['username', 'password', 'role', 'name', 'status', 'lastLogin'];
+        const cleanPayload = {};
+        if (data.name && !data.username) data.username = data.name;
+        allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
+        const { data: res, error } = await supabase.from('User').update(cleanPayload).eq('id', id).select().single();
+        if (error) throw error; return res;
+    },
+    deleteUser: async (id) => { const { error } = await supabase.from('User').delete().eq('id', id); if (error) throw error; return true; },
 
     getSettings: async () => { const { data } = await supabase.from('Setting').select('*'); return data || []; },
     updateSetting: async (key, value) => {
@@ -197,6 +208,14 @@ const dbApi = {
             const { data: res, error } = await supabase.from('Setting').insert({ key, value: stringValue, id: Date.now().toString() }).select().single();
             if (error) throw error; return res;
         }
+    },
+    updateProductsCategory: async (oldName, newName) => {
+        const { error } = await supabase.from('Product').update({ category: newName }).eq('category', oldName);
+        if (error) throw error; return true;
+    },
+    deleteProductsByCategory: async (categoryName) => {
+        const { error } = await supabase.from('Product').delete().eq('category', categoryName);
+        if (error) throw error; return true;
     }
 };
 class SupabaseService {
@@ -244,11 +263,27 @@ class SupabaseService {
         this.isRealtimeEnabled = true;
     }
 
-    /**
-     * Handle incoming realtime payload and sync with local storage/UI
-     */
     async handleRealtimeUpdate(tableInfo, payload) {
         try {
+            // Update local storage instantly to ensure offline/online syncing works magically across devices
+            const storageKey = tableInfo.storageKey;
+            if (storageKey) {
+                const currentData = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                let updatedData = [...currentData];
+
+                if (payload.eventType === 'INSERT') {
+                    if (!updatedData.find(item => item.id == payload.new.id)) {
+                        updatedData.push(payload.new);
+                    }
+                } else if (payload.eventType === 'UPDATE') {
+                    updatedData = updatedData.map(item => item.id == payload.new.id ? payload.new : item);
+                } else if (payload.eventType === 'DELETE') {
+                    updatedData = updatedData.filter(item => item.id != payload.old.id);
+                }
+
+                localStorage.setItem(storageKey, JSON.stringify(updatedData));
+            }
+
             // Trigger UI update event via observerManager
             publish(tableInfo.event, {
                 type: 'remote_sync',
@@ -256,8 +291,7 @@ class SupabaseService {
                 data: payload.new || payload.old
             });
 
-            // We don't necessarily update localStorage here to avoid conflicts
-            // Components will fetch fresh data if needed when they receive the event
+            // Components will fetch fresh data from localStorage because they listen to the publish event
         } catch (error) {
             console.error(`Error handling realtime update for ${tableInfo.name}:`, error);
         }
@@ -314,10 +348,11 @@ class SupabaseService {
                     category: productData.category,
                     price: parseFloat(productData.price) || 0,
                     costPrice: parseFloat(productData.costPrice) || 0,
-                    quantity: parseInt(productData.stock) || 0,
-                    minQuantity: parseInt(productData.minStock) || 0,
+                    quantity: parseFloat(productData.stock) || 0,
+                    minQuantity: parseFloat(productData.minStock) || 0,
                     image: productData.image || null,
                     barcode: productData.barcode || null,
+                    supplyId: productData.supplyId || null,
                     status: 'active',
                     updatedAt: new Date().toISOString()
                 };
@@ -343,10 +378,11 @@ class SupabaseService {
                     category: productData.category,
                     price: parseFloat(productData.price) || 0,
                     costPrice: parseFloat(productData.costPrice) || 0,
-                    quantity: parseInt(productData.stock) || 0,
-                    minQuantity: parseInt(productData.minStock) || 0,
+                    quantity: parseFloat(productData.stock) || 0,
+                    minQuantity: parseFloat(productData.minStock) || 0,
                     image: productData.image || null,
-                    barcode: productData.barcode || null
+                    barcode: productData.barcode || null,
+                    supplyId: productData.supplyId || null
                 };
                 return await dbApi.updateProduct(id, data);
             }
@@ -415,6 +451,18 @@ class SupabaseService {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteCategory', [name]);
             throw error;
         }
+    }
+
+    async updateProductsCategory(oldName, newName) {
+        try {
+            if (dbApi) return await dbApi.updateProductsCategory(oldName, newName);
+        } catch (error) { throw error; }
+    }
+
+    async deleteProductsByCategory(categoryName) {
+        try {
+            if (dbApi) return await dbApi.deleteProductsByCategory(categoryName);
+        } catch (error) { throw error; }
     }
 
     // CUSTOMERS
@@ -527,6 +575,22 @@ class SupabaseService {
         }
     }
 
+    async deleteSale(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteSale', [id], options);
+        if (offlineResult) return offlineResult;
+
+        try {
+            if (dbApi) {
+                return await dbApi.deleteSale(id);
+            }
+        } catch (error) {
+            console.error('Error deleting sale from Supabase:', error);
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteSale', [id]);
+            throw error;
+        }
+    }
+
+
     // SHIFTS
     async getShifts() {
         try {
@@ -594,6 +658,36 @@ class SupabaseService {
                 return null;
             }
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addUser', [userData]);
+            throw error;
+        }
+    }
+
+    async updateUser(id, userData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('updateUser', [id, userData], options);
+        if (offlineResult) return offlineResult;
+
+        try {
+            if (dbApi) {
+                return await dbApi.updateUser(id, userData);
+            }
+        } catch (error) {
+            console.error('Error updating user in Supabase:', error);
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'updateUser', [id, userData]);
+            throw error;
+        }
+    }
+
+    async deleteUser(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteUser', [id], options);
+        if (offlineResult) return offlineResult;
+
+        try {
+            if (dbApi) {
+                return await dbApi.deleteUser(id);
+            }
+        } catch (error) {
+            console.error('Error deleting user from Supabase:', error);
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteUser', [id]);
             throw error;
         }
     }

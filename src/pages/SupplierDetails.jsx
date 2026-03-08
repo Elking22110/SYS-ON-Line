@@ -18,6 +18,7 @@ import soundManager from '../utils/soundManager.js';
 import { formatDate, getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
 import { publish, subscribe, EVENTS } from '../utils/observerManager';
+import supabaseService from '../utils/supabaseService';
 
 const SupplierDetails = () => {
     const { id } = useParams();
@@ -85,7 +86,7 @@ const SupplierDetails = () => {
     const totalRemaining = safeMath.subtract(calculateTotalSuppliesValue(), calculateTotalPaid());
 
     // Handle adding a new supply
-    const handleAddSupply = () => {
+    const handleAddSupply = async () => {
         if (!newSupply.productName || !newSupply.quantity || !newSupply.unitPrice) {
             alert("يرجى ملء جميع الحقول المطلوبة للتوريدة");
             return;
@@ -130,7 +131,9 @@ const SupplierDetails = () => {
             name: newSupply.productName,
             price: price, // Base raw price
             costPrice: price, // For profit calc
+            quantity: qty, // Prisma maps quantity back to stock in UI sometimes, wait, supabaseService expects 'stock' in addProduct
             stock: qty,
+            minStock: 0,
             category: 'خامات توريد', // default category
             isSupplyProduct: true,
             supplyId: supply.id,
@@ -138,9 +141,21 @@ const SupplierDetails = () => {
             barcode: '',
             status: 'active'
         };
+
+        try {
+            await supabaseService.addProduct(newProduct);
+        } catch (e) {
+            console.error('Failed to sync new supply product to supabase', e);
+        }
+
         productsData.push(newProduct);
         localStorage.setItem('products', JSON.stringify(productsData));
         publish(EVENTS.PRODUCTS_CHANGED, { type: 'add' });
+
+        // Sync supply arrays to cloud setting
+        try {
+            await supabaseService.updateSetting('supplier_supplies', JSON.stringify(allSupplies));
+        } catch (e) { console.error('Failed to sync supplies list to cloud', e); }
 
         // Update supplier global stats
         updateSupplierStats(id, totalPrice);
@@ -152,7 +167,7 @@ const SupplierDetails = () => {
     };
 
     // Handle adding a payment
-    const handleAddPayment = () => {
+    const handleAddPayment = async () => {
         if (!newPayment.amount) {
             alert("يرجى إدخال مبلغ الدفعة");
             return;
@@ -182,6 +197,10 @@ const SupplierDetails = () => {
         allPayments.push(payment);
         localStorage.setItem('supplier_payments', JSON.stringify(allPayments));
 
+        try {
+            await supabaseService.updateSetting('supplier_payments', JSON.stringify(allPayments));
+        } catch (e) { console.error('Failed to sync payments list to cloud', e); }
+
         publish(EVENTS.SUPPLIERS_CHANGED, { type: 'add_payment' });
 
         soundManager.play('save');
@@ -190,7 +209,7 @@ const SupplierDetails = () => {
         loadData();
     };
 
-    const handleDeleteSupply = (supplyId) => {
+    const handleDeleteSupply = async (supplyId) => {
         if (window.confirm('هل أنت متأكد من حذف هذه التوريدة؟ سيتم أيضاً خصمها من الإجمالي.')) {
             const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
             const supplyToDelete = allSupplies.find(s => s.id === supplyId);
@@ -199,10 +218,19 @@ const SupplierDetails = () => {
                 const filteredSupplies = allSupplies.filter(s => s.id !== supplyId);
                 localStorage.setItem('supplier_supplies', JSON.stringify(filteredSupplies));
 
+                try {
+                    await supabaseService.updateSetting('supplier_supplies', JSON.stringify(filteredSupplies));
+                } catch (e) { }
+
                 // Remove linked product if exists
                 const productsData = JSON.parse(localStorage.getItem('products') || '[]');
                 const filteredProducts = productsData.filter(p => p.supplyId !== supplyId);
                 localStorage.setItem('products', JSON.stringify(filteredProducts));
+
+                try {
+                    await supabaseService.deleteProduct(`supply_${supplyId}`);
+                } catch (e) { console.error('Failed to delete supply product from supabase', e); }
+
                 publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete' });
 
                 // Refill supplier stats (subtraction)
@@ -214,11 +242,15 @@ const SupplierDetails = () => {
         }
     };
 
-    const handleDeletePayment = (paymentId) => {
+    const handleDeletePayment = async (paymentId) => {
         if (window.confirm('هل أنت متأكد من حذف هذه الدفعة المالية؟')) {
             const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
             const filteredPayments = allPayments.filter(p => p.id !== paymentId);
             localStorage.setItem('supplier_payments', JSON.stringify(filteredPayments));
+
+            try {
+                await supabaseService.updateSetting('supplier_payments', JSON.stringify(filteredPayments));
+            } catch (e) { }
 
             publish(EVENTS.SUPPLIERS_CHANGED, { type: 'delete_payment' });
 
@@ -227,7 +259,7 @@ const SupplierDetails = () => {
         }
     };
 
-    const updateSupplierStats = (supplierId, additionalSpent) => {
+    const updateSupplierStats = async (supplierId, additionalSpent) => {
         const suppliersData = JSON.parse(localStorage.getItem('suppliers') || '[]');
         const index = suppliersData.findIndex(s => s.id.toString() === supplierId);
         if (index !== -1) {
@@ -242,6 +274,10 @@ const SupplierDetails = () => {
             }
             suppliersData[index] = s;
             localStorage.setItem('suppliers', JSON.stringify(suppliersData));
+
+            try {
+                await supabaseService.updateSupplier(s.id, s);
+            } catch (e) { console.error('Failed to update supplier stats to cloud', e); }
 
             // Update local state supplier and trigger event
             setSupplier(s);

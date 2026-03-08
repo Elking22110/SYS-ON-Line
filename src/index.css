@@ -11,7 +11,7 @@
   --primary-500: #8B5CF6;
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --text-primary: #1e293b;
+  --text-primary: #19662f;
   --text-secondary: #475569;
 }
 
@@ -19,7 +19,7 @@
 .light {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
-  --text-primary: #1f2937;
+  --text-primary: #16e219;
   --text-secondary: #6b7280;
 }
 
@@ -71,7 +71,7 @@ body {
   overflow: hidden;
   font-weight: 400;
   line-height: 1.6;
-  color: #1e293b;
+  color: #16e23c;
   width: 100vw;
   position: relative;
 }
@@ -2686,35 +2686,35 @@ select.input-modern {
   z-index: -1;
 }
 
-.navigation ul li:nth-child(2).active ~ .indicator {
+.navigation ul li:nth-child(2).active~.indicator {
   transform: translateY(calc(70px * 1));
 }
 
-.navigation ul li:nth-child(3).active ~ .indicator {
+.navigation ul li:nth-child(3).active~.indicator {
   transform: translateY(calc(70px * 2));
 }
 
-.navigation ul li:nth-child(4).active ~ .indicator {
+.navigation ul li:nth-child(4).active~.indicator {
   transform: translateY(calc(70px * 3));
 }
 
-.navigation ul li:nth-child(5).active ~ .indicator {
+.navigation ul li:nth-child(5).active~.indicator {
   transform: translateY(calc(70px * 4));
 }
 
-.navigation ul li:nth-child(6).active ~ .indicator {
+.navigation ul li:nth-child(6).active~.indicator {
   transform: translateY(calc(70px * 5));
 }
 
-.navigation ul li:nth-child(7).active ~ .indicator {
+.navigation ul li:nth-child(7).active~.indicator {
   transform: translateY(calc(70px * 6));
 }
 
-.navigation ul li:nth-child(8).active ~ .indicator {
+.navigation ul li:nth-child(8).active~.indicator {
   transform: translateY(calc(70px * 7));
 }
 
-.navigation ul li:nth-child(9).active ~ .indicator {
+.navigation ul li:nth-child(9).active~.indicator {
   transform: translateY(calc(70px * 8));
 }
 
@@ -2730,4 +2730,126 @@ select.input-modern {
   transform-origin: bottom;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   transform: scale(0.85);
+}
+
+
+/* ========================================
+   Dashboard Animations
+   ======================================== */
+
+/* Emoji float animation */
+@keyframes emoji-float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+
+  75% {
+    transform: translateY(3px) rotate(-2deg);
+  }
+}
+
+.animate-emoji-float {
+  animation: emoji-float 4s ease-in-out infinite;
+}
+
+/* Card entrance - fade in + slide up */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-card-enter-1 {
+  animation-delay: 0ms;
+}
+
+.animate-card-enter-2 {
+  animation-delay: 100ms;
+}
+
+.animate-card-enter-3 {
+  animation-delay: 200ms;
+}
+
+.animate-card-enter-4 {
+  animation-delay: 300ms;
+}
+
+.animate-card-enter-5 {
+  animation-delay: 450ms;
+}
+
+.animate-card-enter-6 {
+  animation-delay: 550ms;
+}
+
+/* Subtle pulse glow */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 8px 30px rgba(82, 53, 232, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 8px 40px rgba(82, 53, 232, 0.3);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Shimmer for summary card */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Number count-up feel */
+@keyframes number-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-number-pop {
+  animation: number-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

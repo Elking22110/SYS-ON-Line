@@ -185,8 +185,8 @@ const POSMain = () => {
     // Fetch supplies for this product
     try {
       const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
-      // Filter supplies to only include those linked to the selected product (using remainingQuantity or quantity)
-      const productSupplies = allSupplies.filter(s => s.id === product.supplyId && Number(s.remainingQuantity !== undefined ? s.remainingQuantity : s.quantity) > 0);
+      // استخدام المقارنة بالسلاسل النصية لتجنب مشاكل الأنواع (رقم مقابل نص)
+      const productSupplies = allSupplies.filter(s => s.id?.toString() === product.supplyId?.toString() && Number(s.remainingQuantity !== undefined ? s.remainingQuantity : s.quantity) > 0);
       setAvailableSupplies(productSupplies);
 
       // Pre-fill raw and net quantity if a supply is found and linked
@@ -445,7 +445,7 @@ const POSMain = () => {
 
         cart.forEach(item => {
           if (item.wasteData && item.wasteData.supplyId) {
-            const supplyIndex = allSupplies.findIndex(s => s.id === item.wasteData.supplyId);
+            const supplyIndex = allSupplies.findIndex(s => s.id?.toString() === item.wasteData.supplyId?.toString());
             if (supplyIndex !== -1) {
               const consumedRawQty = Number(item.wasteData.rawQuantity) || 0;
               const currentQty = allSupplies[supplyIndex].remainingQuantity !== undefined ? allSupplies[supplyIndex].remainingQuantity : allSupplies[supplyIndex].quantity;
@@ -458,53 +458,51 @@ const POSMain = () => {
 
               suppliesUpdated = true;
 
-              // If the supply is fully consumed, mark for deletion
-              if (allSupplies[supplyIndex].remainingQuantity <= 0) {
-                // Find the product linked to this supply and mark its ID for removal
-                const productLinkedToSupply = products.find(p => p.supplyId === allSupplies[supplyIndex].id);
-                if (productLinkedToSupply) {
-                  productsToRemove.push(productLinkedToSupply.id);
-                }
-              }
+              // If the supply is fully consumed, we just update the supplies
+              // We intentionally do not delete the product from the catalog here
             }
           }
         });
 
         if (suppliesUpdated) {
           localStorage.setItem('supplier_supplies', JSON.stringify(allSupplies));
+          // إشعار التطبيق بأن التوريدات والمنتجات تغيرت حتى تختفي تلقائياً
+          publish(EVENTS.PRODUCTS_CHANGED, { type: 'supply_consumed' });
+
+          // مزامنة مع السحابة
+          supabaseService.updateSetting('supplier_supplies', JSON.stringify(allSupplies))
+            .catch(err => console.error('Error syncing supplier_supplies to cloud from POS:', err));
         }
 
-        // Remove empty supply products from catalog
-        if (productsToRemove.length > 0) {
-          const currentProducts = JSON.parse(localStorage.getItem('products') || '[]');
-          const updatedCatalog = currentProducts.filter(p => !productsToRemove.includes(p.id)); // Filter by product ID
-          if (updatedCatalog.length !== currentProducts.length) {
-            localStorage.setItem('products', JSON.stringify(updatedCatalog));
-            setProducts(updatedCatalog);
-            publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete' });
-          }
-        }
-
+        // We no longer remove products from the catalog if their supply is empty.
+        // ProductGrid will handle hiding them if they are sold out.
       } catch (e) { console.error('Error updating supply remaining amounts', e); }
 
-      // تحديث المخزون فقط إذا كان مفعلاً
-      let updatedProducts = products;
+      // تحديث المخزون في السحابة ومحلياً
+      let updatedProducts = [...products];
       try {
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const settings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
         const rawFlag = (storeInfo.inventoryEnabled !== undefined ? storeInfo.inventoryEnabled : settings.inventoryEnabled);
         const inventoryEnabled = !(rawFlag === false || rawFlag === 'false' || rawFlag === 0 || rawFlag === '0');
         if (inventoryEnabled) {
-          updatedProducts = products.map(product => {
-            const cartItem = cart.find(item => item.id === product.id);
-            if (cartItem) {
-              return {
-                ...product,
-                stock: Math.max(0, product.stock - cartItem.quantity)
-              };
+          const updatePromises = cart.map(async (cartItem) => {
+            const index = updatedProducts.findIndex(p => p.id === cartItem.id);
+            if (index !== -1) {
+              const newStock = Math.max(0, updatedProducts[index].stock - cartItem.quantity);
+              updatedProducts[index] = { ...updatedProducts[index], stock: newStock };
+
+              // مزامنة المخزون مع سوبا بيز
+              try {
+                await supabaseService.updateProduct(cartItem.id, updatedProducts[index]);
+                console.log(`✅ تم تحديث مخزون المنتج ${cartItem.name} في سوبا بيز`);
+              } catch (err) {
+                console.error(`❌ فشل تحديث مخزون المنتج ${cartItem.name}:`, err);
+              }
             }
-            return product;
           });
+          // نشغل التحديثات في الخلفية عشان منأخرش الـ UI
+          Promise.all(updatePromises);
         }
       } catch (_) { }
 
@@ -796,8 +794,8 @@ const POSMain = () => {
         </div>
         
         <div class="customer-info">
-          <div><strong>العميل:</strong> ${(invoiceData?.customer?.name) || customerInfo?.name || 'غير محدد'}</div>
-          <div><strong>الهاتف:</strong> ${(invoiceData?.customer?.phone) || customerInfo?.phone || 'غير محدد'}</div>
+          <div><strong>العميل:</strong> ${(invoiceData?.customer?.name || invoiceData?.customerInfo?.name || invoiceData?.customerName || customerInfo?.name || 'عميل نقدي')}</div>
+          <div><strong>الهاتف:</strong> ${(invoiceData?.customer?.phone || invoiceData?.customerInfo?.phone || invoiceData?.customerPhone || customerInfo?.phone || 'غير محدد')}</div>
           <div><strong>الكاشير:</strong> ${invoiceData?.cashier || user?.username || 'غير محدد'}</div>
           <div><strong>طريقة الدفع:</strong> ${(invoiceData?.paymentMethod || paymentMethod) === 'cash' ? 'نقدي' : (invoiceData?.paymentMethod || paymentMethod) === 'wallet' ? 'محفظة إلكترونية' : (invoiceData?.paymentMethod || paymentMethod) === 'instapay' ? 'انستا باي' : 'غير محدد'}</div>
         </div>
@@ -1188,10 +1186,9 @@ const POSMain = () => {
     `;
   }, [cart, customerInfo, paymentMethod, getTotal, getDiscountAmount, getTaxAmount, getRemainingAmount, downPayment, discounts, taxes, user, getNextInvoiceId, formatDateTime, getCurrentDate, formatDateToDDMMYYYY]);
 
-  // فلترة المنتجات (إظهار منتجات التوريد فقط كما طلب العميل)
-  // نترك مهمة البحث والفلترة حسب الفئة لمكون ProductGrid الداخلي لضمان الكفاءة
+  // فلترة المنتجات (تم إزالة القيد لإظهار جميع المنتجات)
   const filteredProducts = useMemo(() => {
-    return (products || []).filter(product => product && product.isSupplyProduct);
+    return (products || []).filter(product => product);
   }, [products]);
 
   return (
@@ -1375,8 +1372,8 @@ const POSMain = () => {
                     <div className="flex items-center justify-between p-2 bg-blue-900 bg-opacity-20 rounded-lg border border-blue-500 border-opacity-30 mb-3">
                       <span className="text-blue-200 text-xs">توريدة خام مُتاحة:</span>
                       <span className="font-bold text-slate-800 bg-blue-600 px-2 py-0.5 rounded text-xs direction-ltr">
-                        {availableSupplies.find(s => s.id === colorModalProduct.supplyId) ?
-                          `${availableSupplies.find(s => s.id === colorModalProduct.supplyId).remainingQuantity !== undefined ? availableSupplies.find(s => s.id === colorModalProduct.supplyId).remainingQuantity : availableSupplies.find(s => s.id === colorModalProduct.supplyId).quantity} كجم`
+                        {availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()) ?
+                          `${availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()).remainingQuantity !== undefined ? availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()).remainingQuantity : availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()).quantity} كجم`
                           : 'غير محدد'}
                       </span>
                     </div>
@@ -1398,7 +1395,7 @@ const POSMain = () => {
                       <div className="flex justify-between items-center bg-red-900 bg-opacity-20 p-2 rounded-lg border border-red-500 border-opacity-30 mt-2">
                         <span className="text-red-300 text-xs font-bold">الهالك المخصوم:</span>
                         <span className="text-red-400 font-bold text-lg direction-ltr">
-                          {netSoldQuantity === '' ? 0 : Math.max(0, (Number(rawSupplyQuantity) || 0) - (Number(netSoldQuantity) || 0))} كجم
+                          {netSoldQuantity === '' ? 0 : Math.max(0, (Number(rawSupplyQuantity) || 0) - (Number(netSoldQuantity) || 0)).toFixed(2)} كجم
                         </span>
                       </div>
                     </div>
@@ -1439,8 +1436,8 @@ const POSMain = () => {
               <div className="flex items-center gap-3 bg-black bg-opacity-30 p-3 rounded-lg md:min-w-[200px] justify-center md:justify-end">
                 <span className="font-bold text-slate-600 text-sm">إجمالي الكيلو:</span>
                 <span className="font-bold text-green-400 text-2xl md:text-3xl">
-                  {(
-                    Number(colorModalProduct.price) + // Base price from the product itself
+                  {Math.round(
+                    Number(colorModalProduct.price) +
                     4 + (selectedColorCount - 1) * 3 +
                     (needsCutting ? 3 : 0) +
                     (eklashy.enabled ? ((Number(eklashy.length) || 0) * (Number(eklashy.width) || 0) * 0.85 * (Number(eklashy.count) || 0)) : 0)
@@ -1459,13 +1456,19 @@ const POSMain = () => {
               </button>
               <button
                 onClick={() => {
+                  if (colorModalProduct.supplyId && netSoldQuantity === '') {
+                    soundManager.play('error');
+                    notifyError('حقل مطلوب', 'يرجى إدخال الصافي المُسلم للعميل بشكل إجباري لتحديد الهالك بدقة');
+                    return;
+                  }
+
                   const colorCost = 4 + (selectedColorCount - 1) * 3;
                   const cuttingCost = needsCutting ? 3 : 0;
                   const eklashyCost = eklashy.enabled ? ((Number(eklashy.length) || 0) * (Number(eklashy.width) || 0) * 0.85 * (Number(eklashy.count) || 0)) : 0;
 
                   const extraCost = colorCost + cuttingCost + eklashyCost;
                   const baseRawPrice = Number(colorModalProduct.price);
-                  const finalPrice = baseRawPrice + extraCost;
+                  const finalPrice = Math.round(baseRawPrice + extraCost);
 
                   const colorLabel = selectedColorCount === 1 ? '1 لون' : selectedColorCount === 2 ? 'لونين' : `${selectedColorCount} ألوان`;
                   const cuttingLabel = needsCutting ? 'مقطع' : '';
@@ -1477,19 +1480,16 @@ const POSMain = () => {
 
                   if (colorModalProduct.supplyId) {
                     const supply = availableSupplies.find(s => s.id === colorModalProduct.supplyId);
-                    // Default to raw quantity if user leaves it completely blank, to avoid 0 cart item issue, or default to 1
-                    // Actually, if it's empty, maybe they mean 0 net, but let's default to a safe 1 if NaN
-                    const netQty = netSoldQuantity === '' ? (Number(rawSupplyQuantity) || 1) : (Number(netSoldQuantity) || 0);
+                    const netQty = Number(netSoldQuantity) || 0;
                     const rawQty = Number(rawSupplyQuantity) || netQty;
-                    qtyToSet = netQty || 1; // Fallback so item isn't added with 0 qty if that breaks things
+                    qtyToSet = netQty || 1;
 
                     wasteDataInfo = {
                       supplierId: supply ? supply.supplierId : colorModalProduct.supplierId,
                       supplyId: colorModalProduct.supplyId,
                       rawQuantity: rawQty,
                       netQuantity: netQty,
-                      // Actual waste is only calculated if netQty was explicitly provided and valid
-                      wasteQuantity: netSoldQuantity === '' ? 0 : Math.max(0, rawQty - netQty)
+                      wasteQuantity: Math.max(0, rawQty - netQty)
                     };
                   }
 
@@ -1555,11 +1555,11 @@ const POSMain = () => {
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
                 <div className="flex justify-between mb-2">
                   <span className="text-slate-500">العميل:</span>
-                  <span className="text-slate-800">{invoiceData?.customer?.name || customerInfo?.name || 'غير محدد'}</span>
+                  <span className="text-slate-800">{invoiceData?.customer?.name || invoiceData?.customerInfo?.name || customerInfo?.name || 'غير محدد'}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-slate-500">الهاتف:</span>
-                  <span className="text-slate-800">{invoiceData?.customer?.phone || customerInfo?.phone || 'غير محدد'}</span>
+                  <span className="text-slate-800">{invoiceData?.customer?.phone || invoiceData?.customerInfo?.phone || customerInfo?.phone || 'غير محدد'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">الكاشير:</span>
@@ -1583,7 +1583,7 @@ const POSMain = () => {
                     <div className="text-slate-800 text-sm">{item.name}</div>
                     <div className="text-center text-slate-800 text-sm">{Number(item.quantity || 0)}</div>
                     <div className="text-center text-slate-800 text-sm">{(Number(item.price) || 0).toLocaleString('en-US')} جنيه</div>
-                    <div className="text-center text-slate-800 text-sm font-semibold">{((Number(item.price) || 0) * (Number(item.quantity) || 0)).toLocaleString('en-US')} جنيه</div>
+                    <div className="text-center text-slate-800 text-sm font-semibold">{Math.round((Number(item.price) || 0) * (Number(item.quantity) || 0)).toLocaleString('en-US')} جنيه</div>
                   </div>
                 ))}
                 {(!invoiceData?.items || invoiceData.items.length === 0) && (

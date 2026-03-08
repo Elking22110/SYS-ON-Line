@@ -1,4 +1,4 @@
-﻿import { publish, EVENTS } from '../utils/observerManager';
+﻿import { publish, EVENTS, subscribe } from '../utils/observerManager';
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../components/NotificationSystem';
 import soundManager from '../utils/soundManager.js';
@@ -195,7 +195,6 @@ const Reports = () => {
 
     analyzeData();
 
-    // تحديث البيانات كل دقيقتين للمزامنة السحابية
     const interval = setInterval(analyzeData, 120000);
 
     const onExternalUpdate = () => analyzeData();
@@ -204,11 +203,24 @@ const Reports = () => {
     window.addEventListener('shiftStarted', onExternalUpdate);
     window.addEventListener('shiftEnded', onShiftEnded);
 
+    const unsubProducts = typeof subscribe === 'function' ? subscribe(EVENTS.PRODUCTS_CHANGED, onExternalUpdate) : null;
+    const unsubCustomers = typeof subscribe === 'function' ? subscribe(EVENTS.CUSTOMERS_CHANGED, onExternalUpdate) : null;
+    const unsubSales = typeof subscribe === 'function' ? subscribe(EVENTS.INVOICES_CHANGED, onExternalUpdate) : null;
+    const unsubShifts = typeof subscribe === 'function' ? subscribe(EVENTS.SHIFTS_CHANGED, onExternalUpdate) : null;
+    const unsubExpenses = typeof subscribe === 'function' ? subscribe(EVENTS.EXPENSES_CHANGED, onExternalUpdate) : null;
+    const unsubSuppliers = typeof subscribe === 'function' ? subscribe(EVENTS.SUPPLIERS_CHANGED, onExternalUpdate) : null;
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('dataUpdated', onExternalUpdate);
       window.removeEventListener('shiftStarted', onExternalUpdate);
       window.removeEventListener('shiftEnded', onShiftEnded);
+      if (typeof unsubProducts === 'function') unsubProducts();
+      if (typeof unsubCustomers === 'function') unsubCustomers();
+      if (typeof unsubSales === 'function') unsubSales();
+      if (typeof unsubShifts === 'function') unsubShifts();
+      if (typeof unsubExpenses === 'function') unsubExpenses();
+      if (typeof unsubSuppliers === 'function') unsubSuppliers();
     };
   }, []);
 
@@ -416,6 +428,7 @@ const Reports = () => {
           const allSalesData = JSON.parse(localStorage.getItem('sales') || '[]');
           const updatedSales = allSalesData.filter(sale => sale.id !== invoiceId);
           localStorage.setItem('sales', JSON.stringify(updatedSales));
+          supabaseService.deleteSale(invoiceId).catch(err => console.error('Supabase delete error:', err));
           try { publish(EVENTS.INVOICES_CHANGED, { type: 'delete', invoiceId }); } catch (_) { }
 
           // إزالة الفاتورة من مبيعات الوردية النشطة
@@ -557,6 +570,7 @@ const Reports = () => {
         const sales = JSON.parse(localStorage.getItem('sales') || '[]');
         const updatedSales = sales.map(sale => sale.id === invoiceId ? updatedInvoice : sale);
         localStorage.setItem('sales', JSON.stringify(updatedSales));
+        supabaseService.updateSale(invoiceId, updatedInvoice).catch(console.error);
         try {
           const activeShift = JSON.parse(localStorage.getItem('activeShift') || 'null');
           if (activeShift && activeShift.status === 'active' && updatedInvoice.shiftId === activeShift.id) {
@@ -611,6 +625,7 @@ const Reports = () => {
             return !(isRefundType && matchesRef) && !isNegative;
           });
           localStorage.setItem('sales', JSON.stringify(updatedSales));
+          supabaseService.updateSale(invoiceId, updatedInvoice).catch(console.error);
           try { publish(EVENTS.INVOICES_CHANGED, { type: 'update', invoiceId }); } catch (_) { }
           try {
             const products = JSON.parse(localStorage.getItem('products') || '[]');
@@ -650,6 +665,7 @@ const Reports = () => {
           const sales = JSON.parse(localStorage.getItem('sales') || '[]');
           const updatedSales = sales.map(sale => sale.id === invoiceId ? updatedInvoice : sale);
           localStorage.setItem('sales', JSON.stringify(updatedSales));
+          supabaseService.updateSale(invoiceId, updatedInvoice).catch(console.error);
           try {
             const activeShift = JSON.parse(localStorage.getItem('activeShift') || 'null');
             if (activeShift && activeShift.status === 'active' && updatedInvoice.shiftId === activeShift.id) {
@@ -710,6 +726,7 @@ const Reports = () => {
           const sales = JSON.parse(localStorage.getItem('sales') || '[]');
           const updatedSales = sales.map(sale => sale.id === invoiceId ? updatedInvoice : sale);
           localStorage.setItem('sales', JSON.stringify(updatedSales));
+          supabaseService.updateSale(invoiceId, updatedInvoice).catch(console.error);
           try {
             const activeShift = JSON.parse(localStorage.getItem('activeShift') || 'null');
             if (activeShift && activeShift.status === 'active' && updatedInvoice.shiftId === activeShift.id) {
@@ -1180,7 +1197,6 @@ const Reports = () => {
         }
         const settlementInfo = { method: settlementMethod, amount: Number(remainingAmount) || 0, timestamp: new Date().toISOString() };
 
-        // تحديث الفاتورة في localStorage
         const updatedSales = allSales.map(sale => {
           if (sale.id === invoiceId) {
             return {
@@ -1197,6 +1213,11 @@ const Reports = () => {
           }
           return sale;
         });
+
+        const updatedInvoice = updatedSales.find(sale => sale.id === invoiceId);
+        if (updatedInvoice) {
+          supabaseService.updateSale(invoiceId, updatedInvoice).catch(console.error);
+        }
 
         localStorage.setItem('sales', JSON.stringify(updatedSales));
         setAllSales(updatedSales);
@@ -2108,10 +2129,10 @@ const Reports = () => {
                 <div>
                   <h3 className="text-xl font-bold text-white">فاتورة مبيعات</h3>
                   <p className="text-slate-600 text-xs">
-                    رقم الفاتورة: <span className="text-slate-800 font-mono bg-purple-500 bg-opacity-20 px-2 py-1 rounded text-xs">#{selectedInvoice?.id || 'غير محدد'}</span>
+                    رقم الفاتورة: <span className="text-slate-800 font-mono bg-purple-500 bg-opacity-20 px-2 py-1 rounded text-xs">#{selectedInvoice?.id || selectedInvoice?.invoiceId || 'غير محدد'}</span>
                   </p>
                   <p className="text-slate-600 text-xs mt-1">
-                    تاريخ الإنشاء: {selectedInvoice?.timestamp || 'غير محدد'}
+                    تاريخ الإنشاء: {selectedInvoice?.timestamp || selectedInvoice?.date || 'غير محدد'}
                   </p>
                   {selectedInvoice?.downPayment && selectedInvoice.downPayment.enabled && (
                     <div className="mt-2">
@@ -2148,11 +2169,15 @@ const Reports = () => {
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-slate-600 text-sm">الاسم:</span>
-                    <span className="text-slate-800 font-medium text-sm">{selectedInvoice?.customer?.name || 'غير محدد'}</span>
+                    <span className="text-slate-800 font-medium text-sm">
+                      {selectedInvoice?.customer?.name || selectedInvoice?.customerInfo?.name || selectedInvoice?.customerName || 'عميل نقدي'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 text-sm">الهاتف:</span>
-                    <span className="text-slate-800 font-medium text-sm">{selectedInvoice?.customer?.phone || 'غير محدد'}</span>
+                    <span className="text-slate-800 font-medium text-sm">
+                      {selectedInvoice?.customer?.phone || selectedInvoice?.customerInfo?.phone || selectedInvoice?.customerPhone || 'غير محدد'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 text-sm">عدد المنتجات:</span>
@@ -2161,7 +2186,7 @@ const Reports = () => {
                   <div className="flex justify-between">
                     <span className="text-slate-600 text-sm">إجمالي الكمية:</span>
                     <span className="text-slate-800 font-medium text-sm">
-                      {selectedInvoice?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0}
+                      {selectedInvoice?.items?.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) || 0}
                     </span>
                   </div>
                 </div>
@@ -2352,7 +2377,11 @@ const Reports = () => {
                     <div className="flex justify-between items-center p-1 bg-white bg-opacity-10 rounded-lg border border-white border-opacity-10">
                       <span className="text-orange-200 font-medium text-sm">المبلغ المتبقي:</span>
                       <span className="text-slate-800 font-bold text-sm">
-                        {selectedInvoice.downPayment.remaining || (safeMath.subtract(selectedInvoice.total, selectedInvoice.downPayment.amount))} جنيه
+                        {
+                          selectedInvoice.downPayment.remaining !== undefined
+                            ? Number(selectedInvoice.downPayment.remaining).toFixed(2)
+                            : (Number(safeMath.subtract(selectedInvoice.total, selectedInvoice.downPayment.amount)) || 0).toFixed(2)
+                        } جنيه
                       </span>
                     </div>
                   </div>

@@ -11,42 +11,22 @@ import {
   Settings,
   DollarSign,
   Clock,
-  HeartPulse,
-  CreditCard,
   Menu,
   X,
-  LogOut
+  LogOut,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import soundManager from '../utils/soundManager.js';
 import { syncManager } from '../utils/syncManager';
 
 const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
   const { user, logout, hasPermission, hasRole } = useAuth();
 
   const menuItems = [
-    { path: "/", icon: LayoutDashboard, label: "Dashboard", shortcut: "Ctrl+1", permission: null },
-    { path: "/pos", icon: ShoppingCart, label: "Claims", shortcut: "Ctrl+2", permission: "pos_access" },
-    { path: "/products", icon: Package, label: "Biller Queue", shortcut: "Ctrl+3", permission: "manage_products" },
-    { path: "/reports", icon: BarChart3, label: "Subscription", shortcut: "Ctrl+4", permission: "view_reports" },
-    { path: "/customers", icon: Users, label: "Health", shortcut: "Ctrl+5", permission: "customer_access" },
-    // Only keeping a few to match design, but we can map the actual features to these names or keep their original names.
-    // The user's system holds Arabic titles. The prompt says "change the design only for the better to this shape". 
-    // This usually means keep their text Arabic but apply the style. Let's use Arabic text with the design.
-  ];
-
-  // We will map their original items to the new look.
-  const actualMenuItems = [
-    { path: "/", icon: LayoutDashboard, label: "Dashboard", permission: null },
-    { path: "/pos", icon: ShoppingCart, label: "Claims", permission: "pos_access" },
-    { path: "/products", icon: Package, label: "Biller Queue", permission: "manage_products" },
-    { path: "/reports", icon: BarChart3, label: "Subscription", permission: "view_reports" },
-    { path: "/customers", icon: HeartPulse, label: "Health", permission: "customer_access" }
-  ];
-
-  // Let's use the exact names from their original Sidebar, to not break their system usage.
-  const originalMenuItems = [
     { path: "/", icon: LayoutDashboard, label: "لوحة التحكم", permission: null },
     { path: "/pos", icon: ShoppingCart, label: "نقطة البيع", permission: "pos_access" },
     { path: "/products", icon: Package, label: "المنتجات", permission: "manage_products" },
@@ -69,98 +49,140 @@ const Sidebar = () => {
       <div className="md:hidden bg-[#5235E8] text-white p-4 flex justify-between items-center z-50 flex-shrink-0">
         <div className="flex items-center">
           <span className="text-2xl drop-shadow-md mr-2">👑</span>
-          <h1 className="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 indent-1 drop-shadow-sm">ELKING PRO</h1>
+          <h1 className="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200">ELKING PRO</h1>
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors focus:outline-none"
+          className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
         >
           {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Sidebar Overlay for Mobile */}
+      {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar Container */}
-      <div className={`
-        fixed md:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
-        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
-        w-64 md:w-75 lg:w-[280px] bg-[#5235E8] text-white flex flex-col h-full md:h-screen flex-shrink-0 overflow-y-auto custom-scrollbar shadow-2xl md:shadow-none
-      `}>
+      {/* Sidebar */}
+      <div
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+        className={`
+          fixed md:static inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+          w-64 lg:w-[260px]
+          bg-[#5235E8] md:bg-transparent text-white flex flex-col h-full md:h-screen flex-shrink-0
+          shadow-2xl md:shadow-none overflow-visible
+        `}
+      >
 
-        {/* Premium Header Crown Box */}
-        <div className="hidden md:block p-6 pt-12 mt-4 mb-2">
-          <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-3xl p-6 text-center relative shadow-2xl overflow-visible border border-purple-700/50 group">
-            {/* Crown illustration */}
-            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 flex items-center justify-center">
-              <div className="relative w-full h-full flex flex-col items-center justify-center animate-bounce">
-                <span className="text-6xl drop-shadow-[0_0_20px_rgba(255,215,0,0.8)] pb-4 shrink-0 transition-transform group-hover:scale-110">👑</span>
-                <div className="absolute bottom-2 w-16 h-4 bg-black/50 rounded-[100%] blur-md opacity-60 z-[-1]"></div>
-              </div>
+        {/* TOP PART - Crown Header (Fixed Width) */}
+        <div className="w-full md:w-[260px] bg-[#5235E8] md:rounded-br-[2rem] pt-6 px-3 flex-shrink-0 relative z-20 md:shadow-[5px_5px_15px_rgba(82,53,232,0.1)] transition-all duration-300 pb-2">
+          <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl text-center relative shadow-xl overflow-visible border border-purple-700/50 group mb-0"
+            style={{ padding: '16px 8px' }}
+          >
+            {/* Crown */}
+            <div className="mb-2">
+              <span className="drop-shadow-[0_0_20px_rgba(255,215,0,0.8)] text-4xl">👑</span>
             </div>
-
-            <div className="mt-8 shrink-0">
-              <h1 className="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 drop-shadow-sm mb-1">ELKING PRO V2</h1>
-              <p className="text-xs text-purple-300 font-medium">نظام إدارة متكامل</p>
+            {/* Text - Always full size now */}
+            <div>
+              <h1 className="font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200 text-lg whitespace-nowrap">
+                ELKING PRO V2
+              </h1>
+              <p className="text-[10px] text-purple-300 font-medium block">نظام إدارة متكامل</p>
             </div>
           </div>
         </div>
 
+        {/* MIDDLE PART - Navigation (The moving part) */}
+        <div className={`
+          w-full md:bg-[#5235E8] flex-1 overflow-hidden flex flex-col py-2
+          transition-all duration-300 ease-in-out md:shadow-[5px_5px_15px_rgba(82,53,232,0.1)] relative z-10
+          md:my-5 md:py-4
+          ${isExpanded ? 'md:w-[260px] md:rounded-r-[2rem]' : 'md:w-[130px] md:rounded-r-[2rem]'}
+        `}>
+          <nav className="flex-1 px-2 flex flex-col gap-1 mt-2 overflow-y-auto custom-scrollbar">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 relative z-10 flex flex-col gap-2 mt-4 md:mt-0">
-          {originalMenuItems.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => {
+                    soundManager.play('click');
+                    setIsMobileOpen(false);
+                  }}
+                  className={`
+                  relative flex items-center rounded-2xl group transition-all duration-300 font-medium overflow-hidden
+                  ${isExpanded ? 'px-4 py-3.5 mx-1' : 'px-0 py-3 mx-1 justify-center'}
+                  ${isActive
+                      ? 'bg-gradient-to-r from-white to-indigo-50 text-[#5235E8] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] border border-white/20'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white hover:shadow-lg'
+                    }
+                `}
+                >
+                  {/* Icon container */}
+                  <div className={`flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-300 ${isActive ? 'bg-indigo-100 shadow-inner' : 'group-hover:bg-white/10'}`}>
+                    <Icon
+                      className={`h-5 w-5 shrink-0 transition-all duration-300 ${isActive ? 'text-[#5235E8] drop-shadow-md' : 'text-white/70 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                  </div>
 
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => {
-                  soundManager.play('click');
-                  setIsMobileOpen(false);
-                }}
-                className={`flex items-center space-x-4 px-6 py-4 mx-2 rounded-2xl group transition-all duration-300 font-medium perspective-1000 ${isActive
-                  ? 'bg-gradient-to-r from-white to-indigo-50 text-[#5235E8] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] border border-white/20'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white hover:shadow-lg'
-                  }`}
-              >
-                <div className={`flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-300 ${isActive ? 'bg-indigo-100 shadow-inner' : 'group-hover:bg-white/10'}`}>
-                  {/* Fixed space issue by removing margin right if no RTL and applying standard space */}
-                  <Icon className={`h-5 w-5 shrink-0 transition-all duration-300 animate-wiggle-icon hover-3d-effect ${isActive ? 'text-[#5235E8] drop-shadow-md' : 'text-white/70 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-                <span className={`text-[15px] shrink-0 ml-3 transition-all duration-300 ${isActive ? 'font-black tracking-wide text-indigo-900 drop-shadow-sm' : 'font-semibold tracking-wide group-hover:translate-x-1'}`}>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                  {/* Label - slides in from left */}
+                  <span
+                    className={`
+                    whitespace-nowrap text-[14px] transition-all duration-300 ease-out
+                    ${isExpanded
+                        ? 'ml-3 opacity-100 translate-x-0 w-auto'
+                        : 'ml-0 opacity-0 -translate-x-4 w-0 overflow-hidden'
+                      }
+                    ${isActive ? 'font-black tracking-wide text-indigo-900' : 'font-semibold tracking-wide'}
+                  `}
+                  >
+                    {item.label}
+                  </span>
 
-        {/* Sync Status Indicator */}
-        <div className="px-6 mb-4">
-          <SyncStatus />
+                  {/* Active indicator dot (when collapsed) */}
+                  {isActive && !isExpanded && (
+                    <div className="absolute -left-[2px] top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* User Info & Logout */}
-        <div className="px-6 mb-4">
-          <div className="bg-white/10 rounded-2xl p-4">
-            <div className="flex items-center mb-3">
-              <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center mr-3 shrink-0">
+        {/* BOTTOM PART - Admin & Sync Status */}
+        <div className="w-full md:w-[260px] bg-[#5235E8] md:rounded-tr-[2rem] px-3 pb-6 pt-4 flex-shrink-0 relative z-20 md:shadow-[5px_-5px_15px_rgba(82,53,232,0.1)] transition-all duration-300 mt-auto">
+          {/* Sync Status - Always visible now */}
+          <div className="mb-3">
+            <SyncStatus />
+          </div>
+
+          {/* User Info & Logout - Always visible full details */}
+          <div className="bg-white/10 rounded-2xl p-3 transition-all duration-300">
+            <div className="flex items-center mb-3 justify-start overflow-hidden">
+              <div className="bg-white/20 rounded-full flex items-center justify-center shrink-0 w-9 h-9 mr-3">
                 <Users className="h-4 w-4 text-white" />
               </div>
-              <div className="min-w-0">
-                <p className="text-white text-sm font-bold truncate">{user?.name || user?.username || 'مستخدم'}</p>
-                <p className="text-white/50 text-xs truncate">
+              <div className="min-w-0 flex-1">
+                <p className="text-white font-bold truncate text-sm">
+                  {user?.name || user?.username || 'مستخدم'}
+                </p>
+                <p className="text-white/50 truncate text-xs block">
                   {user?.role === 'admin' ? 'مدير عام' : user?.role === 'manager' ? 'مدير' : 'كاشير'}
                 </p>
               </div>
             </div>
+
             <button
               onClick={() => {
                 soundManager.play('logout');
@@ -168,15 +190,16 @@ const Sidebar = () => {
                   logout();
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-200 hover:text-white py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-200 hover:text-white rounded-xl transition-all duration-200 py-2 px-4 text-sm font-semibold"
+              title="تسجيل الخروج"
             >
               <LogOut className="h-4 w-4 shrink-0" />
-              تسجيل الخروج
+              <span className="whitespace-nowrap opacity-100">تسجيل الخروج</span>
             </button>
           </div>
         </div>
 
-      </div>
+      </div >
     </>
   );
 };
@@ -185,15 +208,11 @@ const SyncStatus = () => {
   const [status, setStatus] = React.useState({ pendingCount: 0, isOnline: true });
 
   React.useEffect(() => {
-    const updateStatus = () => {
-      setStatus(syncManager.getStatus());
-    };
-
+    const updateStatus = () => { setStatus(syncManager.getStatus()); };
     updateStatus();
     const interval = setInterval(updateStatus, 5000);
     window.addEventListener('online', updateStatus);
     window.addEventListener('offline', updateStatus);
-
     return () => {
       clearInterval(interval);
       window.removeEventListener('online', updateStatus);
@@ -209,20 +228,18 @@ const SyncStatus = () => {
       </div>
     );
   }
-
   if (!status.isOnline) {
     return (
       <div className="flex items-center text-xs text-orange-300 bg-orange-500/10 p-2 rounded-xl">
         <div className="w-2 h-2 rounded-full bg-orange-500 mr-2"></div>
-        <span>وضع الأوفلاين (سيتم الرفع لاحقاً)</span>
+        <span>وضع الأوفلاين</span>
       </div>
     );
   }
-
   return (
     <div className="flex items-center text-xs text-blue-300 bg-blue-500/10 p-2 rounded-xl">
       <div className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-spin"></div>
-      <span>جاري مزامنة {status.pendingCount} عناصر...</span>
+      <span>مزامنة {status.pendingCount} عناصر...</span>
     </div>
   );
 };

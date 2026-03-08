@@ -3,6 +3,7 @@ import { Search, Package, Shirt, Footprints, Watch, Headphones, Smartphone, Lapt
 import storageOptimizer from '../../utils/storageOptimizer.js';
 import errorHandler from '../../utils/errorHandler.js';
 import searchOptimizer from '../../utils/searchOptimizer.js';
+import { subscribe, EVENTS } from '../../utils/observerManager';
 
 const ProductGrid = ({
   selectedCategory,
@@ -16,6 +17,8 @@ const ProductGrid = ({
   setProductImages
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [inventoryEnabled, setInventoryEnabled] = useState(true);
+  const [supplies, setSupplies] = useState([]);
 
   // دالة للحصول على الأيقونة المناسبة لكل فئة
   const getCategoryIcon = (categoryName) => {
@@ -41,13 +44,22 @@ const ProductGrid = ({
   const loadData = useCallback(async () => {
     try {
       // استخدام StorageOptimizer للقراءة المحسنة
-      const [categoriesData, productsData] = await Promise.all([
+      const [categoriesData, productsData, suppliesData] = await Promise.all([
         storageOptimizer.get('productCategories', []),
-        storageOptimizer.get('products', [])
+        storageOptimizer.get('products', []),
+        storageOptimizer.get('supplier_supplies', [])
       ]);
 
       setCategories(categoriesData);
       setProducts(productsData);
+      setSupplies(suppliesData);
+
+      try {
+        const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
+        const settings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
+        const rawFlag = (storeInfo.inventoryEnabled !== undefined ? storeInfo.inventoryEnabled : settings.inventoryEnabled);
+        setInventoryEnabled(!(rawFlag === false || rawFlag === 'false' || rawFlag === 0 || rawFlag === '0'));
+      } catch (_) { }
       setProductImages({}); // إزالة تحميل الصور
     } catch (error) {
       errorHandler.handleError(error, 'Data Loading', 'high');
@@ -56,6 +68,12 @@ const ProductGrid = ({
 
   useEffect(() => {
     loadData();
+
+    // الاشتراك في تحديثات المنتجات لإعادة التحميل عند إضافة منتج جديد من التوريدات
+    const unsubscribe = typeof subscribe === 'function' ? subscribe(EVENTS.PRODUCTS_CHANGED, loadData) : null;
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, [loadData]);
 
   // فلترة المنتجات المحسنة مع البحث الذكي
@@ -71,11 +89,30 @@ const ProductGrid = ({
       searchResults = searchOptimizer.performSearch(searchTerm, products, ['name', 'sku', 'barcode', 'description']);
     }
 
-    // فلترة حسب الفئة
+    // فلترة حسب الفئة وحالة المخزون (بحيث لا يظهر المنتج إذا بيع بالكامل)
     return searchResults.filter(product => {
-      return selectedCategory === 'الكل' || product.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'الكل' || product.category === selectedCategory;
+
+      let isAvailable = true;
+
+      // إذا كان المنتج مرتبط بتوريدة، نتحقق من كمية التوريدة المتبقية
+      if (product.supplyId) {
+        const linkedSupply = supplies.find(s => s.id?.toString() === product.supplyId?.toString());
+        if (linkedSupply) {
+          const qty = linkedSupply.remainingQuantity !== undefined ? linkedSupply.remainingQuantity : linkedSupply.quantity;
+          isAvailable = Number(qty) > 0;
+        } else {
+          // إذا لم نجد التوريدة في القائمة المحلية (ربما بسبب خطأ في المزامنة)، نظهر المنتج افتراضياً لو له كمية
+          isAvailable = Number(product.stock || 0) > 0;
+        }
+      } else if (inventoryEnabled) {
+        // إذا كان تتبع المخزون مفعلاً والمنتج غير مرتبط بتوريدة
+        isAvailable = Number(product.stock || 0) > 0;
+      }
+
+      return matchesCategory && isAvailable;
     });
-  }, [products, selectedCategory, searchTerm]);
+  }, [products, selectedCategory, searchTerm, inventoryEnabled, supplies]);
 
 
   return (
@@ -101,8 +138,8 @@ const ProductGrid = ({
           <button
             onClick={() => onCategoryChange('الكل')}
             className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${selectedCategory === 'الكل'
-                ? 'bg-blue-500 text-white shadow-md'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+              ? 'bg-blue-500 text-white shadow-md'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
               }`}
           >
             الكل
@@ -112,8 +149,8 @@ const ProductGrid = ({
               key={category.id || category.name || index}
               onClick={() => onCategoryChange(category.name)}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${selectedCategory === category.name
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                ? 'bg-blue-500 text-white shadow-md'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                 }`}
             >
               {category.name}

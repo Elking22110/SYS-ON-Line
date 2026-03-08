@@ -183,7 +183,10 @@ const Products = () => {
             stock: p.quantity,
             minStock: p.minQuantity,
             barcode: p.barcode,
-            image: p.image
+            image: p.image,
+            supplyId: p.supplyId,
+            isSupplyProduct: p.supplyId ? true : false,
+            costPrice: p.costPrice
           }));
           setProducts(formatted);
           localStorage.setItem('products', JSON.stringify(formatted));
@@ -193,12 +196,33 @@ const Products = () => {
         }
 
         const supabaseCategories = await supabaseService.getCategories();
+        let finalCategories = [];
         if (supabaseCategories && supabaseCategories.length > 0) {
-          setCategories(supabaseCategories);
+          finalCategories = supabaseCategories;
         } else {
-          const savedCategories = JSON.parse(localStorage.getItem('productCategories') || '[]');
-          setCategories(savedCategories);
+          finalCategories = JSON.parse(localStorage.getItem('productCategories') || '[]');
+
+          if (finalCategories.length > 0 && navigator.onLine) {
+            console.log('Migrating local categories to Supabase...');
+            for (const cat of finalCategories) {
+              if (cat.name === 'الكل') continue;
+              try {
+                await supabaseService.addCategory(cat.name, cat.description || '');
+              } catch (e) {
+                console.error('Error migrating category', e);
+              }
+            }
+          }
         }
+
+        // إجبار وجود فئة "خامات توريد" في النظام دوماً
+        if (!finalCategories.some(c => c.name === 'خامات توريد')) {
+          finalCategories.push({ id: 'خامات توريد', name: 'خامات توريد', description: 'مواد خام مرتبطة بالتوريدات' });
+          if (navigator.onLine) supabaseService.addCategory('خامات توريد', 'مواد خام مرتبطة بالتوريدات').catch(() => { });
+        }
+
+        setCategories(finalCategories);
+        localStorage.setItem('productCategories', JSON.stringify(finalCategories));
       } catch (error) {
         console.error('Error loading initial data:', error);
       }
@@ -226,7 +250,8 @@ const Products = () => {
         { name: 'مطبوع درجة أولي هاي', description: 'درجة أولي هاي مطبوع' },
         { name: 'مطبوع كسر بيور', description: 'كسر بيور مطبوع' },
         { name: 'مطبوع بيور 100%', description: 'بيور 100% مطبوع' },
-        { name: 'إضافات تصنيع', description: 'إضافات مثل اليد الخارجية والأكلاشية' }
+        { name: 'إضافات تصنيع', description: 'إضافات مثل اليد الخارجية والأكلاشية' },
+        { id: 'خامات توريد', name: 'خامات توريد', description: 'مواد خام مرتبطة بالتوريدات' }
       ];
 
       const seedProducts = [
@@ -483,7 +508,9 @@ const Products = () => {
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'الكل' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    // المنتج يختفي من القائمة إذا كانت كميته صفر بناء على طلب العميل
+    const isAvailable = Number(product.stock) > 0;
+    return matchesSearch && matchesCategory && isAvailable;
   });
 
   // الحصول على قائمة أسماء الفئات للفلترة
@@ -610,7 +637,8 @@ const Products = () => {
     }
   };
 
-  const lowStockProducts = products.filter(p => p.stock <= p.minStock);
+  // تصفية المنتجات منخفضة المخزون (نستثني التي كميتها صفر لأنها "تختفي" من العرض)
+  const lowStockProducts = products.filter(p => p.stock <= p.minStock && Number(p.stock) > 0);
   console.log('=== حساب المنتجات منخفضة المخزون ===');
   console.log('المنتجات:', products.length);
   console.log('المنتجات منخفضة المخزون:', lowStockProducts.length);
@@ -844,34 +872,51 @@ const Products = () => {
             </div>
 
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (selectedCategory === 'الكل' || !selectedCategory) { return; }
+                if (selectedCategory === 'خامات توريد') { alert('لا يمكن تعديل الفئة الثابتة "خامات توريد"'); return; }
+
                 const newName = window.prompt('أدخل اسم الفئة الجديد', selectedCategory);
                 if (!newName || newName.trim() === '' || newName === selectedCategory) return;
                 if (categories.some(c => c.name === newName)) { notifyDuplicateError(newName, 'فئة'); return; }
-                const updatedCategories = categories.map(c => c.name === selectedCategory ? { ...c, name: newName } : c);
-                setCategories(updatedCategories);
-                localStorage.setItem('productCategories', JSON.stringify(updatedCategories));
-                const updatedProductsLocal = products.map(p => p.category === selectedCategory ? { ...p, category: newName } : p);
-                setProducts(updatedProductsLocal);
-                localStorage.setItem('products', JSON.stringify(updatedProductsLocal));
-                try { publish(EVENTS.CATEGORIES_CHANGED, { type: 'update', from: selectedCategory, to: newName, categories: updatedCategories }); } catch (_) { }
-                try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'bulk_update_category', from: selectedCategory, to: newName }); } catch (_) { }
 
-                // إرسال إشارة لتحديث نقطة البيع فورياً
-                window.dispatchEvent(new CustomEvent('categoriesUpdated', {
-                  detail: {
-                    action: 'updated',
-                    oldCategory: selectedCategory,
-                    newCategory: newName,
-                    categories: updatedCategories
+                try {
+                  // تحديث في سوبا بيز
+                  const catToUpdate = categories.find(c => c.name === selectedCategory);
+                  if (catToUpdate) {
+                    await supabaseService.addCategory(newName, catToUpdate.description || '', { id: catToUpdate.id });
+                    await supabaseService.updateProductsCategory(selectedCategory, newName);
                   }
-                }));
 
-                notifyCategoryUpdated(selectedCategory, newName);
-                setSelectedCategory(newName);
+                  const updatedCategories = categories.map(c => c.name === selectedCategory ? { ...c, name: newName } : c);
+                  setCategories(updatedCategories);
+                  localStorage.setItem('productCategories', JSON.stringify(updatedCategories));
+
+                  const updatedProductsLocal = products.map(p => p.category === selectedCategory ? { ...p, category: newName } : p);
+                  setProducts(updatedProductsLocal);
+                  localStorage.setItem('products', JSON.stringify(updatedProductsLocal));
+
+                  try { publish(EVENTS.CATEGORIES_CHANGED, { type: 'update', from: selectedCategory, to: newName, categories: updatedCategories }); } catch (_) { }
+                  try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'bulk_update_category', from: selectedCategory, to: newName }); } catch (_) { }
+
+                  // إرسال إشارة لتحديث نقطة البيع فورياً
+                  window.dispatchEvent(new CustomEvent('categoriesUpdated', {
+                    detail: {
+                      action: 'updated',
+                      oldCategory: selectedCategory,
+                      newCategory: newName,
+                      categories: updatedCategories
+                    }
+                  }));
+
+                  notifyCategoryUpdated(selectedCategory, newName);
+                  setSelectedCategory(newName);
+                } catch (error) {
+                  console.error('Failed to update category in cloud:', error);
+                  alert('فشل تحديث الفئة في السحابة. يرجى المحاولة مرة أخرى.');
+                }
               }}
               disabled={selectedCategory === 'الكل' || !selectedCategory}
               className={`btn-primary flex items-center px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold min-h-[50px] cursor-pointer ${selectedCategory === 'الكل' || !selectedCategory ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -886,26 +931,38 @@ const Products = () => {
             </button>
 
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (selectedCategory === 'الكل' || !selectedCategory) { return; }
+                if (selectedCategory === 'خامات توريد') { alert('لا يمكن حذف الفئة الثابتة "خامات توريد"'); return; }
+
                 const productsInCategory = products.filter(p => p.category === selectedCategory);
                 if (!window.confirm(`سيتم حذف الفئة "${selectedCategory}" مع ${productsInCategory.length} منتج تابع لها. هل تريد المتابعة؟`)) return;
-                // حذف المنتجات التابعة لهذه الفئة
-                const remainingProducts = products.filter(p => p.category !== selectedCategory);
-                setProducts(remainingProducts);
-                localStorage.setItem('products', JSON.stringify(remainingProducts));
-                try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'bulk_delete_by_category', categoryName: selectedCategory, products: remainingProducts }); } catch (_) { }
 
-                // حذف الفئة نفسها
-                const updatedCategories = categories.filter(c => c.name !== selectedCategory);
-                setCategories(updatedCategories);
-                localStorage.setItem('productCategories', JSON.stringify(updatedCategories));
-                try { publish(EVENTS.CATEGORIES_CHANGED, { type: 'delete', categoryName: selectedCategory, categories: updatedCategories }); } catch (_) { }
+                try {
+                  // حذف من سوبا بيز
+                  await supabaseService.deleteCategory(selectedCategory);
+                  await supabaseService.deleteProductsByCategory(selectedCategory);
 
-                notifyCategoryDeleted(selectedCategory);
-                setSelectedCategory('الكل');
+                  // حذف المنتجات التابعة لهذه الفئة محلياً
+                  const remainingProducts = products.filter(p => p.category !== selectedCategory);
+                  setProducts(remainingProducts);
+                  localStorage.setItem('products', JSON.stringify(remainingProducts));
+                  try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'bulk_delete_by_category', categoryName: selectedCategory, products: remainingProducts }); } catch (_) { }
+
+                  // حذف الفئة نفسها محلياً
+                  const updatedCategories = categories.filter(c => c.name !== selectedCategory);
+                  setCategories(updatedCategories);
+                  localStorage.setItem('productCategories', JSON.stringify(updatedCategories));
+                  try { publish(EVENTS.CATEGORIES_CHANGED, { type: 'delete', categoryName: selectedCategory, categories: updatedCategories }); } catch (_) { }
+
+                  notifyCategoryDeleted(selectedCategory);
+                  setSelectedCategory('الكل');
+                } catch (error) {
+                  console.error('Failed to delete category from cloud:', error);
+                  alert('فشل حذف الفئة من السحابة. يرجى المحاولة مرة أخرى.');
+                }
               }}
               disabled={selectedCategory === 'الكل' || !selectedCategory}
               className={`bg-gradient-to-r from-red-600 to-pink-600 text-slate-800 px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-3xl hover:from-red-700 hover:to-pink-700 transition-all duration-300 flex items-center text-sm md:text-base font-semibold shadow-lg min-h-[50px] cursor-pointer ${selectedCategory === 'الكل' || !selectedCategory ? 'opacity-50 cursor-not-allowed' : ''}`}

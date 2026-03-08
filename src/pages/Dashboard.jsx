@@ -12,15 +12,17 @@ import {
   FileText,
   ChevronDown,
   DollarSign,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import soundManager from '../utils/soundManager.js';
 import storageOptimizer from '../utils/storageOptimizer.js';
 import { formatTimeOnly, getCurrentDate, getLocalDateString, formatDateTime } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
 import supabaseService from '../utils/supabaseService.js';
 import { useAuth } from '../components/AuthProvider';
+import { subscribe, EVENTS } from '../utils/observerManager';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -137,14 +139,70 @@ const Dashboard = () => {
 
   const syncWithSupabase = async () => {
     try {
-      const [products, customers, sales] = await Promise.all([
+      const [products, customers, sales, categories] = await Promise.all([
         supabaseService.getProducts(),
         supabaseService.getCustomers(),
-        supabaseService.getSales()
+        supabaseService.getSales(),
+        supabaseService.getCategories()
       ]);
-      if (products && products.length) localStorage.setItem('products', JSON.stringify(products));
-      if (customers && customers.length) localStorage.setItem('customers', JSON.stringify(customers));
-      if (sales && sales.length) localStorage.setItem('sales', JSON.stringify(sales));
+
+      if (products && products.length > 0) {
+        const mappedProducts = products.map(p => ({
+          id: p.id, name: p.name, category: p.category, price: p.price,
+          stock: p.quantity, minStock: p.minQuantity, barcode: p.barcode,
+          image: p.image, supplyId: p.supplyId, isSupplyProduct: p.supplyId ? true : false,
+          costPrice: p.costPrice
+        }));
+        localStorage.setItem('products', JSON.stringify(mappedProducts));
+      } else {
+        const localProducts = JSON.parse(localStorage.getItem('products') || '[]');
+        if (localProducts.length > 0 && navigator.onLine) {
+          for (const p of localProducts) await supabaseService.addProduct(p).catch(() => { });
+        }
+      }
+
+      if (customers && customers.length > 0) {
+        localStorage.setItem('customers', JSON.stringify(customers));
+      }
+
+      if (sales && sales.length > 0) {
+        localStorage.setItem('sales', JSON.stringify(sales));
+      }
+
+      if (categories && categories.length > 0) {
+        let finalCategories = [...categories];
+        if (!finalCategories.some(c => c.name === 'خامات توريد')) {
+          finalCategories.push({ id: 'خامات توريد', name: 'خامات توريد', description: 'مواد خام مرتبطة بالتوريدات' });
+          if (navigator.onLine) supabaseService.addCategory('خامات توريد', 'مواد خام مرتبطة بالتوريدات').catch(() => { });
+        }
+        localStorage.setItem('productCategories', JSON.stringify(finalCategories));
+      } else {
+        // إذا كانت الفئات فارغة في السحابة لكن موجودة محلياً (هجرة البيانات)
+        const localCategories = JSON.parse(localStorage.getItem('productCategories') || '[]');
+        if (localCategories.length > 0 && navigator.onLine) {
+          console.log('Migrating local categories to cloud from Dashboard...');
+          for (const cat of localCategories) {
+            if (cat.name === 'الكل') continue;
+            await supabaseService.addCategory(cat.name, cat.description || '').catch(() => { });
+          }
+        }
+        if (!localCategories.some(c => c.name === 'خامات توريد')) {
+          localCategories.push({ id: 'خامات توريد', name: 'خامات توريد', description: 'مواد خام مرتبطة بالتوريدات' });
+          localStorage.setItem('productCategories', JSON.stringify(localCategories));
+          if (navigator.onLine) supabaseService.addCategory('خامات توريد', 'مواد خام مرتبطة بالتوريدات').catch(() => { });
+        }
+      }
+
+      // مزامنة التوريدات والمدفوعات (من جداول Setting)
+      const settings = await supabaseService.getSettings();
+      if (settings && settings.length > 0) {
+        const suppliesRecord = settings.find(s => s.key === 'supplier_supplies');
+        if (suppliesRecord) localStorage.setItem('supplier_supplies', suppliesRecord.value);
+
+        const paymentsRecord = settings.find(s => s.key === 'supplier_payments');
+        if (paymentsRecord) localStorage.setItem('supplier_payments', paymentsRecord.value);
+      }
+
       analyzeRealData();
     } catch (error) {
       console.error('Dashboard sync error:', error);
@@ -158,10 +216,20 @@ const Dashboard = () => {
     const interval = setInterval(analyzeRealData, 10000);
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('dataUpdated', handleStorageChange);
+
+    const unsubProducts = typeof subscribe === 'function' ? subscribe(EVENTS.PRODUCTS_CHANGED, handleStorageChange) : null;
+    const unsubCustomers = typeof subscribe === 'function' ? subscribe(EVENTS.CUSTOMERS_CHANGED, handleStorageChange) : null;
+    const unsubSales = typeof subscribe === 'function' ? subscribe(EVENTS.INVOICES_CHANGED, handleStorageChange) : null;
+    const unsubShifts = typeof subscribe === 'function' ? subscribe(EVENTS.SHIFTS_CHANGED, handleStorageChange) : null;
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('dataUpdated', handleStorageChange);
+      if (typeof unsubProducts === 'function') unsubProducts();
+      if (typeof unsubCustomers === 'function') unsubCustomers();
+      if (typeof unsubSales === 'function') unsubSales();
+      if (typeof unsubShifts === 'function') unsubShifts();
     };
   }, []);
 
@@ -200,16 +268,16 @@ const Dashboard = () => {
       </div>
 
       {/* --- 4 STATS CARDS --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" style={{ overflow: 'visible' }}>
 
         {/* Card 1 - Total Products */}
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-1">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float">
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">📦</span>
           </div>
           <div className="relative z-10">
             <p className="text-indigo-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي المنتجات</p>
-            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm">{stats.totalProducts.toLocaleString()}</h3>
+            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm animate-number-pop">{stats.totalProducts.toLocaleString()}</h3>
             <div className="flex items-center text-xs font-semibold">
               <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
                 <Package className="w-3.5 h-3.5 mr-1 text-indigo-200" /> في المخزون
@@ -219,8 +287,8 @@ const Dashboard = () => {
         </div>
 
         {/* Card 2 - Total Sales Today */}
-        <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+        <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-2">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float" style={{ animationDelay: '0.5s' }}>
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">💰</span>
           </div>
           <div className="relative z-10">
@@ -242,8 +310,8 @@ const Dashboard = () => {
         </div>
 
         {/* Card 3 - Total Orders */}
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-3">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float" style={{ animationDelay: '1s' }}>
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">🛒</span>
           </div>
           <div className="relative z-10">
@@ -265,8 +333,8 @@ const Dashboard = () => {
         </div>
 
         {/* Card 4 - Customers */}
-        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-4">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float" style={{ animationDelay: '1.5s' }}>
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">👥</span>
           </div>
           <div className="relative z-10">
@@ -283,7 +351,7 @@ const Dashboard = () => {
       </div>
 
       {/* --- RECENT ORDERS LIST --- */}
-      <div className="bg-white/80 backdrop-blur-md border border-white/50 rounded-[28px] p-8 shadow-xl shadow-slate-200/40 mb-8 transition-all hover:shadow-slate-300/50">
+      <div className="bg-white/80 backdrop-blur-md border border-white/50 rounded-[28px] p-8 shadow-xl shadow-slate-200/40 mb-8 transition-all hover:shadow-slate-300/50 animate-card-enter animate-card-enter-5">
         <h2 className="text-[#1E1B4B] font-black text-xl mb-6 flex items-center">
           <Activity className="w-5 h-5 ml-2 text-indigo-500" />
           آخر الطلبات
@@ -332,7 +400,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* BIG CHART: Sales over the last 7 days */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-white/50 p-8 rounded-[28px] shadow-xl shadow-slate-200/40">
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-white/50 p-8 rounded-[28px] shadow-xl shadow-slate-200/40 animate-card-enter animate-card-enter-6">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-[#1E1B4B] font-black text-lg flex items-center">
               <TrendingUp className="w-5 h-5 ml-2 text-indigo-500" />
@@ -350,7 +418,17 @@ const Dashboard = () => {
           <div className="h-64">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#5235E8" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#5235E8" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                   <XAxis
                     dataKey="day"
@@ -365,29 +443,31 @@ const Dashboard = () => {
                     tick={{ fill: '#9CA3AF', fontSize: 12, fontWeight: 600 }}
                   />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontWeight: 600 }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', fontWeight: 600, backdropFilter: 'blur(10px)' }}
                     formatter={(value, name) => [
                       name === 'revenue' ? `${value.toLocaleString()} ج.م` : value,
                       name === 'revenue' ? 'الإيرادات' : 'الطلبات'
                     ]}
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="revenue"
                     stroke="#5235E8"
-                    strokeWidth={4}
+                    strokeWidth={3}
+                    fill="url(#colorRevenue)"
                     dot={false}
                     activeDot={{ r: 8, strokeWidth: 3, stroke: 'white', fill: '#5235E8' }}
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="orders"
                     stroke="#F59E0B"
-                    strokeWidth={3}
+                    strokeWidth={2}
+                    fill="url(#colorOrders)"
                     dot={false}
                     activeDot={{ r: 6, strokeWidth: 0, fill: '#F59E0B' }}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">
@@ -399,16 +479,18 @@ const Dashboard = () => {
 
         {/* SUMMARY CARD */}
         {/* SUMMARY CARD */}
-        <div className="bg-gradient-to-br from-indigo-900 via-[#362082] to-purple-950 border border-purple-500/30 rounded-[28px] p-8 shadow-2xl shadow-indigo-900/40 relative overflow-hidden text-white flex flex-col justify-between group">
+        <div className="bg-gradient-to-br from-indigo-900 via-[#362082] to-purple-950 border border-purple-500/30 rounded-[28px] p-8 shadow-2xl shadow-indigo-900/40 relative overflow-hidden text-white flex flex-col justify-between group animate-card-enter animate-card-enter-6">
           {/* Background Texture & Glow */}
           <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-400/20 via-transparent to-transparent z-0 transition-opacity group-hover:opacity-60"></div>
+          {/* Shimmer overlay */}
+          <div className="absolute inset-0 animate-shimmer pointer-events-none z-0 rounded-[28px]"></div>
 
           <div className="relative z-10">
             <h3 className="text-indigo-200 font-semibold mb-2 text-sm tracking-widest uppercase flex items-center">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mr-2 animate-pulse"></span>
               ملخص واحصائيات اليوم
             </h3>
-            <h2 className="text-5xl font-black mb-1 drop-shadow-md tracking-tight text-white z-20">
+            <h2 className="text-5xl font-black mb-1 drop-shadow-md tracking-tight text-emerald-400 z-20 animate-number-pop">
               {todayStats.sales.toLocaleString()}
             </h2>
             <p className="text-purple-200/80 text-sm font-medium mt-2 z-20">إجمالي الإيرادات <span className="text-xs">ج.م</span></p>
@@ -419,19 +501,19 @@ const Dashboard = () => {
               <span className="text-indigo-100 text-sm font-medium flex items-center">
                 <ShoppingCart className="w-4 h-4 mr-2 text-indigo-300" /> عدد الفواتير
               </span>
-              <span className="text-2xl font-black text-white">{todayStats.orders}</span>
+              <span className="text-2xl font-black text-emerald-400">{todayStats.orders}</span>
             </div>
             <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
               <span className="text-indigo-100 text-sm font-medium flex items-center">
                 <Users className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي العملاء
               </span>
-              <span className="text-2xl font-black text-white">{stats.totalCustomers}</span>
+              <span className="text-2xl font-black text-emerald-400">{stats.totalCustomers}</span>
             </div>
             <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
               <span className="text-indigo-100 text-sm font-medium flex items-center">
                 <Package className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي المنتجات
               </span>
-              <span className="text-2xl font-black text-white">{stats.totalProducts}</span>
+              <span className="text-2xl font-black text-emerald-400">{stats.totalProducts}</span>
             </div>
           </div>
 

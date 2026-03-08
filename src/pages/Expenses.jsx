@@ -6,6 +6,7 @@ import safeMath from '../utils/safeMath';
 import { useNotifications } from '../components/NotificationSystem';
 
 import supabaseService from '../utils/supabaseService';
+import { subscribe, EVENTS, publish } from '../utils/observerManager';
 
 const Expenses = () => {
     const [expenses, setExpenses] = useState([]);
@@ -57,6 +58,11 @@ const Expenses = () => {
 
     useEffect(() => {
         loadExpensesFromSupabase();
+
+        const unsubscribe = typeof subscribe === 'function' ? subscribe(EVENTS.EXPENSES_CHANGED, loadExpensesFromSupabase) : null;
+        return () => {
+            if (typeof unsubscribe === 'function') unsubscribe();
+        };
     }, []);
 
     const saveExpensesToSupabase = async (expense, isUpdate = false) => {
@@ -86,6 +92,7 @@ const Expenses = () => {
             localStorage.setItem('expenses', JSON.stringify(newExpenses));
             setExpenses(newExpenses);
             window.dispatchEvent(new Event('storage'));
+            publish(EVENTS.EXPENSES_CHANGED, { type: 'local_update' });
         } catch (error) {
             console.error("Error saving expenses:", error);
             notifyError('خطأ', 'حدث خطأ أثناء حفظ المصروفات');
