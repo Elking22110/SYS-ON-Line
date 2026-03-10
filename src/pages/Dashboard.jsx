@@ -30,7 +30,7 @@ const Dashboard = () => {
     totalSales: 0,
     totalOrders: 0,
     totalCustomers: 0,
-    totalProducts: 0
+    dailySupplyQty: 0
   });
 
   const [allTimeSales, setAllTimeSales] = useState([]);
@@ -75,6 +75,8 @@ const Dashboard = () => {
   // Business Logic from existing Dashboard — uses all sales, not just shift
   const analyzeRealData = () => {
     try {
+      // Only clear cache when absolutely necessary or if we want to ensure freshness
+      // but doing it every time causes flickering
       const allSales = storageOptimizer.get('sales', []) || [];
       const products = storageOptimizer.get('products', []) || [];
       const customers = storageOptimizer.get('customers', []) || [];
@@ -109,18 +111,24 @@ const Dashboard = () => {
         .slice(0, 5)
         .map(sale => ({
           id: sale.id,
-          customer: sale.customer?.name || 'عميل نقدي',
+          customer: sale.customer?.name || sale.customerName || sale.customerInfo?.name || (typeof sale.customer === 'string' ? sale.customer : 'نقدي'),
           amount: parseFloat(sale.total || sale.totalAmount) || 0,
           time: formatTimeOnly(sale.date || sale.createdAt),
           items: sale.items?.length || (typeof sale.items === 'string' ? JSON.parse(sale.items || '[]').length : 0),
           paymentMethod: sale.paymentMethod || 'cash'
         }));
 
+      // Calculate Daily Supply Quantity
+      const allSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+      const dailySupplyQty = allSupplies
+        .filter(s => (s.date || '').split('T')[0] === today)
+        .reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0);
+
       setStats({
         totalSales,
         totalOrders,
         totalCustomers: customers.length,
-        totalProducts: products.length
+        dailySupplyQty: dailySupplyQty
       });
 
       setRecentOrders(recent);
@@ -221,6 +229,7 @@ const Dashboard = () => {
     const unsubCustomers = typeof subscribe === 'function' ? subscribe(EVENTS.CUSTOMERS_CHANGED, handleStorageChange) : null;
     const unsubSales = typeof subscribe === 'function' ? subscribe(EVENTS.INVOICES_CHANGED, handleStorageChange) : null;
     const unsubShifts = typeof subscribe === 'function' ? subscribe(EVENTS.SHIFTS_CHANGED, handleStorageChange) : null;
+    const unsubSuppliers = typeof subscribe === 'function' ? subscribe(EVENTS.SUPPLIERS_CHANGED, handleStorageChange) : null;
 
     return () => {
       clearInterval(interval);
@@ -230,6 +239,7 @@ const Dashboard = () => {
       if (typeof unsubCustomers === 'function') unsubCustomers();
       if (typeof unsubSales === 'function') unsubSales();
       if (typeof unsubShifts === 'function') unsubShifts();
+      if (typeof unsubSuppliers === 'function') unsubSuppliers();
     };
   }, []);
 
@@ -270,25 +280,25 @@ const Dashboard = () => {
       {/* --- 4 STATS CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" style={{ overflow: 'visible' }}>
 
-        {/* Card 1 - Total Products */}
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-1">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float">
-            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">📦</span>
+        {/* Card 1 - Daily Supply Qty */}
+        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">🚚</span>
           </div>
           <div className="relative z-10">
-            <p className="text-indigo-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي المنتجات</p>
-            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm animate-number-pop">{stats.totalProducts.toLocaleString()}</h3>
+            <p className="text-indigo-100 text-sm font-semibold mb-2 tracking-wide uppercase">توريدات اليوم</p>
+            <h3 className="text-4xl font-black mb-4 tracking-tight drop-shadow-sm">{(stats.dailySupplyQty || 0).toLocaleString()} <span className="text-lg font-bold text-indigo-200">كجم</span></h3>
             <div className="flex items-center text-xs font-semibold">
               <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
-                <Package className="w-3.5 h-3.5 mr-1 text-indigo-200" /> في المخزون
+                <Package className="w-3.5 h-3.5 mr-1 text-indigo-200" /> كمية التوريد
               </span>
             </div>
           </div>
         </div>
 
         {/* Card 2 - Total Sales Today */}
-        <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-2">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float" style={{ animationDelay: '0.5s' }}>
+        <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.5s' }}>
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">💰</span>
           </div>
           <div className="relative z-10">
@@ -310,8 +320,8 @@ const Dashboard = () => {
         </div>
 
         {/* Card 3 - Total Orders */}
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-3">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float" style={{ animationDelay: '1s' }}>
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1s' }}>
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">🛒</span>
           </div>
           <div className="relative z-10">
@@ -333,8 +343,8 @@ const Dashboard = () => {
         </div>
 
         {/* Card 4 - Customers */}
-        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10 animate-card-enter animate-card-enter-4">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500 animate-emoji-float" style={{ animationDelay: '1.5s' }}>
+        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1.5s' }}>
             <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">👥</span>
           </div>
           <div className="relative z-10">
@@ -351,7 +361,7 @@ const Dashboard = () => {
       </div>
 
       {/* --- RECENT ORDERS LIST --- */}
-      <div className="bg-white/80 backdrop-blur-md border border-white/50 rounded-[28px] p-8 shadow-xl shadow-slate-200/40 mb-8 transition-all hover:shadow-slate-300/50 animate-card-enter animate-card-enter-5">
+      <div className="bg-white/80 backdrop-blur-md border border-white/50 rounded-[28px] p-8 shadow-xl shadow-slate-200/40 mb-8 transition-all hover:shadow-slate-300/50">
         <h2 className="text-[#1E1B4B] font-black text-xl mb-6 flex items-center">
           <Activity className="w-5 h-5 ml-2 text-indigo-500" />
           آخر الطلبات
@@ -364,7 +374,11 @@ const Dashboard = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold ml-4 shadow-inner group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors">
                   {order.customer.charAt(0)}
                 </div>
-                <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors">{order.customer}</span>
+                <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors">
+                  <span className="truncate max-w-[120px]">
+                    {order.customer || 'نقدي'}
+                  </span>
+                </span>
               </div>
 
               <div className="min-w-[120px] font-black text-slate-800 text-lg">
@@ -382,7 +396,7 @@ const Dashboard = () => {
               </div>
 
               <div className={`min-w-[100px] font-bold text-sm px-4 py-1.5 rounded-full text-center ${order.paymentMethod === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                {order.paymentMethod === 'cash' ? 'نقدي' : order.paymentMethod === 'card' ? 'بطاقة' : order.paymentMethod}
+                {order.customer !== 'نقدي' ? order.customer : (order.paymentMethod === 'cash' ? 'نقدي' : 'بطاقة')}
               </div>
             </div>
           )) : (

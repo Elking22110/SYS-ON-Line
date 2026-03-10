@@ -11,7 +11,19 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 // Web Browser Polyfill: If we are not running inside Electron (where window.supabaseDB via IPC exists),
 // map database operations directly to Supabase JS Client! This enables full online web-app support.
 const dbApi = {
-    getProducts: async () => { const { data } = await supabase.from('Product').select('*'); return data || []; },
+    getProducts: async () => {
+        const { data } = await supabase.from('Product').select('*');
+        if (data) {
+            // Update local lookup map
+            const products = data.map(p => ({
+                id: p.id, name: p.name, category: p.category, price: p.price,
+                stock: p.quantity, minStock: p.minQuantity, barcode: p.barcode,
+                image: p.image, supplyId: p.supplyId, costPrice: p.costPrice
+            }));
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+        return data || [];
+    },
     addProduct: async (dataArg) => {
         const payload = { ...dataArg, updatedAt: new Date().toISOString() };
         if (!payload.id) payload.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
@@ -52,7 +64,32 @@ const dbApi = {
     },
     deleteCategory: async (name) => { const { error } = await supabase.from('Category').delete().eq('name', name); if (error) throw error; return true; },
 
-    getCustomers: async () => { const { data } = await supabase.from('Customer').select('*'); return data || []; },
+    getCustomers: async () => {
+        const { data } = await supabase.from('Customer').select('*');
+        if (!data) return [];
+        try {
+            const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
+            if (localCustomers.length === 0) return data;
+            return data.map(sc => {
+                const lc = localCustomers.find(c => String(c.id) === String(sc.id));
+                if (lc) {
+                    return {
+                        ...sc,
+                        businessActivity: lc.businessActivity || '',
+                        usualProduct: lc.usualProduct || '',
+                        cliche: lc.cliche || '',
+                        clicheCode: lc.clicheCode || '',
+                        colorCount: lc.colorCount || '',
+                        notes: lc.notes || ''
+                    };
+                }
+                return sc;
+            });
+        } catch (error) {
+            console.error('Error merging local customers', error);
+            return data;
+        }
+    },
     addCustomer: async (dataArg) => {
         const payload = { ...dataArg, createdAt: new Date().toISOString() };
         if (!payload.id) payload.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
@@ -73,7 +110,9 @@ const dbApi = {
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
         const { data: res, error } = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
-        if (error) throw error; return res;
+        if (error) throw error;
+        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: res });
+        return res;
     },
     deleteCustomer: async (id) => { const { error } = await supabase.from('Customer').delete().eq('id', id); if (error) throw error; return true; },
 
@@ -216,6 +255,32 @@ const dbApi = {
     deleteProductsByCategory: async (categoryName) => {
         const { error } = await supabase.from('Product').delete().eq('category', categoryName);
         if (error) throw error; return true;
+    },
+
+    // HELPER: Resolve names from local storage maps
+    getCustomerName: (id) => {
+        if (!id) return 'نقدي';
+        try {
+            const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+            const customer = customers.find(c => String(c.id) === String(id));
+            return customer ? (customer.name || customer.customerName) : 'عميل غير موجود';
+        } catch (e) { return 'نقدي'; }
+    },
+    getSupplierName: (id) => {
+        if (!id) return 'مورد غير معروف';
+        try {
+            const suppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
+            const supplier = suppliers.find(s => String(s.id) === String(id));
+            return supplier ? supplier.name : 'مورد غير موجود';
+        } catch (e) { return 'مورد غير معروف'; }
+    },
+    getProductName: (id) => {
+        if (!id) return 'منتج غير موجود';
+        try {
+            const products = JSON.parse(localStorage.getItem('products') || '[]');
+            const product = products.find(p => String(p.id) === String(id));
+            return product ? product.name : 'منتج غير موجود';
+        } catch (e) { return 'منتج غير معروف'; }
     }
 };
 class SupabaseService {
@@ -321,6 +386,11 @@ class SupabaseService {
         }
         return false;
     }
+
+    // RESOLVERS (FOR REAL-TIME UI)
+    getCustomerName(id) { return dbApi.getCustomerName(id); }
+    getSupplierName(id) { return dbApi.getSupplierName(id); }
+    getProductName(id) { return dbApi.getProductName(id); }
 
     // PRODUCTS
     async getProducts() {

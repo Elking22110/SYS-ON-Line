@@ -48,7 +48,7 @@ const Sidebar = () => {
       {/* Mobile Top Bar */}
       <div className="md:hidden bg-[#5235E8] text-white p-4 flex justify-between items-center z-50 flex-shrink-0 shadow-md">
         <div className="flex items-center">
-          <span className="text-2xl drop-shadow-md">👑</span>
+          <span className="text-[29px] drop-shadow-md animate-float inline-block">👑</span>
         </div>
 
         {/* اسم الصفحة النشطة في المنتصف */}
@@ -95,7 +95,7 @@ const Sidebar = () => {
           >
             {/* Crown */}
             <div className="mb-2">
-              <span className="drop-shadow-[0_0_20px_rgba(255,215,0,0.8)] text-4xl">👑</span>
+              <span className="drop-shadow-[0_0_20px_rgba(255,215,0,1)] text-[44px] animate-float inline-block">👑</span>
             </div>
             {/* Text - Always full size now */}
             <div>

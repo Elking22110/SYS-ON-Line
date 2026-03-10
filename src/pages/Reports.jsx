@@ -142,9 +142,7 @@ const Reports = () => {
         await fetchAllFromSupabase();
 
         // تحميل البيانات من مصادر متعددة
-        const salesFromOptimizer = storageOptimizer.get('sales', []);
-        const salesFromLocalStorage = JSON.parse(localStorage.getItem('sales') || '[]');
-        const activeSales = salesFromOptimizer.length > 0 ? salesFromOptimizer : salesFromLocalStorage;
+        const activeSales = storageOptimizer.get('sales', []);
 
         // تحميل المبيعات من تاريخ الورديات المنتهية
         const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
@@ -427,7 +425,7 @@ const Reports = () => {
           // إزالة الفاتورة من جميع المبيعات
           const allSalesData = JSON.parse(localStorage.getItem('sales') || '[]');
           const updatedSales = allSalesData.filter(sale => sale.id !== invoiceId);
-          localStorage.setItem('sales', JSON.stringify(updatedSales));
+          storageOptimizer.setImmediate('sales', updatedSales);
           supabaseService.deleteSale(invoiceId).catch(err => console.error('Supabase delete error:', err));
           try { publish(EVENTS.INVOICES_CHANGED, { type: 'delete', invoiceId }); } catch (_) { }
 
@@ -569,7 +567,7 @@ const Reports = () => {
         // تحديث في localStorage + إنقاص المخزون للصنف
         const sales = JSON.parse(localStorage.getItem('sales') || '[]');
         const updatedSales = sales.map(sale => sale.id === invoiceId ? updatedInvoice : sale);
-        localStorage.setItem('sales', JSON.stringify(updatedSales));
+        storageOptimizer.setImmediate('sales', updatedSales);
         supabaseService.updateSale(invoiceId, updatedInvoice).catch(console.error);
         try {
           const activeShift = JSON.parse(localStorage.getItem('activeShift') || 'null');
@@ -1122,11 +1120,15 @@ const Reports = () => {
 
   // ربط عناصر الفاتورة ببيانات المنتجات للحصول على الفئة عند غيابها
   const enrichInvoiceItemsWithCategory = (invoice) => {
+    if (!invoice) return invoice;
     try {
       const products = JSON.parse(localStorage.getItem('products') || '[]');
       const idToCategory = new Map(products.map(p => [p.id, p.category || 'غير محدد']));
+      const idToName = new Map(products.map(p => [p.id, p.name || 'غير محدد']));
+
       const items = (invoice.items || []).map(it => ({
         ...it,
+        name: it.name || idToName.get(it.id) || 'منتج غير محدد',
         category: it.category || idToCategory.get(it.id) || 'غير محدد'
       }));
       return { ...invoice, items };
@@ -1184,7 +1186,10 @@ const Reports = () => {
       return;
     }
 
-    const confirmMessage = `هل تريد سداد المبلغ المتبقي: ${remainingAmount.toFixed(2)} جنيه؟\n\nالفاتورة رقم: ${invoice.id}\nالعميل: ${invoice.customer?.name || 'عميل غير محدد'}\nالمبلغ الإجمالي: ${invoice.total.toFixed(2)} جنيه\nالعربون المدفوع: ${invoice.downPayment.amount.toFixed(2)} جنيه\nالمبلغ المتبقي: ${remainingAmount.toFixed(2)} جنيه`;
+    const customerName = invoice.customer?.name || invoice.customerName || invoice.customerInfo?.name || (typeof invoice.customer === 'string' ? invoice.customer : 'نقدي');
+    const totalAmount = Number(invoice.total || invoice.amount || invoice.totalAmount || 0);
+
+    const confirmMessage = `هل تريد سداد المبلغ المتبقي: ${remainingAmount.toFixed(2)} جنيه؟\n\nالفاتورة رقم: ${invoice.id}\nالعميل: ${customerName}\nالمبلغ الإجمالي: ${totalAmount.toFixed(2)} جنيه\nالعربون المدفوع: ${invoice.downPayment.amount.toFixed(2)} جنيه\nالمبلغ المتبقي: ${remainingAmount.toFixed(2)} جنيه`;
 
     if (confirm(confirmMessage)) {
       try {
@@ -1452,9 +1457,9 @@ const Reports = () => {
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Animation */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-40 left-40 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-40 left-40 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '4s' }}></div>
       </div>
 
       {/* نافذة سداد المتبقي - اختيار طريقة الدفع */}
@@ -1943,9 +1948,13 @@ const Reports = () => {
                               {/* رقم الفاتورة */}
                               <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-slate-800 font-mono">{item.id}</td>
                               {/* العميل */}
-                              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-slate-800">{item.customer?.name || 'غير محدد'}</td>
+                              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-slate-800">
+                                {supabaseService.getCustomerName(item.customerId || item.customer?.id) || (item.customer?.name || item.customerName || item.customerInfo?.name || (typeof item.customer === 'string' ? item.customer : 'نقدي'))}
+                              </td>
                               {/* المبلغ */}
-                              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-green-300 font-semibold">{(Number(item.total) || 0).toLocaleString('en-US')} جنيه</td>
+                              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-green-300 font-semibold">
+                                {(Number(item.total || item.amount || item.totalAmount || 0)).toLocaleString('en-US')} جنيه
+                              </td>
                               {/* طريقة الدفع */}
                               <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-slate-800">
                                 {getPaymentMethodText(item.paymentMethod)}
@@ -1961,7 +1970,9 @@ const Reports = () => {
                                 )}
                               </td>
                               {/* التاريخ */}
-                              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-xs text-slate-600">{formatDateTime(item.timestamp || item.date || '')}</td>
+                              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-xs text-slate-600">
+                                {formatDateTime(item.timestamp || item.date || item.createdAt || '')}
+                              </td>
                               {/* الإجراءات */}
                               <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-slate-800">
                                 <div className="flex flex-wrap gap-2" style={{ position: 'relative', zIndex: 1, pointerEvents: 'auto' }}>
@@ -2132,7 +2143,7 @@ const Reports = () => {
                     رقم الفاتورة: <span className="text-slate-800 font-mono bg-purple-500 bg-opacity-20 px-2 py-1 rounded text-xs">#{selectedInvoice?.id || selectedInvoice?.invoiceId || 'غير محدد'}</span>
                   </p>
                   <p className="text-slate-600 text-xs mt-1">
-                    تاريخ الإنشاء: {selectedInvoice?.timestamp || selectedInvoice?.date || 'غير محدد'}
+                    تاريخ الإنشاء: {selectedInvoice?.timestamp || selectedInvoice?.date || selectedInvoice?.createdAt || 'غير محدد'}
                   </p>
                   {selectedInvoice?.downPayment && selectedInvoice.downPayment.enabled && (
                     <div className="mt-2">
@@ -2170,7 +2181,7 @@ const Reports = () => {
                   <div className="flex justify-between">
                     <span className="text-slate-600 text-sm">الاسم:</span>
                     <span className="text-slate-800 font-medium text-sm">
-                      {selectedInvoice?.customer?.name || selectedInvoice?.customerInfo?.name || selectedInvoice?.customerName || 'عميل نقدي'}
+                      {supabaseService.getCustomerName(selectedInvoice?.customerId || selectedInvoice?.customer?.id) || (selectedInvoice?.customer?.name || selectedInvoice?.customerName || selectedInvoice?.customerInfo?.name || (typeof selectedInvoice?.customer === 'string' ? selectedInvoice.customer : 'نقدي'))}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -2205,7 +2216,7 @@ const Reports = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">التاريخ:</span>
-                    <span className="text-slate-800 font-medium">{selectedInvoice?.timestamp || 'غير محدد'}</span>
+                    <span className="text-slate-800 font-medium">{selectedInvoice?.timestamp || selectedInvoice?.date || selectedInvoice?.createdAt || 'غير محدد'}</span>
                   </div>
 
                   {/* تفاصيل العربون */}
@@ -2347,20 +2358,20 @@ const Reports = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-1">
                   <span className="text-slate-600 text-sm">المجموع الفرعي:</span>
-                  <span className="text-slate-800 font-medium text-sm">{selectedInvoice?.subtotal || 0} جنيه</span>
+                  <span className="text-slate-800 font-medium text-sm">{(selectedInvoice?.subtotal || selectedInvoice?.amount || 0).toLocaleString('en-US')} جنيه</span>
                 </div>
 
-                {selectedInvoice?.discountAmount > 0 && (
+                {Number(selectedInvoice?.discountAmount || (selectedInvoice?.discount?.amount) || 0) > 0 && (
                   <div className="flex justify-between items-center py-1 bg-red-500 bg-opacity-10 rounded-lg px-2">
                     <span className="text-red-200 text-sm">الخصم:</span>
-                    <span className="text-red-400 font-bold text-sm">-{selectedInvoice.discountAmount} جنيه</span>
+                    <span className="text-red-400 font-bold text-sm">-{Number(selectedInvoice.discountAmount || (selectedInvoice?.discount?.amount) || 0).toLocaleString('en-US')} جنيه</span>
                   </div>
                 )}
 
-                {selectedInvoice?.taxAmount > 0 && (
+                {Number(selectedInvoice?.taxAmount || (selectedInvoice?.tax?.amount) || 0) > 0 && (
                   <div className="flex justify-between items-center py-1 bg-white bg-opacity-10 rounded-lg px-2">
                     <span className="text-slate-700 text-sm">الضريبة:</span>
-                    <span className="text-slate-800 font-bold text-sm">{selectedInvoice.taxAmount} جنيه</span>
+                    <span className="text-slate-800 font-bold text-sm">{Number(selectedInvoice.taxAmount || (selectedInvoice?.tax?.amount) || 0).toLocaleString('en-US')} جنيه</span>
                   </div>
                 )}
 
@@ -2390,7 +2401,7 @@ const Reports = () => {
                 <div className="flex justify-between items-center border-t-2 border-white border-opacity-30 pt-2 mt-2">
                   <span className="text-slate-800 font-bold text-lg">الإجمالي النهائي:</span>
                   <span className="text-slate-800 font-bold text-xl bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
-                    {selectedInvoice?.total} جنيه
+                    {(Number(selectedInvoice?.total || selectedInvoice?.amount || selectedInvoice?.totalAmount || 0)).toLocaleString('en-US')} جنيه
                   </span>
                 </div>
               </div>

@@ -443,11 +443,11 @@ img {
 
   0%,
   100% {
-    opacity: 0.1;
+    /* No opacity change */
   }
 
   50% {
-    opacity: 0.3;
+    /* No opacity change */
   }
 }
 
@@ -1238,9 +1238,7 @@ img {
 }
 
 /* تحسينات إضافية للوضع النهاري */
-[data-theme="light"] .animate-float {
-  opacity: 0.1;
-}
+[data-theme="light"] .animate-float {}
 
 [data-theme="light"] .text-white {
   color: var(--text-primary) !important;

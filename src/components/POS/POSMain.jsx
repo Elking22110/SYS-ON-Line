@@ -100,13 +100,15 @@ const POSMain = () => {
   useEffect(() => {
     const reloadProducts = () => {
       try {
-        const saved = JSON.parse(localStorage.getItem('products') || '[]');
+        storageOptimizer.clearCache('products');
+        const saved = storageOptimizer.get('products', []);
         setProducts(saved);
       } catch (_) { }
     };
     const reloadCategories = () => {
       try {
-        const saved = JSON.parse(localStorage.getItem('productCategories') || '[]');
+        storageOptimizer.clearCache('productCategories');
+        const saved = storageOptimizer.get('productCategories', []);
         setCategories(saved);
       } catch (_) { }
     };
@@ -388,8 +390,9 @@ const POSMain = () => {
       try {
         if (sale.customer && (sale.customer.name || sale.customer.phone)) {
           const existingCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
-          // ابحث عن العميل الحالي بالهاتف أو الاسم
+          // ابحث عن العميل الحالي بالمعرف أو الهاتف أو الاسم
           const customerIndex = existingCustomers.findIndex(c =>
+            (sale.customer.id && c.id === sale.customer.id) ||
             (sale.customer.phone && c.phone === sale.customer.phone) ||
             (sale.customer.name && c.name === sale.customer.name)
           );
@@ -1497,7 +1500,7 @@ const POSMain = () => {
                   const modifiedProduct = {
                     ...colorModalProduct,
                     id: `${colorModalProduct.id}-config-${selectedColorCount}-${needsCutting}-${eklashyCost}-${colorModalProduct.supplyId || 'none'}`,
-                    name: `${colorModalProduct.name} (${tags})`,
+                    name: `${colorModalProduct.name || 'منتج غير محدد'} (${tags})`,
                     price: finalPrice,
                     originalPrice: baseRawPrice,
                     quantity: qtyToSet,

@@ -26,7 +26,7 @@ class StorageOptimizer {
   // كتابة محسنة مع debounce
   set(key, value, debounceMs = 100) {
     this.cache.set(key, value);
-    
+
     // إلغاء المؤقت السابق
     if (this.debounceTimers.has(key)) {
       clearTimeout(this.debounceTimers.get(key));
@@ -69,9 +69,19 @@ class StorageOptimizer {
     }
   }
 
-  // مسح الـ cache
-  clearCache() {
-    this.cache.clear();
+  // مسح الـ cache لمفتاح معين أو للكل
+  clearCache(key = null) {
+    if (key) {
+      this.cache.delete(key);
+      if (this.debounceTimers.has(key)) {
+        clearTimeout(this.debounceTimers.get(key));
+        this.debounceTimers.delete(key);
+      }
+    } else {
+      this.cache.clear();
+      this.debounceTimers.forEach(timer => clearTimeout(timer));
+      this.debounceTimers.clear();
+    }
   }
 
   // إجبار حفظ جميع التحديثات المعلقة

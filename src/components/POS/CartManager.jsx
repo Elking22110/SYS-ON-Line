@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { ShoppingCart, Trash2, Plus, Minus, X } from 'lucide-react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { ShoppingCart, Trash2, Plus, Minus, X, Search, User } from 'lucide-react';
+import { subscribe, EVENTS } from '../../utils/observerManager';
 import { useNotifications } from '../NotificationSystem';
 import soundManager from '../../utils/soundManager.js';
 import errorHandler from '../../utils/errorHandler.js';
@@ -26,6 +27,45 @@ const CartManager = ({
   const { notifySuccess, notifyError } = useNotifications();
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [showTaxModal, setShowTaxModal] = useState(false);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+
+  // تحميل العملاء والاشتراك في تحديثاتهم
+  useEffect(() => {
+    const loadCustomers = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('customers') || '[]');
+        setAllCustomers(saved);
+      } catch (_) { }
+    };
+
+    loadCustomers();
+    const unsub = subscribe(EVENTS.CUSTOMERS_CHANGED, loadCustomers);
+    return () => {
+      if (unsub) unsub();
+    };
+  }, []);
+
+  const filteredCustomers = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase();
+    return allCustomers.filter(c =>
+      (c.name && c.name.toLowerCase().includes(query)) ||
+      (c.phone && c.phone.includes(query))
+    ).slice(0, 5); // عرض أول 5 نتائج فقط
+  }, [allCustomers, searchQuery]);
+
+  const selectCustomer = (customer) => {
+    setCustomerInfo({
+      id: customer.id,
+      name: customer.name,
+      phone: customer.phone
+    });
+    setSearchQuery('');
+    setShowCustomerDropdown(false);
+    soundManager.play('openWindow');
+  };
 
   // حساب الإجمالي الفرعي
   const getSubtotal = useMemo(() => {
@@ -287,17 +327,66 @@ const CartManager = ({
 
       {/* بيانات العميل - مصغرة */}
       {cart.length > 0 && (
-        <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200 relative">
           <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-1">
-            <span className="text-slate-600">👤</span>
+            <User className="h-4 w-4 text-slate-600" />
             بيانات العميل
           </h4>
+
+          {/* بحث عن عميل موجود */}
+          <div className="relative mb-2">
+            <div className="relative">
+              <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowCustomerDropdown(true);
+                }}
+                onFocus={() => setShowCustomerDropdown(true)}
+                placeholder="بحث في العملاء..."
+                className="w-full pr-7 pl-2 py-1 bg-white border border-slate-300 rounded text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs"
+              />
+            </div>
+
+            {/* قائمة منسدلة لنتائج البحث */}
+            {showCustomerDropdown && (searchQuery || filteredCustomers.length > 0) && (
+              <div className="absolute z-50 bottom-full left-0 right-0 mb-1 bg-white border border-slate-300 rounded-lg shadow-xl max-h-40 overflow-y-auto">
+                <div className="p-1 flex justify-between items-center bg-slate-50 border-b border-slate-200">
+                  <span className="text-[10px] text-slate-500 font-bold">نتائج البحث</span>
+                  <button onClick={() => setShowCustomerDropdown(false)} className="text-slate-400 hover:text-slate-600">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                {filteredCustomers.length > 0 ? (
+                  filteredCustomers.map(c => (
+                    <button
+                      key={c.id}
+                      onClick={() => selectCustomer(c)}
+                      className="w-full text-right px-3 py-2 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
+                    >
+                      <div className="text-xs font-bold text-slate-800">{c.name}</div>
+                      <div className="text-[10px] text-slate-500">{c.phone}</div>
+                    </button>
+                  ))
+                ) : (
+                  searchQuery && (
+                    <div className="px-3 py-2 text-[10px] text-slate-400 text-center italic">
+                      لا يوجد نتائج.. أدخل البيانات يدوياً بالأسفل
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div>
               <input
                 type="text"
                 value={customerInfo?.name || ''}
-                onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
+                onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value, id: null })}
                 placeholder="اسم العميل"
                 className="w-full px-2 py-1 bg-slate-100 border border-slate-300 rounded text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs"
               />
@@ -306,7 +395,7 @@ const CartManager = ({
               <input
                 type="tel"
                 value={customerInfo?.phone || ''}
-                onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
+                onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value, id: null })}
                 placeholder="رقم الهاتف *"
                 className="w-full px-2 py-1 bg-slate-100 border border-slate-300 rounded text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs"
                 required
@@ -314,7 +403,19 @@ const CartManager = ({
             </div>
           </div>
           {!customerInfo?.phone && (
-            <p className="text-red-400 text-xs mt-1">رقم الهاتف مطلوب</p>
+            <p className="text-red-400 text-[10px] mt-1 italic">رقم الهاتف مطلوب لتسجيل المبيعة</p>
+          )}
+          {customerInfo?.id && (
+            <div className="mt-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              <span className="text-[9px] text-green-600 font-bold">تم ربط العميل مسجل مسبقاً (ID: {customerInfo.id.toString().slice(-4)})</span>
+              <button
+                onClick={() => setCustomerInfo({ name: '', phone: '', id: null })}
+                className="ml-auto text-[10px] text-slate-400 hover:text-red-400 underline"
+              >
+                إلغاء الربط
+              </button>
+            </div>
           )}
         </div>
       )}

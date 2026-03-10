@@ -133,7 +133,7 @@ const LoginSignupForm = () => {
                 <div className="glass-card hover-lift p-8">
                   {/* Header */}
                   <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse-custom">
+                    <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                       <Shield className="h-10 w-10 text-slate-800" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-white via-purple-200 to-blue-300 bg-clip-text text-transparent">
@@ -247,7 +247,7 @@ const LoginSignupForm = () => {
                 <div className="glass-card hover-lift p-8">
                   {/* Header */}
                   <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse-custom">
+                    <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                       <User className="h-10 w-10 text-slate-800" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-800 mb-2 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">

@@ -12,7 +12,9 @@ import {
     CreditCard,
     FileText,
     Trash2,
-    AlertTriangle
+    AlertTriangle,
+    Link2,
+    X
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
 import { formatDate, getCurrentDate } from '../utils/dateUtils.js';
@@ -31,12 +33,16 @@ const SupplierDetails = () => {
     const [showSupplyModal, setShowSupplyModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+    // Open orders for linking
+    const [openOrders, setOpenOrders] = useState([]);
+
     // Forms state
     const [newSupply, setNewSupply] = useState({
         productName: '',
         quantity: '',
         unitPrice: '',
-        paidAmount: '0'
+        paidAmount: '0',
+        linkedOrderId: ''
     });
 
     const [newPayment, setNewPayment] = useState({
@@ -50,8 +56,16 @@ const SupplierDetails = () => {
     useEffect(() => {
         loadData();
 
-        // Listen to changes (if needed)
-        return () => { };
+        // Listen to changes for real-time sync
+        const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, loadData);
+        const unsubInvoices = subscribe(EVENTS.INVOICES_CHANGED, loadData);
+        const unsubCustomers = subscribe(EVENTS.CUSTOMERS_CHANGED, loadData);
+
+        return () => {
+            if (unsubSuppliers) unsubSuppliers();
+            if (unsubInvoices) unsubInvoices();
+            if (unsubCustomers) unsubCustomers();
+        };
     }, [id]);
 
     const loadData = () => {
@@ -71,6 +85,11 @@ const SupplierDetails = () => {
         const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
         const supplierPayments = allPayments.filter(p => p.supplierId.toString() === id);
         setPayments(supplierPayments.sort((a, b) => b.id - a.id));
+
+        // Load open/in-production orders for linking
+        const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+        const linkable = allOrders.filter(o => o.status === 'OPEN' || o.status === 'IN_PRODUCTION');
+        setOpenOrders(linkable);
     };
 
     const calculateTotalSuppliesValue = () => {
@@ -102,10 +121,22 @@ const SupplierDetails = () => {
         }
 
         const totalPrice = safeMath.multiply(qty, price);
+        const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+
+        // Generate sequential supply number (e.g. SUP-101)
+        const generateSupplyNumber = () => {
+            const maxNum = allSupplies.reduce((max, s) => {
+                const num = parseInt((s.supplyNumber || '').replace('SUP-', '')) || 0;
+                return Math.max(max, num);
+            }, 100);
+            return `SUP-${maxNum + 1}`;
+        };
 
         const supply = {
             id: Date.now(),
+            supplyNumber: generateSupplyNumber(),
             supplierId: id,
+            supplierName: supplier?.name || '',
             date: getCurrentDate().split('T')[0],
             productName: newSupply.productName,
             quantity: qty,
@@ -113,11 +144,21 @@ const SupplierDetails = () => {
             totalPrice: totalPrice,
             paidAmount: paid,
             remainingAmount: safeMath.subtract(totalPrice, paid),
-            remainingQuantity: qty, // Added to track raw material consumption separately from financial balance
-            wasteQuantity: 0 // Initialize waste to 0
+            remainingQuantity: qty,
+            wasteQuantity: 0,
+            // Order linking
+            linkedOrderId: newSupply.linkedOrderId || null,
+            linkedOrderNumber: newSupply.linkedOrderId
+                ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.orderNumber || null
+                : null,
+            linkedCustomerName: newSupply.linkedOrderId
+                ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerName || null
+                : null,
+            linkedCustomerId: newSupply.linkedOrderId
+                ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerId || null
+                : null,
         };
 
-        const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
         allSupplies.push(supply);
         localStorage.setItem('supplier_supplies', JSON.stringify(allSupplies));
 
@@ -162,7 +203,7 @@ const SupplierDetails = () => {
 
         soundManager.play('save');
         setShowSupplyModal(false);
-        setNewSupply({ productName: '', quantity: '', unitPrice: '', paidAmount: '0' });
+        setNewSupply({ productName: '', quantity: '', unitPrice: '', paidAmount: '0', linkedOrderId: '' });
         loadData();
     };
 
@@ -289,7 +330,7 @@ const SupplierDetails = () => {
         return (
             <div className="min-h-screen relative flex items-center justify-center pt-20">
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float"></div>
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3"></div>
                 </div>
                 <div className="text-slate-800 text-xl">جاري تحميل بيانات المورد... أو المورد غير موجود.</div>
             </div>
@@ -304,81 +345,81 @@ const SupplierDetails = () => {
     const newSupplyRemaining = safeMath.subtract(newSupplyTotal, newSupplyPaid);
 
     return (
-        <div className="min-h-screen relative overflow-hidden pb-10">
+        <div className="min-h-screen bg-[#F3F4F9] relative overflow-hidden pb-10">
             {/* Background Animation */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float"></div>
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" />
+                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '2s' }} />
             </div>
 
-            <div className="relative z-10 p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6">
+            <div className="relative z-10 p-4 md:p-6 lg:p-8 space-y-5">
 
                 {/* Header Navigation */}
-                <div className="flex items-center space-x-4 mb-4 rtl:space-x-reverse">
+                <div className="flex items-center space-x-4 mb-2 rtl:space-x-reverse">
                     <button
                         onClick={() => navigate('/suppliers')}
-                        className="flex items-center text-blue-300 hover:text-slate-800 transition-colors bg-white bg-opacity-10 p-2 rounded-lg"
+                        className="flex items-center text-[#5235E8] hover:text-slate-800 transition-colors bg-white px-3 py-2 rounded-lg text-sm shadow-sm"
                     >
-                        <ArrowRight className="h-5 w-5 ml-2" />
+                        <ArrowRight className="h-4 w-4 ml-1" />
                         العودة للموردين
                     </button>
                 </div>
 
-                {/* Supplier Info Hero Details */}
-                <div className="glass-card p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 animate-fadeInUp">
-                    <div className="flex items-center">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center ml-4 shadow-lg">
-                            <User className="h-8 w-8 text-slate-800" />
+                {/* Supplier Hero Card */}
+                <div className="glass-card p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-[#5235E8] rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-300">
+                            <User className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800 mb-2">{supplier.name}</h1>
-                            <div className="flex flex-wrap items-center text-sm gap-3">
-                                <span className="flex items-center bg-green-500 bg-opacity-20 text-green-300 px-3 py-1 rounded-full">
-                                    <Phone className="h-4 w-4 ml-1" /> {supplier.phone}
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1">{supplier.name}</h1>
+                            <div className="flex flex-wrap items-center text-sm gap-3 font-medium">
+                                <span className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                    <Phone className="h-3.5 w-3.5 ml-1" /> {supplier.phone}
                                 </span>
                                 {supplier.email && (
-                                    <span className="flex items-center bg-purple-500 bg-opacity-20 text-purple-300 px-3 py-1 rounded-full">
-                                        <Mail className="h-4 w-4 ml-1" /> {supplier.email}
+                                    <span className="flex items-center text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
+                                        <Mail className="h-3.5 w-3.5 ml-1" /> {supplier.email}
                                     </span>
                                 )}
-                                <span className="flex items-center bg-blue-500 bg-opacity-20 text-blue-300 px-3 py-1 rounded-full">
-                                    <Calendar className="h-4 w-4 ml-1" /> انضم: {supplier.joinDate}
+                                <span className="flex items-center text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                    <Calendar className="h-3.5 w-3.5 ml-1" /> انضم: {supplier.joinDate}
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end">
-                        <span className={`px-4 py-2 font-bold rounded-full ${totalRemaining > 0 ? 'bg-red-500 bg-opacity-20 text-red-400' : 'bg-green-500 bg-opacity-20 text-green-400'
-                            }`}>
-                            المتبقي (الديون): ${totalRemaining}
-                        </span>
+                    <div className="flex flex-col items-end bg-white/50 p-4 rounded-2xl border border-white backdrop-blur-sm">
+                        <p className="text-xs text-[#006af8] mb-1 font-bold">صافي المديونية الحالية</p>
+                        <h2 className="text-3xl font-black text-red-600">
+                            ${totalRemaining.toLocaleString()}
+                        </h2>
                     </div>
                 </div>
 
-                {/* Stat Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5" style={{ animationDelay: '0.1s' }}>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                        <DollarSign className="h-10 w-10 text-blue-400 mb-2" />
-                        <p className="text-sm text-blue-200">إجمالي التوريدات كقيمة</p>
-                        <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mt-1">${calculateTotalSuppliesValue()}</h3>
+                        <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                        <AlertTriangle className="h-10 w-10 text-red-500 mb-2" />
+                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المديونية المتبقية</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">${totalRemaining.toLocaleString()}</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-green-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                        <CreditCard className="h-10 w-10 text-green-400 mb-2" />
-                        <p className="text-sm text-green-200">إجمالي المدفوع للمورد</p>
-                        <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mt-1">${calculateTotalPaid()}</h3>
+                        <div className="absolute inset-0 bg-green-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                        <CreditCard className="h-10 w-10 text-emerald-500 mb-2" />
+                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المدفوع للمورد</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">${calculateTotalPaid().toLocaleString()}</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                        <Package className="h-10 w-10 text-orange-400 mb-2" />
-                        <p className="text-sm text-orange-200">عدد التوريدات القادمة</p>
-                        <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mt-1">{supplies.length}</h3>
+                        <div className="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                        <Package className="h-10 w-10 text-orange-500 mb-2" />
+                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي عدد التوريدات</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{supplies.length}</h3>
                     </div>
                 </div>
 
                 {/* Action Buttons & Tabs Header */}
-                <div className="flex flex-col md:flex-row justify-between items-center glass-card p-4 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+                <div className="flex flex-col md:flex-row justify-between items-center glass-card p-4" style={{ animationDelay: '0.2s' }}>
                     <div className="flex space-x-2 rtl:space-x-reverse mb-4 md:mb-0">
                         <button
                             onClick={() => setActiveTab('supplies')}
@@ -419,38 +460,63 @@ const SupplierDetails = () => {
                 </div>
 
                 {/* Content area based on active tab */}
-                <div className="animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+                <div className="" style={{ animationDelay: '0.3s' }}>
                     {activeTab === 'supplies' && (
                         <div className="glass-card overflow-hidden table-enhanced">
                             <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gradient-to-r from-gray-800 to-gray-900">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-[#F3F4F9] border-b border-slate-200">
                                         <tr>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">التاريخ</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-blue-300 uppercase tracking-wider">المنتج</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-orange-300 uppercase tracking-wider">الكمية</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-green-300 uppercase tracking-wider">السعر / الوحدة</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider">الإجمالي</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-emerald-300 uppercase tracking-wider">المدفوع</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-red-300 uppercase tracking-wider">المتبقي</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-purple-300 uppercase tracking-wider">الهالك</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">إجراء</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase">رقم التوريدة</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">التاريخ</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المنتج</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الكمية</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">السعر / الوحدة</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الإجمالي</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المدفوع</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المتبقي</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الهالك</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">مرتبط بطلب</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">إجراء</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-white divide-opacity-20">
+                                    <tbody className="divide-y divide-slate-100">
                                         {supplies.map(supply => (
-                                            <tr key={supply.id} className="hover:bg-white hover:bg-opacity-10 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{supply.date}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-300">{supply.productName}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-300">{supply.quantity} كجم</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-green-300">${supply.unitPrice}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800 bg-white bg-opacity-5 rounded-md">${supply.totalPrice}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-300">${supply.paidAmount}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-300">${supply.remainingAmount}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-400 bg-red-900 bg-opacity-20 rounded-md">
-                                                    {supply.wasteQuantity || 0} كجم
+                                            <tr key={supply.id} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-right">
+                                                <td className="px-4 py-4 text-right">
+                                                    <span className="text-xs font-mono font-bold text-[#5235E8] bg-[#5235E8]/10 px-2 py-1 rounded">
+                                                        {supply.supplyNumber || `#${supply.id.toString().slice(-4)}`}
+                                                    </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <td className="px-4 py-4 text-sm text-[#006af8] font-medium text-right">{supply.date}</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-slate-800 text-right">{supply.productName}</td>
+                                                <td className="px-4 py-4 text-sm text-[#ff8200] font-bold text-right">{supply.quantity.toLocaleString()} كجم</td>
+                                                <td className="px-4 py-4 text-sm text-slate-600 text-right">${supply.unitPrice}</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-slate-900 text-right">
+                                                    <span className="bg-slate-100 px-2 py-1 rounded-md bg-opacity-50">
+                                                        ${supply.totalPrice.toLocaleString()}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-emerald-600 font-bold text-right">${supply.paidAmount.toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-sm text-red-600 font-bold text-right">${supply.remainingAmount.toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-red-500 text-right">
+                                                    <span className="bg-red-50 px-2 py-1 rounded">
+                                                        {supply.wasteQuantity || 0} كجم
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-right">
+                                                    {supply.linkedOrderNumber ? (
+                                                        <div className="flex flex-col gap-0.5 items-end">
+                                                            <span className="text-[#8410ff] font-bold text-xs bg-[#8410ff]/10 px-2.5 py-1 rounded-full">{supply.linkedOrderNumber}</span>
+                                                            <span className="text-[#006af8] text-xs px-1 font-medium">
+                                                                {supabaseService.getCustomerName(supply.linkedCustomerId) || supply.linkedCustomerName}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-xs italic">غير مرتبط</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-right text-left">
                                                     <button
                                                         onClick={() => handleDeleteSupply(supply.id)}
                                                         className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
@@ -463,7 +529,7 @@ const SupplierDetails = () => {
                                         ))}
                                         {supplies.length === 0 && (
                                             <tr>
-                                                <td colSpan="8" className="px-6 py-8 text-center text-slate-500">لا توجد توريدات مسجلة لهذا المورد بعد.</td>
+                                                <td colSpan="8" className="px-6 py-8 text-center text-[#006af8]">لا توجد توريدات مسجلة لهذا المورد بعد.</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -488,17 +554,21 @@ const SupplierDetails = () => {
                                     </thead>
                                     <tbody className="divide-y divide-white divide-opacity-20">
                                         {payments.map(payment => (
-                                            <tr key={payment.id} className="hover:bg-white hover:bg-opacity-10 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">#{payment.id.toString().slice(-6)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{payment.date}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-400 bg-green-500 bg-opacity-10 rounded-md">
-                                                    ${payment.amount}
+                                            <tr key={payment.id} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-right">
+                                                <td className="px-6 py-4 text-sm text-[#006af8] text-right whitespace-nowrap">#{payment.id.toString().slice(-6)}</td>
+                                                <td className="px-6 py-4 text-sm text-slate-700 text-right whitespace-nowrap">{payment.date}</td>
+                                                <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-right whitespace-nowrap">
+                                                    <span className="bg-emerald-50 px-2 py-1 rounded">
+                                                        ${payment.amount}
+                                                    </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-300 bg-blue-500 bg-opacity-10 rounded-full inline-flex mt-2 ml-4">
-                                                    {payment.paymentMethod}
+                                                <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
+                                                    <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-full font-bold">
+                                                        {payment.paymentMethod}
+                                                    </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-purple-200">{payment.notes || '-'}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <td className="px-6 py-4 text-sm text-slate-600 text-right">{payment.notes || '-'}</td>
+                                                <td className="px-6 py-4 text-sm text-right text-left">
                                                     <button
                                                         onClick={() => handleDeletePayment(payment.id)}
                                                         className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
@@ -511,7 +581,7 @@ const SupplierDetails = () => {
                                         ))}
                                         {payments.length === 0 && (
                                             <tr>
-                                                <td colSpan="6" className="px-6 py-8 text-center text-slate-500">لا توجد دفعات مالية مسجلة مسبقاً لهذا المورد.</td>
+                                                <td colSpan="6" className="px-6 py-8 text-center text-[#006af8]">لا توجد دفعات مالية مسجلة مسبقاً لهذا المورد.</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -525,92 +595,140 @@ const SupplierDetails = () => {
 
             {/* Add Supply Modal */}
             {showSupplyModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] backdrop-blur-sm"
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
                             soundManager.play('closeWindow');
                             setShowSupplyModal(false);
                         }
                     }}>
-                    <div className="glass-card p-6 w-full max-w-lg mx-4 animate-fadeInUp">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                            <Package className="h-6 w-6 ml-2 text-blue-400" />
-                            إضافة توريدة جديدة
-                        </h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-1">اسم المنتج</label>
-                                <input
-                                    type="text"
-                                    placeholder="مثال: قطن مصري فاخر"
-                                    value={newSupply.productName}
-                                    onChange={(e) => setNewSupply({ ...newSupply, productName: e.target.value })}
-                                    className="input-modern w-full px-3 py-2 text-right"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-purple-200 mb-1">الكمية بالكيلو (كجم)</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="any"
-                                        value={newSupply.quantity}
-                                        onChange={(e) => setNewSupply({ ...newSupply, quantity: e.target.value })}
-                                        className="input-modern w-full px-3 py-2 text-right direction-ltr"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-purple-200 mb-1">سعر الكيلو</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="any"
-                                        value={newSupply.unitPrice}
-                                        onChange={(e) => setNewSupply({ ...newSupply, unitPrice: e.target.value })}
-                                        className="input-modern w-full px-3 py-2 text-right direction-ltr"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-white bg-opacity-5 rounded-lg border border-blue-500 border-opacity-30 flex justify-between items-center">
-                                <span className="text-slate-600 font-medium">الإجمالي المحسوب:</span>
-                                <span className="text-2xl font-bold text-slate-800">${newSupplyTotal}</span>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-1">المبلغ المدفوع (الآن)</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="any"
-                                    value={newSupply.paidAmount}
-                                    onChange={(e) => setNewSupply({ ...newSupply, paidAmount: e.target.value })}
-                                    className="input-modern w-full px-3 py-2 text-right direction-ltr"
-                                />
-                            </div>
-
-                            {newSupplyRemaining > 0 && (
-                                <div className="text-sm text-orange-300 flex items-center">
-                                    <AlertTriangle className="h-4 w-4 ml-1" />
-                                    المتبقي الآجل سيضاف لمديونية المورد: <strong>${newSupplyRemaining}</strong>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex justify-end space-x-3 rtl:space-x-reverse mt-6">
+                    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-lg mx-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <Package className="h-6 w-6 text-[#5235E8]" />
+                                إضافة توريدة جديدة
+                            </h2>
                             <button
                                 onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); }}
-                                className="px-4 py-2 text-purple-200 hover:text-slate-800 transition-colors"
+                                className="text-slate-400 hover:text-slate-600 transition-colors"
                             >
-                                إلغاء
+                                <X className="h-6 w-6" />
                             </button>
-                            <button
-                                onClick={handleAddSupply}
-                                className="btn-primary px-4 py-2"
-                            >
-                                حفظ التوريدة
-                            </button>
+                        </div>
+
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">اسم المنتج الخامه</label>
+                                <input
+                                    type="text"
+                                    placeholder="مثال: حبيبات بولي إيثيلين"
+                                    value={newSupply.productName}
+                                    onChange={(e) => setNewSupply({ ...newSupply, productName: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">الكمية (كجم)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        placeholder="0.00"
+                                        value={newSupply.quantity}
+                                        onChange={(e) => setNewSupply({ ...newSupply, quantity: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">سعر الكيلو</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        placeholder="0.00"
+                                        value={newSupply.unitPrice}
+                                        onChange={(e) => setNewSupply({ ...newSupply, unitPrice: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-[#5235E8]/5 p-4 rounded-2xl border border-[#5235E8]/10 flex justify-between items-center">
+                                <span className="text-slate-600 font-bold">إجمالي التكلفة:</span>
+                                <span className="text-2xl font-black text-[#5235E8]">${newSupplyTotal.toLocaleString()}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ المدفوع</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        placeholder="0.00"
+                                        value={newSupply.paidAmount}
+                                        onChange={(e) => setNewSupply({ ...newSupply, paidAmount: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-right text-emerald-600 font-bold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">المتبقي مديونية</label>
+                                    <div className="px-4 py-3 rounded-xl bg-red-50 text-red-600 font-bold text-right border border-red-100">
+                                        ${newSupplyRemaining.toLocaleString()}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Link2 className="h-4 w-4 text-[#8410ff]" />
+                                    ربط بطلب عميل (اختياري)
+                                </label>
+                                <select
+                                    value={newSupply.linkedOrderId}
+                                    onChange={(e) => {
+                                        const order = openOrders.find(o => o.id.toString() === e.target.value);
+                                        setNewSupply({
+                                            ...newSupply,
+                                            linkedOrderId: e.target.value,
+                                            linkedOrderNumber: order?.orderNumber || '',
+                                            linkedCustomerName: order?.customerName || '',
+                                            linkedCustomerId: order?.customerId || ''
+                                        });
+                                    }}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium"
+                                >
+                                    <option value="">-- اختر طلب للربط --</option>
+                                    {openOrders.map(order => {
+                                        const currentName = supabaseService.getCustomerName(order.customerId) || order.customerName || 'عميل غير معروف';
+                                        return (
+                                            <option key={order.id} value={order.id}>
+                                                {order.orderNumber} - {currentName} ({order.quantity?.toLocaleString()} {order.productType})
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                                {openOrders.length === 0 && (
+                                    <p className="text-xs text-slate-400 mt-2 italic text-center">لا توجد طلبات مفتوحة حالياً للربط.</p>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); }}
+                                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleAddSupply}
+                                    className="flex-[2] px-4 py-3 rounded-xl bg-[#5235E8] text-white font-bold hover:bg-[#4329c3] shadow-lg shadow-[#5235E8]/20 transition-all"
+                                >
+                                    حفظ التوريدة
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -618,27 +736,35 @@ const SupplierDetails = () => {
 
             {/* Record Payment Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] backdrop-blur-sm"
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
                             soundManager.play('closeWindow');
                             setShowPaymentModal(false);
                         }
                     }}>
-                    <div className="glass-card p-6 w-full max-w-md mx-4 animate-fadeInUp">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                            <CreditCard className="h-6 w-6 ml-2 text-green-400" />
-                            سداد دفعة مالية
-                        </h2>
+                    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <CreditCard className="h-6 w-6 text-emerald-500" />
+                                سداد دفعة مالية للمورد
+                            </h2>
+                            <button
+                                onClick={() => { soundManager.play('closeWindow'); setShowPaymentModal(false); }}
+                                className="text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
 
-                        <div className="bg-red-500 bg-opacity-20 p-3 rounded-lg border border-red-500 mb-4 flex justify-between">
-                            <span className="text-red-200">المديونية الحالية المستحقة:</span>
-                            <span className="text-red-400 font-bold">${totalRemaining}</span>
+                        <div className="bg-red-50 p-4 rounded-2xl border border-red-100 mb-6 flex justify-between items-center">
+                            <span className="text-slate-600 font-bold">المديونية الحالية:</span>
+                            <span className="text-xl font-black text-red-600">${totalRemaining.toLocaleString()}</span>
                         </div>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-1">المبلغ المسدد</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ المسدد</label>
                                 <input
                                     type="number"
                                     min="0"
@@ -646,45 +772,46 @@ const SupplierDetails = () => {
                                     placeholder="0.00"
                                     value={newPayment.amount}
                                     onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
-                                    className="input-modern w-full px-3 py-2 text-right direction-ltr font-bold text-lg text-green-400"
+                                    className="w-full px-4 py-4 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-right font-black text-2xl text-emerald-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-1">طريقة الدفع</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">طريقة الدفع</label>
                                 <select
                                     value={newPayment.paymentMethod}
                                     onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value })}
-                                    className="input-modern w-full px-3 py-2 text-right"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium"
                                 >
-                                    <option value="نقدي">نقدي</option>
-                                    <option value="تحويل بنكي">تحويل بنكي</option>
-                                    <option value="شيك">شيك</option>
-                                    <option value="محفظة إلكترونية">محفظة إلكترونية</option>
+                                    <option value="نقدي">💵 نقدي</option>
+                                    <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                    <option value="شيك">📝 شيك</option>
+                                    <option value="محفظة إلكترونية">📱 محفظة إلكترونية</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-1">ملاحظات (اختياري)</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات (اختياري)</label>
                                 <textarea
                                     value={newPayment.notes}
                                     onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
                                     rows="3"
-                                    className="input-modern w-full px-3 py-2 text-right"
+                                    placeholder="اكتب أي ملاحظات متعلقة بالسداد هنا..."
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right"
                                 ></textarea>
                             </div>
                         </div>
 
-                        <div className="flex justify-end space-x-3 rtl:space-x-reverse mt-6">
+                        <div className="flex gap-3 mt-8">
                             <button
                                 onClick={() => { soundManager.play('closeWindow'); setShowPaymentModal(false); }}
-                                className="px-4 py-2 text-purple-200 hover:text-slate-800 transition-colors"
+                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
                             >
                                 إلغاء
                             </button>
                             <button
                                 onClick={handleAddPayment}
-                                className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-slate-800 px-4 py-2 rounded-lg font-bold"
+                                className="flex-[2] px-4 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all"
                             >
-                                حفظ الدفعة
+                                تأكيد السداد
                             </button>
                         </div>
                     </div>

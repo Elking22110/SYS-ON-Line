@@ -69,6 +69,11 @@ const Suppliers = () => {
 
   useEffect(() => {
     loadSuppliersFromSupabase();
+
+    const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, loadSuppliersFromSupabase);
+    return () => {
+      if (unsubSuppliers) unsubSuppliers();
+    };
   }, []);
 
   const filteredSuppliers = suppliers.filter(supplier => {
@@ -248,11 +253,11 @@ const Suppliers = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background Animation */}
+      {/* Background Animation - Stabilized */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-40 left-40 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3 animate-float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-40 left-40 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '4s' }}></div>
       </div>
 
       <div className="relative z-10 p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8">
@@ -285,23 +290,23 @@ const Suppliers = () => {
           <div className="glass-card hover-lift  group cursor-pointer p-4 md:p-6 lg:p-8" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-slate-200 mb-1 md:mb-2 uppercase tracking-wide">إجمالي الموردين</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 md:mb-3">{suppliers.length}</p>
+                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">إجمالي الموردين</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">{suppliers.length}</p>
                 <div className="flex items-center text-xs md:text-sm">
                   <span className="text-blue-300 font-medium">موردون مسجلون</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <User className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-slate-800" />
+                <User className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="glass-card hover-lift  group cursor-pointer p-4 md:p-6 lg:p-8" style={{ animationDelay: '0.2s' }}>
+          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-slate-200 mb-1 md:mb-2 uppercase tracking-wide">موردين VIP</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 md:mb-3">
+                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">موردين VIP</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
                   {suppliers.filter(c => c.status === 'VIP').length}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
@@ -309,16 +314,16 @@ const Suppliers = () => {
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Star className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-slate-800" />
+                <Star className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="glass-card hover-lift  group cursor-pointer p-4 md:p-6 lg:p-8" style={{ animationDelay: '0.3s' }}>
+          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-slate-200 mb-1 md:mb-2 uppercase tracking-wide">متوسط قيمة المشتريات</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 md:mb-3">
+                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">متوسط قيمة المشتريات</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
                   ${Math.round(suppliers.reduce((total, c) => safeMath.add(total, c.totalSpent), 0) / (suppliers.length || 1))}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
@@ -326,16 +331,16 @@ const Suppliers = () => {
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <DollarSign className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-slate-800" />
+                <DollarSign className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="glass-card hover-lift  group cursor-pointer p-4 md:p-6 lg:p-8" style={{ animationDelay: '0.4s' }}>
+          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-slate-200 mb-1 md:mb-2 uppercase tracking-wide">موردون جدد هذا الشهر</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 md:mb-3">
+                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">موردون جدد هذا الشهر</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
                   {suppliers.filter(c => c.status === 'جديد').length}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
@@ -343,18 +348,18 @@ const Suppliers = () => {
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Calendar className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-slate-800" />
+                <Calendar className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Top Suppliers */}
-        <div className="glass-card hover-lift  mb-4 md:mb-6" style={{ animationDelay: '0.5s' }}>
+        <div className="glass-card mb-4 md:mb-6">
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <h3 className="text-lg font-bold text-white">أفضل الموردين</h3>
             <div className="p-2 bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg">
-              <Star className="h-6 w-6 text-slate-800" />
+              <Star className="h-6 w-6 text-white" />
             </div>
           </div>
           <div className="space-y-3">
@@ -362,10 +367,10 @@ const Suppliers = () => {
               <div key={supplier.id} className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg hover:bg-opacity-20 transition-all duration-300">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <span className="text-slate-800 font-bold text-sm">{index + 1}</span>
+                    <span className="text-white font-bold text-sm">{index + 1}</span>
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800 text-lg">{supplier.name}</p>
+                    <p className="font-bold text-white text-lg">{supplier.name}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <Phone className="h-3 w-3 text-green-400" />
                       <p className="text-sm text-green-300 font-medium bg-green-500 bg-opacity-20 px-2 py-1 rounded-full">{supplier.phone}</p>
@@ -386,7 +391,7 @@ const Suppliers = () => {
         </div>
 
         {/* Filters */}
-        <div className="glass-card hover-lift  mb-4 md:mb-6" style={{ animationDelay: '0.6s' }}>
+        <div className="glass-card mb-4 md:mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-5 w-5" />
@@ -395,7 +400,7 @@ const Suppliers = () => {
                 placeholder="البحث بالاسم أو الهاتف أو البريد الإلكتروني..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10 pl-4 py-3 text-right bg-white bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg text-slate-800 placeholder-blue-300 focus:outline-none focus:border-blue-400 focus:border-opacity-60"
+                className="w-full pr-10 pl-4 py-3 text-right bg-white bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-blue-300 focus:outline-none focus:border-blue-400 focus:border-opacity-60"
               />
             </div>
 
@@ -404,7 +409,7 @@ const Suppliers = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="pr-10 pl-4 py-3 text-right appearance-none bg-white bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg text-slate-800 focus:outline-none focus:border-purple-400 focus:border-opacity-60"
+                className="pr-10 pl-4 py-3 text-right appearance-none bg-white bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:border-opacity-60"
               >
                 {statuses.map(status => (
                   <option key={status} value={status}>{status}</option>
@@ -412,12 +417,12 @@ const Suppliers = () => {
               </select>
             </div>
 
-            <button className="bg-gradient-to-r from-gray-600 to-gray-700 text-slate-800 px-4 py-3 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 flex items-center border border-gray-500 border-opacity-30 hover:scale-105">
+            <button className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-3 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 flex items-center border border-gray-500 border-opacity-30 hover:scale-105">
               <Download className="h-5 w-5 mr-2" />
               تصدير
             </button>
 
-            <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-slate-800 px-4 py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 flex items-center border border-green-500 border-opacity-30 hover:scale-105">
+            <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 flex items-center border border-green-500 border-opacity-30 hover:scale-105">
               <Upload className="h-5 w-5 mr-2" />
               استيراد
             </button>
@@ -425,7 +430,7 @@ const Suppliers = () => {
         </div>
 
         {/* Suppliers Table */}
-        <div className="glass-card hover-lift  overflow-hidden table-enhanced" style={{ animationDelay: '0.7s' }}>
+        <div className="glass-card overflow-hidden table-enhanced">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-800 to-gray-900">
@@ -445,10 +450,10 @@ const Suppliers = () => {
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center ml-3 shadow-lg">
-                          <User className="h-5 w-5 text-slate-800" />
+                          <User className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-slate-800">{supplier.name}</div>
+                          <div className="text-sm font-bold text-white">{supplier.name}</div>
                           <div className="text-xs text-blue-300 bg-blue-500 bg-opacity-20 px-2 py-1 rounded-full inline-block mt-1">
                             انضم: {supplier.joinDate}
                           </div>
@@ -571,7 +576,7 @@ const Suppliers = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-1">اسم المورد</label>
+                <label className="block text-sm font-medium text-[#006af8] mb-1">اسم المورد</label>
                 <input
                   type="text"
                   value={newSupplier.name}
@@ -581,7 +586,7 @@ const Suppliers = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-1">رقم الهاتف</label>
+                <label className="block text-sm font-medium text-[#006af8] mb-1">رقم الهاتف</label>
                 <input
                   type="tel"
                   value={newSupplier.phone}
@@ -591,7 +596,7 @@ const Suppliers = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-1">البريد الإلكتروني (اختياري)</label>
+                <label className="block text-sm font-medium text-[#006af8] mb-1">البريد الإلكتروني (اختياري)</label>
                 <input
                   type="email"
                   value={newSupplier.email}
@@ -601,7 +606,7 @@ const Suppliers = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-1">العنوان</label>
+                <label className="block text-sm font-medium text-[#006af8] mb-1">العنوان</label>
                 <textarea
                   value={newSupplier.address}
                   onChange={(e) => setNewSupplier({ ...newSupplier, address: e.target.value })}
