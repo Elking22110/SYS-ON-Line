@@ -23,13 +23,13 @@ const ClichesInventory = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const loadData = async () => {
+    const loadData = () => {
         try {
             setLoading(true);
-            const supabaseCustomers = await supabaseService.getCustomers();
+            // localStorage is already kept up-to-date by the Supabase Realtime handler
+            // so reading from it gives us merged cloud+local data at all times
             const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
-            const allCustomers = (supabaseCustomers && supabaseCustomers.length > 0) ? supabaseCustomers : localCustomers;
-            setCustomers(allCustomers);
+            setCustomers(localCustomers);
         } catch (error) {
             console.error('Error loading cliches inventory:', error);
         } finally {
@@ -38,9 +38,15 @@ const ClichesInventory = () => {
     };
 
     useEffect(() => {
-        loadData();
-        const unsub = subscribe(EVENTS.CUSTOMERS_CHANGED, loadData);
-        return () => unsub();
+        // Initial load: fetch fresh from Supabase then read local
+        supabaseService.getCustomers().then(() => loadData()).catch(() => loadData());
+
+        const unsubCustomers = subscribe(EVENTS.CUSTOMERS_CHANGED, loadData);
+        const unsubOrders = subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, loadData);
+        return () => {
+            unsubCustomers();
+            unsubOrders();
+        };
     }, []);
 
     // Flatten all cliches from all customers

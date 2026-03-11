@@ -1238,7 +1238,7 @@ img {
 }
 
 /* تحسينات إضافية للوضع النهاري */
-[data-theme="light"] .animate-float {}
+
 
 [data-theme="light"] .text-white {
   color: var(--text-primary) !important;

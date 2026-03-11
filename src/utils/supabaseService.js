@@ -74,16 +74,21 @@ const dbApi = {
             return data.map(sc => {
                 const lc = localCustomers.find(c => String(c.id) === String(sc.id));
                 if (lc) {
-                    // Start with local for rich details, then override with Supabase core facts
-                    return {
-                        ...lc,
-                        ...sc,
-                        // Ensure arrays are preserved
-                        profileCliches: Array.isArray(lc.profileCliches) ? lc.profileCliches : (sc.profileCliches || []),
-                        // Force conversion of core fields to ensure type consistency
-                        totalSpent: parseFloat(sc.totalSpent || sc.totalAmount || lc.totalSpent) || 0,
-                        orders: parseInt(sc.orders || sc.ordersCount || lc.orders) || 0
-                    };
+                    const merged = { ...lc };
+                    // Start with local for rich details, then override with Supabase core facts, ONLY if they are not null
+                    Object.keys(sc).forEach(key => {
+                        if (sc[key] !== null && sc[key] !== '') {
+                            merged[key] = sc[key];
+                        }
+                    });
+                    
+                    // Ensure arrays are preserved
+                    merged.profileCliches = Array.isArray(lc.profileCliches) && lc.profileCliches.length > 0 ? lc.profileCliches : (sc.profileCliches || []);
+                    // Force conversion of core fields to ensure type consistency
+                    merged.totalSpent = parseFloat(sc.totalSpent || sc.totalAmount || lc.totalSpent) || 0;
+                    merged.orders = parseInt(sc.orders || sc.ordersCount || lc.orders) || 0;
+                    
+                    return merged;
                 }
                 return sc;
             });
@@ -96,10 +101,12 @@ const dbApi = {
         const payload = { ...dataArg, createdAt: new Date().toISOString() };
         if (!payload.id) payload.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
-        // Allowed schema for Customer (Cloud-safe columns only)
+        // Allowed schema for Customer (Full Sync Enabled)
         const allowed = [
             'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
-            'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent'
+            'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent',
+            'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
+            'colorCount', 'notes', 'profileCliches'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
@@ -112,7 +119,9 @@ const dbApi = {
     updateCustomer: async (id, data) => {
         const allowed = [
             'name', 'phone', 'email', 'address', 'points', 'totalPurchases', 'orders',
-            'lastVisit', 'joinDate', 'status', 'totalSpent'
+            'lastVisit', 'joinDate', 'status', 'totalSpent',
+            'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
+            'colorCount', 'notes', 'profileCliches'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
@@ -312,7 +321,9 @@ class SupabaseService {
             { name: 'Shift', event: EVENTS.SHIFTS_CHANGED, storageKey: 'shifts' },
             { name: 'Category', event: EVENTS.CATEGORIES_CHANGED, storageKey: 'categories' },
             { name: 'Expense', event: EVENTS.EXPENSES_CHANGED, storageKey: 'expenses' },
-            { name: 'Supplier', event: EVENTS.SUPPLIERS_CHANGED, storageKey: 'suppliers' }
+            { name: 'Supplier', event: EVENTS.SUPPLIERS_CHANGED, storageKey: 'suppliers' },
+            { name: 'CustomerOrder', event: EVENTS.CUSTOMER_ORDERS_CHANGED, storageKey: 'customer_orders' },
+            { name: 'CustomerPayment', event: EVENTS.CUSTOMER_PAYMENTS_CHANGED, storageKey: 'customer_payments' }
         ];
 
         tables.forEach(table => {
@@ -351,8 +362,14 @@ class SupabaseService {
                 } else if (payload.eventType === 'UPDATE') {
                     updatedData = updatedData.map(item => {
                         if (item.id == payload.new.id) {
-                            // Merge: keep local fields that aren't in Supabase
-                            return { ...item, ...payload.new };
+                            // Merge: keep local fields that aren't in Supabase, and prevent cloud nulls from erasing local data
+                            const mergedItem = { ...item };
+                            Object.keys(payload.new).forEach(k => {
+                                if (payload.new[k] !== null && payload.new[k] !== '') {
+                                    mergedItem[k] = payload.new[k];
+                                }
+                            });
+                            return mergedItem;
                         }
                         return item;
                     });
@@ -922,7 +939,143 @@ class SupabaseService {
             throw error;
         }
     }
+
+    // ─── CUSTOMER ORDERS ──────────────────────────────────────────────────────
+    async getCustomerOrders(customerId) {
+        try {
+            const { data } = await supabase.from('CustomerOrder').select('*').eq('customerId', customerId);
+            return data || [];
+        } catch (error) {
+            console.error('Error fetching customer orders:', error);
+            return [];
+        }
+    }
+
+    async getAllCustomerOrders() {
+        try {
+            const { data } = await supabase.from('CustomerOrder').select('*');
+            return data || [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    async addCustomerOrder(orderData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('addCustomerOrder', [orderData], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const payload = {
+                id: orderData.id?.toString() || Date.now().toString(),
+                customerId: orderData.customerId?.toString(),
+                customerName: orderData.customerName || '',
+                orderNumber: orderData.orderNumber || '',
+                date: orderData.date || '',
+                productType: orderData.productType || '',
+                quantity: parseFloat(orderData.quantity) || 0,
+                pricePerKg: parseFloat(orderData.pricePerKg) || 0,
+                colorCount: parseFloat(orderData.colorCount) || 0,
+                clicheWidth: parseFloat(orderData.clicheWidth) || 0,
+                clicheHeight: parseFloat(orderData.clicheHeight) || 0,
+                printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
+                cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
+                notes: orderData.notes || '',
+                status: orderData.status || 'OPEN',
+                createdAt: new Date().toISOString()
+            };
+            const { data: res, error } = await supabase.from('CustomerOrder').upsert(payload).select().single();
+            if (error) throw error;
+            return res;
+        } catch (error) {
+            console.error('Error adding customer order:', error);
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addCustomerOrder', [orderData]);
+            throw error;
+        }
+    }
+
+    async updateCustomerOrder(id, orderData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('updateCustomerOrder', [id, orderData], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const { data: res, error } = await supabase.from('CustomerOrder').update({
+                productType: orderData.productType,
+                quantity: parseFloat(orderData.quantity) || 0,
+                pricePerKg: parseFloat(orderData.pricePerKg) || 0,
+                colorCount: parseFloat(orderData.colorCount) || 0,
+                clicheWidth: parseFloat(orderData.clicheWidth) || 0,
+                clicheHeight: parseFloat(orderData.clicheHeight) || 0,
+                printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
+                cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
+                notes: orderData.notes || '',
+                status: orderData.status
+            }).eq('id', id.toString()).select().single();
+            if (error) throw error;
+            return res;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'updateCustomerOrder', [id, orderData]);
+            throw error;
+        }
+    }
+
+    async deleteCustomerOrder(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteCustomerOrder', [id], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const { error } = await supabase.from('CustomerOrder').delete().eq('id', id.toString());
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteCustomerOrder', [id]);
+            throw error;
+        }
+    }
+
+    // ─── CUSTOMER PAYMENTS ────────────────────────────────────────────────────
+    async getCustomerPayments(customerId) {
+        try {
+            const { data } = await supabase.from('CustomerPayment').select('*').eq('customerId', customerId);
+            return data || [];
+        } catch (error) {
+            console.error('Error fetching customer payments:', error);
+            return [];
+        }
+    }
+
+    async addCustomerPayment(paymentData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('addCustomerPayment', [paymentData], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const payload = {
+                id: paymentData.id?.toString() || Date.now().toString(),
+                customerId: paymentData.customerId?.toString(),
+                amount: parseFloat(paymentData.amount) || 0,
+                date: paymentData.date || new Date().toISOString().split('T')[0],
+                note: paymentData.note || '',
+                createdAt: new Date().toISOString()
+            };
+            const { data: res, error } = await supabase.from('CustomerPayment').upsert(payload).select().single();
+            if (error) throw error;
+            return res;
+        } catch (error) {
+            console.error('Error adding customer payment:', error);
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addCustomerPayment', [paymentData]);
+            throw error;
+        }
+    }
+
+    async deleteCustomerPayment(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteCustomerPayment', [id], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const { error } = await supabase.from('CustomerPayment').delete().eq('id', id.toString());
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteCustomerPayment', [id]);
+            throw error;
+        }
+    }
 }
+
 
 export const supabaseService = new SupabaseService();
 export default supabaseService;

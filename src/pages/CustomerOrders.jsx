@@ -317,26 +317,62 @@ const CustomerOrders = () => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     // ─── Load ────────────────────────────────────────────────
-    const loadData = React.useCallback(() => {
-        // Customer
+    const loadData = React.useCallback(async () => {
+        // Customer from local storage (already merged with Supabase in Customers.jsx)
         const customers = JSON.parse(localStorage.getItem('customers') || '[]');
         const found = customers.find(c => c.id?.toString() === id);
         setCustomer(found || null);
 
-        // Orders for this customer
-        const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-        const customerOrders = allOrders
-            .filter(o => o.customerId?.toString() === id)
-            .sort((a, b) => b.id - a.id);
-        setOrders(customerOrders);
+        // Orders - try Supabase first, fallback to localStorage
+        try {
+            const cloudOrders = await supabaseService.getCustomerOrders(id);
+            if (cloudOrders && cloudOrders.length > 0) {
+                // Merge cloud with local (cloud wins for status fields)
+                const localOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+                const merged = cloudOrders.map(co => {
+                    const lo = localOrders.find(o => o.id?.toString() === co.id?.toString());
+                    return lo ? { ...lo, ...co } : co;
+                });
+                // Also include local-only orders (not yet synced)
+                const localOnly = localOrders.filter(lo =>
+                    lo.customerId?.toString() === id &&
+                    !cloudOrders.find(co => co.id?.toString() === lo.id?.toString())
+                );
+                const allMerged = [...merged, ...localOnly].sort((a, b) => b.id - a.id);
+                setOrders(allMerged);
+                localStorage.setItem('customer_orders', JSON.stringify([
+                    ...JSON.parse(localStorage.getItem('customer_orders') || '[]').filter(o => o.customerId?.toString() !== id),
+                    ...allMerged
+                ]));
+            } else {
+                const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+                setOrders(allOrders.filter(o => o.customerId?.toString() === id).sort((a, b) => b.id - a.id));
+            }
+        } catch (e) {
+            const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+            setOrders(allOrders.filter(o => o.customerId?.toString() === id).sort((a, b) => b.id - a.id));
+        }
+
+        // Payments - try Supabase first
+        try {
+            const cloudPayments = await supabaseService.getCustomerPayments(id);
+            if (cloudPayments && cloudPayments.length > 0) {
+                setPayments(cloudPayments);
+                const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+                const otherPayments = allPayments.filter(p => p.customerId?.toString() !== id);
+                localStorage.setItem('customer_payments', JSON.stringify([...otherPayments, ...cloudPayments]));
+            } else {
+                const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+                setPayments(allPayments.filter(p => p.customerId?.toString() === id));
+            }
+        } catch (e) {
+            const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+            setPayments(allPayments.filter(p => p.customerId?.toString() === id));
+        }
 
         // All supplies (to find linked ones)
         const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
         setLinkedSupplies(allSupplies.filter(s => s.linkedCustomerId?.toString() === id));
-
-        // Payments
-        const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
-        setPayments(allPayments.filter(p => p.customerId?.toString() === id));
     }, [id]);
 
     useEffect(() => {
@@ -346,11 +382,15 @@ const CustomerOrders = () => {
         const unsubCustomers = subscribe(EVENTS.CUSTOMERS_CHANGED, loadData);
         const unsubInvoices = subscribe(EVENTS.INVOICES_CHANGED, loadData);
         const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, loadData);
+        const unsubOrders = subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, loadData);
+        const unsubPayments = subscribe(EVENTS.CUSTOMER_PAYMENTS_CHANGED, loadData);
 
         return () => {
             if (unsubCustomers) unsubCustomers();
             if (unsubInvoices) unsubInvoices();
             if (unsubSuppliers) unsubSuppliers();
+            if (unsubOrders) unsubOrders();
+            if (unsubPayments) unsubPayments();
         };
     }, [id]);
 
@@ -375,7 +415,7 @@ const CustomerOrders = () => {
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
 
         if (editingOrder) {
-            // Update
+            // Update in localStorage
             const updated = allOrders.map(o =>
                 o.id === editingOrder.id
                     ? {
@@ -392,6 +432,8 @@ const CustomerOrders = () => {
                     : o
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
+            // Sync to Supabase
+            supabaseService.updateCustomerOrder(editingOrder.id, formToSave).catch(console.error);
             toast.success('تم تحديث الطلب بنجاح');
         } else {
             // Create
@@ -412,6 +454,8 @@ const CustomerOrders = () => {
             };
             allOrders.push(newOrder);
             localStorage.setItem('customer_orders', JSON.stringify(allOrders));
+            // Sync to Supabase
+            supabaseService.addCustomerOrder(newOrder).catch(console.error);
             toast.success(`تم إنشاء الطلب ${newOrder.orderNumber} بنجاح`);
         }
 
@@ -444,6 +488,8 @@ const CustomerOrders = () => {
         }
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         localStorage.setItem('customer_orders', JSON.stringify(allOrders.filter(o => o.id !== orderId)));
+        // Sync deletion to Supabase
+        supabaseService.deleteCustomerOrder(orderId).catch(console.error);
         soundManager.play('delete');
         toast.success('تم حذف الطلب');
         loadData();
@@ -462,12 +508,13 @@ const CustomerOrders = () => {
             customerName: customer?.name || '',
             date: getCurrentDate().split('T')[0],
             amount: parseFloat(paymentData.amount),
-            method: paymentData.method || 'CASH',
-            notes: paymentData.notes || ''
+            note: paymentData.notes || ''
         };
 
         allPayments.push(newPayment);
         localStorage.setItem('customer_payments', JSON.stringify(allPayments));
+        // Sync to Supabase
+        supabaseService.addCustomerPayment(newPayment).catch(console.error);
 
         toast.success('تم تسجيل الدفعة بنجاح');
         soundManager.play('save');
@@ -479,6 +526,8 @@ const CustomerOrders = () => {
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         const updated = allOrders.map(o => o.id === order.id ? { ...o, status: newStatus } : o);
         localStorage.setItem('customer_orders', JSON.stringify(updated));
+        // Sync to Supabase
+        supabaseService.updateCustomerOrder(order.id, { ...order, status: newStatus }).catch(console.error);
         soundManager.play('save');
         loadData();
     };
