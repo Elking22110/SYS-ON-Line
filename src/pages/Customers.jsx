@@ -45,31 +45,41 @@ const Customers = () => {
     try {
       setLoading(true);
       const supabaseCustomers = await supabaseService.getCustomers();
+      const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
 
-      const savedCustomers = (supabaseCustomers && supabaseCustomers.length > 0)
-        ? supabaseCustomers
-        : JSON.parse(localStorage.getItem('customers') || '[]');
+      let mergedCustomers = (supabaseCustomers && supabaseCustomers.length > 0)
+        ? supabaseCustomers.map(sc => {
+          const localItem = localCustomers.find(lc => lc.id?.toString() === sc.id?.toString());
+          return {
+            ...localItem,
+            ...sc,
+            businessActivity: sc.businessActivity || localItem?.businessActivity || '',
+            usualProduct: sc.usualProduct || localItem?.usualProduct || '',
+            cliche: sc.cliche || localItem?.cliche || '',
+            clicheWidth: sc.clicheWidth || localItem?.clicheWidth || '',
+            clicheHeight: sc.clicheHeight || localItem?.clicheHeight || '',
+            colorCount: sc.colorCount || localItem?.colorCount || '',
+            notes: sc.notes || localItem?.notes || '',
+            profileCliches: Array.isArray(localItem?.profileCliches) ? localItem.profileCliches : (sc.profileCliches || [])
+          };
+        })
+        : localCustomers;
 
-      // تحديث حالة العميل التلقائي
-      const updatedCustomers = savedCustomers.map(customer => {
-        let status = customer.status;
+      const updatedCustomers = mergedCustomers.map(customer => {
         const totalAmount = parseFloat(customer.totalAmount || customer.totalSpent) || 0;
         const ordersCount = parseInt(customer.ordersCount || customer.orders) || 0;
+        let status = customer.status || 'جديد';
 
-        if (totalAmount >= 5000) {
-          status = 'VIP';
-        } else if (totalAmount >= 2000) {
-          status = 'نشط';
-        } else if (ordersCount === 1) {
-          status = 'جديد';
-        }
+        if (totalAmount >= 5000) status = 'VIP';
+        else if (totalAmount >= 2000) status = 'نشط';
+        else if (ordersCount === 1) status = 'جديد';
 
         return {
           ...customer,
           status,
           totalSpent: totalAmount,
           orders: ordersCount,
-          joinDate: customer.createdAt ? customer.createdAt.split('T')[0] : customer.joinDate
+          joinDate: customer.createdAt ? customer.createdAt.split('T')[0] : (customer.joinDate || getCurrentDate().split('T')[0])
         };
       });
 
@@ -103,9 +113,7 @@ const Customers = () => {
       try {
         const saved = await toast.promise(
           supabaseService.addCustomer({
-            name: formData.name,
-            phone: formData.phone,
-            address: formData.address,
+            ...formData,
             status: 'جديد'
           }),
           {
@@ -124,17 +132,22 @@ const Customers = () => {
           status: 'جديد',
           businessActivity: formData.businessActivity || '',
           usualProduct: formData.usualProduct || '',
-          cliche: formData.cliche || '',
-          clicheCode: formData.clicheCode || '',
+          clicheWidth: formData.clicheWidth || '',
+          clicheHeight: formData.clicheHeight || '',
+          cliche: (formData.clicheWidth && formData.clicheHeight)
+            ? `${formData.clicheHeight} × ${formData.clicheWidth}`
+            : (formData.cliche || ''),
           colorCount: formData.colorCount || '',
           notes: formData.notes || ''
         };
 
-        const updatedCustomers = [...customers, customer];
-        setCustomers(updatedCustomers);
-        localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+        setCustomers(prev => {
+          const updated = [...prev, customer];
+          localStorage.setItem('customers', JSON.stringify(updated));
+          return updated;
+        });
 
-        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'create', customer, customers: updatedCustomers });
+        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'create', customer });
 
         setShowAddModal(false);
         soundManager.play('save');
@@ -156,11 +169,7 @@ const Customers = () => {
     if (editingCustomer && formData.name && formData.phone) {
       try {
         await toast.promise(
-          supabaseService.updateCustomer(editingCustomer.id, {
-            name: formData.name,
-            phone: formData.phone,
-            address: formData.address
-          }),
+          supabaseService.updateCustomer(editingCustomer.id, formData),
           {
             loading: 'جاري تحديث بيانات العميل...',
             success: 'تم تحديث البيانات بنجاح!',
@@ -176,16 +185,21 @@ const Customers = () => {
           address: formData.address,
           businessActivity: formData.businessActivity || '',
           usualProduct: formData.usualProduct || '',
-          cliche: formData.cliche || '',
-          clicheCode: formData.clicheCode || '',
+          clicheWidth: formData.clicheWidth || '',
+          clicheHeight: formData.clicheHeight || '',
+          cliche: (formData.clicheWidth && formData.clicheHeight)
+            ? `${formData.clicheHeight} × ${formData.clicheWidth}`
+            : (formData.cliche || ''),
           colorCount: formData.colorCount || '',
           notes: formData.notes || ''
         };
-        const updatedCustomers = customers.map(c => c.id === editingCustomer.id ? updatedCustomer : c);
-        setCustomers(updatedCustomers);
-        localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+        setCustomers(prev => {
+          const updated = prev.map(c => c.id === editingCustomer.id ? updatedCustomer : c);
+          localStorage.setItem('customers', JSON.stringify(updated));
+          return updated;
+        });
 
-        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'update', customer: updatedCustomer, customers: updatedCustomers });
+        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'update', customer: updatedCustomer });
 
         setEditingCustomer(null);
         setShowAddModal(false);
@@ -209,11 +223,13 @@ const Customers = () => {
             error: 'حدث خطأ أثناء محاولة الحذف.'
           }
         );
-        const updatedCustomers = customers.filter(c => c.id !== id);
-        setCustomers(updatedCustomers);
-        localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+        setCustomers(prev => {
+          const updated = prev.filter(c => c.id !== id);
+          localStorage.setItem('customers', JSON.stringify(updated));
+          return updated;
+        });
 
-        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'delete', customerId: id, customers: updatedCustomers });
+        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'delete', customerId: id });
         soundManager.play('delete');
       } catch (error) {
         console.error('Failed to delete customer:', error);
@@ -292,13 +308,22 @@ const Customers = () => {
             </h1>
             <p className="text-slate-600 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">إدارة بيانات عملاء مصنع Elking Plast</p>
           </div>
-          <button
-            onClick={() => { soundManager.play('openWindow'); setShowAddModal(true); }}
-            className="btn-primary flex items-center px-3 md:px-4 py-2 md:py-3 text-xs md:text-xs lg:text-sm font-semibold"
-          >
-            <Plus className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3" />
-            إضافة عميل جديد
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { soundManager.play('openWindow'); navigate('/cliches'); }}
+              className="bg-white bg-opacity-10 border border-[#5235E8] border-opacity-30 text-[#5235E8] flex items-center px-4 py-3 rounded-xl text-sm font-bold hover:bg-[#5235E8] hover:text-white transition-all duration-300"
+            >
+              <Layers className="h-5 w-5 mr-3" />
+              مخزون الأكلشيهات
+            </button>
+            <button
+              onClick={() => { soundManager.play('openWindow'); setShowAddModal(true); }}
+              className="btn-primary flex items-center px-3 md:px-4 py-2 md:py-3 text-xs md:text-xs lg:text-sm font-semibold"
+            >
+              <Plus className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3" />
+              إضافة عميل جديد
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -454,7 +479,7 @@ const Customers = () => {
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">العميل</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاتصال</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">النشاط / المنتج</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الأكلشية</th>
+                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الأكلشية (طول × عرض)</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المشتريات</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الحالة</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الإجراءات</th>
@@ -509,15 +534,10 @@ const Customers = () => {
                         {customer.cliche ? (
                           <div className="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">{customer.cliche}</div>
                         ) : null}
-                        {customer.clicheCode ? (
-                          <div className="text-xs text-slate-600 font-mono bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded flex items-center inline-flex gap-1">
-                            <Hash className="w-3 h-3 text-slate-400" /> {customer.clicheCode}
-                          </div>
-                        ) : null}
                         {customer.colorCount ? (
                           <div className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full inline-block">{customer.colorCount} لون</div>
                         ) : null}
-                        {!customer.cliche && !customer.clicheCode && !customer.colorCount && <span className="text-xs text-slate-400">—</span>}
+                        {!customer.cliche && !customer.colorCount && <span className="text-xs text-slate-400">—</span>}
                       </div>
                     </td>
                     {/* Total Spent */}
@@ -598,7 +618,8 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
     businessActivity: '',
     usualProduct: '',
     cliche: '',
-    clicheCode: '',
+    clicheWidth: '',
+    clicheHeight: '',
     colorCount: ''
   });
 
@@ -612,13 +633,15 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
         businessActivity: editingCustomer.businessActivity || '',
         usualProduct: editingCustomer.usualProduct || '',
         cliche: editingCustomer.cliche || '',
-        clicheCode: editingCustomer.clicheCode || '',
+        clicheWidth: editingCustomer.clicheWidth || '',
+        clicheHeight: editingCustomer.clicheHeight || '',
         colorCount: editingCustomer.colorCount || ''
       });
     } else {
       setFormData({
         name: '', phone: '', notes: '', address: '',
-        businessActivity: '', usualProduct: '', cliche: '', clicheCode: '', colorCount: ''
+        businessActivity: '', usualProduct: '', cliche: '',
+        clicheWidth: '', clicheHeight: '', colorCount: ''
       });
     }
   }, [editingCustomer, show]);
@@ -725,35 +748,35 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Row 3: Cliche + Cliche Code */}
+          {/* Row 3: Cliche Width × Cliche Height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">الأكلشية</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5 align-right">عرض الأكلشية الأساسي (سم)</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <Layers className="h-4 w-4 text-slate-400" />
                 </div>
                 <input
-                  type="text"
-                  placeholder="اسم الأكلشية"
-                  value={formData.cliche}
-                  onChange={(e) => setFormData({ ...formData, cliche: e.target.value })}
+                  type="number"
+                  placeholder="مثال: 60"
+                  value={formData.clicheWidth}
+                  onChange={(e) => setFormData({ ...formData, clicheWidth: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">كود الأكلشية</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">طول الأكلشية الأساسي (سم)</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Hash className="h-4 w-4 text-slate-400" />
+                  <Layers className="h-4 w-4 text-slate-400" />
                 </div>
                 <input
-                  type="text"
-                  placeholder="CLX-001"
-                  value={formData.clicheCode}
-                  onChange={(e) => setFormData({ ...formData, clicheCode: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right font-mono border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  type="number"
+                  placeholder="مثال: 40"
+                  value={formData.clicheHeight}
+                  onChange={(e) => setFormData({ ...formData, clicheHeight: e.target.value })}
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
             </div>

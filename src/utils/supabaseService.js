@@ -70,17 +70,19 @@ const dbApi = {
         try {
             const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
             if (localCustomers.length === 0) return data;
+
             return data.map(sc => {
                 const lc = localCustomers.find(c => String(c.id) === String(sc.id));
                 if (lc) {
+                    // Start with local for rich details, then override with Supabase core facts
                     return {
+                        ...lc,
                         ...sc,
-                        businessActivity: lc.businessActivity || '',
-                        usualProduct: lc.usualProduct || '',
-                        cliche: lc.cliche || '',
-                        clicheCode: lc.clicheCode || '',
-                        colorCount: lc.colorCount || '',
-                        notes: lc.notes || ''
+                        // Ensure arrays are preserved
+                        profileCliches: Array.isArray(lc.profileCliches) ? lc.profileCliches : (sc.profileCliches || []),
+                        // Force conversion of core fields to ensure type consistency
+                        totalSpent: parseFloat(sc.totalSpent || sc.totalAmount || lc.totalSpent) || 0,
+                        orders: parseInt(sc.orders || sc.ordersCount || lc.orders) || 0
                     };
                 }
                 return sc;
@@ -94,8 +96,11 @@ const dbApi = {
         const payload = { ...dataArg, createdAt: new Date().toISOString() };
         if (!payload.id) payload.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
-        // Allowed schema for Customer
-        const allowed = ['name', 'phone', 'email', 'address', 'id', 'createdAt', 'points', 'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent'];
+        // Allowed schema for Customer (Cloud-safe columns only)
+        const allowed = [
+            'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
+            'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent'
+        ];
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
 
@@ -105,7 +110,10 @@ const dbApi = {
         if (error) throw error; return res;
     },
     updateCustomer: async (id, data) => {
-        const allowed = ['name', 'phone', 'email', 'address', 'points', 'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent'];
+        const allowed = [
+            'name', 'phone', 'email', 'address', 'points', 'totalPurchases', 'orders',
+            'lastVisit', 'joinDate', 'status', 'totalSpent'
+        ];
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
@@ -341,7 +349,13 @@ class SupabaseService {
                         updatedData.push(payload.new);
                     }
                 } else if (payload.eventType === 'UPDATE') {
-                    updatedData = updatedData.map(item => item.id == payload.new.id ? payload.new : item);
+                    updatedData = updatedData.map(item => {
+                        if (item.id == payload.new.id) {
+                            // Merge: keep local fields that aren't in Supabase
+                            return { ...item, ...payload.new };
+                        }
+                        return item;
+                    });
                 } else if (payload.eventType === 'DELETE') {
                     updatedData = updatedData.filter(item => item.id != payload.old.id);
                 }

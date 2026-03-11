@@ -23,7 +23,13 @@ import {
     Palette,
     Hash,
     Truck,
-    FileText
+    FileText,
+    Printer,
+    Scissors,
+    DollarSign,
+    CreditCard,
+    Wallet,
+    Info
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate } from '../utils/dateUtils.js';
@@ -54,7 +60,12 @@ const emptyFormTemplate = {
     color: '',
     size: '',
     quantity: '',
+    pricePerKg: '',
     colorCount: '',
+    clicheWidth: '',
+    clicheHeight: '',
+    printingCostPerKg: '',
+    cuttingCostPerKg: '',
     notes: '',
     status: 'OPEN',
 };
@@ -70,7 +81,12 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     color: editingOrder.color || '',
                     size: editingOrder.size || '',
                     quantity: editingOrder.quantity?.toString() || '',
+                    pricePerKg: editingOrder.pricePerKg?.toString() || '',
                     colorCount: editingOrder.colorCount?.toString() || '',
+                    clicheWidth: editingOrder.clicheWidth?.toString() || '',
+                    clicheHeight: editingOrder.clicheHeight?.toString() || '',
+                    printingCostPerKg: editingOrder.printingCostPerKg?.toString() || '',
+                    cuttingCostPerKg: editingOrder.cuttingCostPerKg?.toString() || '',
                     notes: editingOrder.notes || '',
                     status: editingOrder.status || 'OPEN',
                 });
@@ -116,13 +132,14 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                         />
                     </div>
 
-                    {/* Quantity + Color Count */}
+                    {/* Quantity + Price */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">الكمية (كجم) <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 min="0"
+                                step="0.01"
                                 placeholder="500"
                                 value={form.quantity}
                                 onChange={e => setForm({ ...form, quantity: e.target.value })}
@@ -130,25 +147,82 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">عدد الألوان</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">سعر الكيلو <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 min="0"
-                                placeholder="3"
-                                value={form.colorCount}
-                                onChange={e => setForm({ ...form, colorCount: e.target.value })}
+                                step="0.1"
+                                placeholder="150"
+                                value={form.pricePerKg}
+                                onChange={e => setForm({ ...form, pricePerKg: e.target.value })}
                                 className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
 
-                    {/* Color + Size */}
+                    {/* Cliche Dimensions */}
                     <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">طول الأكلشية</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                placeholder="طول"
+                                value={form.clicheHeight}
+                                onChange={e => setForm({ ...form, clicheHeight: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">عرض الأكلشية</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                placeholder="عرض"
+                                value={form.clicheWidth}
+                                onChange={e => setForm({ ...form, clicheWidth: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Printing & Cutting Costs */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المطبعه / كجم</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                placeholder="0.00"
+                                value={form.printingCostPerKg}
+                                onChange={e => setForm({ ...form, printingCostPerKg: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المقص / كجم</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                placeholder="0.00"
+                                value={form.cuttingCostPerKg}
+                                onChange={e => setForm({ ...form, cuttingCostPerKg: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Color + Size + Color Count */}
+                    <div className="grid grid-cols-3 gap-3">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">اللون</label>
                             <input
                                 type="text"
-                                placeholder="أزرق، أبيض..."
+                                placeholder="أزرق..."
                                 value={form.color}
                                 onChange={e => setForm({ ...form, color: e.target.value })}
                                 className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
@@ -158,10 +232,20 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <label className="block text-sm font-bold text-slate-700 mb-1">المقاس</label>
                             <input
                                 type="text"
-                                placeholder="كبير، وسط، صغير..."
+                                placeholder="وسط..."
                                 value={form.size}
                                 onChange={e => setForm({ ...form, size: e.target.value })}
                                 className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">الألوان</label>
+                            <input
+                                type="number"
+                                placeholder="3"
+                                value={form.colorCount}
+                                onChange={e => setForm({ ...form, colorCount: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
@@ -224,6 +308,14 @@ const CustomerOrders = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
 
+    // Cliche Management
+    const [showClicheModal, setShowClicheModal] = useState(false);
+    const [clicheForm, setClicheForm] = useState({ name: '', dimensions: '' });
+
+    // Payment Management
+    const [payments, setPayments] = useState([]);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+
     // ─── Load ────────────────────────────────────────────────
     const loadData = React.useCallback(() => {
         // Customer
@@ -241,6 +333,10 @@ const CustomerOrders = () => {
         // All supplies (to find linked ones)
         const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
         setLinkedSupplies(allSupplies.filter(s => s.linkedCustomerId?.toString() === id));
+
+        // Payments
+        const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+        setPayments(allPayments.filter(p => p.customerId?.toString() === id));
     }, [id]);
 
     useEffect(() => {
@@ -282,7 +378,17 @@ const CustomerOrders = () => {
             // Update
             const updated = allOrders.map(o =>
                 o.id === editingOrder.id
-                    ? { ...o, ...formToSave, quantity: parseFloat(formToSave.quantity), colorCount: parseFloat(formToSave.colorCount) || 0 }
+                    ? {
+                        ...o,
+                        ...formToSave,
+                        quantity: parseFloat(formToSave.quantity),
+                        pricePerKg: parseFloat(formToSave.pricePerKg) || 0,
+                        colorCount: parseFloat(formToSave.colorCount) || 0,
+                        clicheWidth: parseFloat(formToSave.clicheWidth) || 0,
+                        clicheHeight: parseFloat(formToSave.clicheHeight) || 0,
+                        printingCostPerKg: parseFloat(formToSave.printingCostPerKg) || 0,
+                        cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0
+                    }
                     : o
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
@@ -297,7 +403,12 @@ const CustomerOrders = () => {
                 date: getCurrentDate().split('T')[0],
                 ...formToSave,
                 quantity: parseFloat(formToSave.quantity),
+                pricePerKg: parseFloat(formToSave.pricePerKg) || 0,
                 colorCount: parseFloat(formToSave.colorCount) || 0,
+                clicheWidth: parseFloat(formToSave.clicheWidth) || 0,
+                clicheHeight: parseFloat(formToSave.clicheHeight) || 0,
+                printingCostPerKg: parseFloat(formToSave.printingCostPerKg) || 0,
+                cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0
             };
             allOrders.push(newOrder);
             localStorage.setItem('customer_orders', JSON.stringify(allOrders));
@@ -338,6 +449,32 @@ const CustomerOrders = () => {
         loadData();
     };
 
+    const handleSavePayment = (paymentData) => {
+        if (!paymentData.amount) {
+            toast.error('يرجى إدخال المبلغ');
+            return;
+        }
+
+        const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+        const newPayment = {
+            id: Date.now(),
+            customerId: id,
+            customerName: customer?.name || '',
+            date: getCurrentDate().split('T')[0],
+            amount: parseFloat(paymentData.amount),
+            method: paymentData.method || 'CASH',
+            notes: paymentData.notes || ''
+        };
+
+        allPayments.push(newPayment);
+        localStorage.setItem('customer_payments', JSON.stringify(allPayments));
+
+        toast.success('تم تسجيل الدفعة بنجاح');
+        soundManager.play('save');
+        setShowPaymentModal(false);
+        loadData();
+    };
+
     const handleChangeStatus = (order, newStatus) => {
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         const updated = allOrders.map(o => o.id === order.id ? { ...o, status: newStatus } : o);
@@ -346,11 +483,74 @@ const CustomerOrders = () => {
         loadData();
     };
 
+    const handleAddCustomerCliche = () => {
+        if (!clicheForm.name || !clicheForm.dimensions) {
+            toast.error('يرجى إدخال اسم ومقاس الأكلشية');
+            return;
+        }
+
+        const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+        let updatedCustomer = null;
+        const updatedCustomers = customers.map(c => {
+            if (c.id?.toString() === id) {
+                const currentCliches = Array.isArray(c.profileCliches) ? c.profileCliches : [];
+                updatedCustomer = {
+                    ...c,
+                    profileCliches: [...currentCliches, { id: Date.now(), ...clicheForm }]
+                };
+                return updatedCustomer;
+            }
+            return c;
+        });
+
+        if (updatedCustomer) {
+            localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+            supabaseService.updateCustomer(updatedCustomer.id, updatedCustomer).catch(console.error);
+            toast.success('تم إضافة الأكلشية للملف الشخصي');
+            soundManager.play('save');
+            setClicheForm({ name: '', dimensions: '' });
+            setShowClicheModal(false);
+            loadData();
+            publish(EVENTS.CUSTOMERS_CHANGED);
+        }
+    };
+
+    const handleDeleteCustomerCliche = (clicheId) => {
+        const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+        let updatedCustomer = null;
+        const updatedCustomers = customers.map(c => {
+            if (c.id?.toString() === id) {
+                const currentCliches = Array.isArray(c.profileCliches) ? c.profileCliches : [];
+                updatedCustomer = {
+                    ...c,
+                    profileCliches: currentCliches.filter(item => item.id !== clicheId)
+                };
+                return updatedCustomer;
+            }
+            return c;
+        });
+
+        if (updatedCustomer) {
+            localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+            supabaseService.updateCustomer(updatedCustomer.id, updatedCustomer).catch(console.error);
+            toast.success('تم حذف الأكلشية');
+            soundManager.play('delete');
+            loadData();
+            publish(EVENTS.CUSTOMERS_CHANGED);
+        }
+    };
+
     // ─── Stats ───────────────────────────────────────────────
     const totalOrders = orders.length;
     const openOrders = orders.filter(o => o.status === 'OPEN').length;
     const inProductionOrders = orders.filter(o => o.status === 'IN_PRODUCTION').length;
     const totalSuppliesLinked = linkedSupplies.length;
+
+    // Financial Stats
+    const totalQuantityOrdered = orders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
+    const totalOrdersAmount = orders.reduce((sum, o) => sum + ((parseFloat(o.quantity) || 0) * (parseFloat(o.pricePerKg) || 0)), 0);
+    const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const remainingBalance = totalOrdersAmount - totalPaid;
 
     if (!customer) {
         return (
@@ -405,93 +605,184 @@ const CustomerOrders = () => {
                                 </div>
                             </div>
                         </div>
-                        {/* Right: Add Order button */}
-                        <button
-                            onClick={() => { setEditingOrder(null); setShowAddModal(true); soundManager.play('openWindow'); }}
-                            className="btn-primary flex items-center px-4 py-2 text-sm flex-shrink-0 text-white font-bold"
-                        >
-                            <Plus className="h-4 w-4 ml-2" />
-                            إضافة طلب جديد
-                        </button>
+                        {/* Right: Actions */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => { setShowPaymentModal(true); soundManager.play('openWindow'); }}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center px-4 py-2 text-sm flex-shrink-0 font-bold rounded-xl shadow-lg transition-all"
+                            >
+                                <CreditCard className="h-4 w-4 ml-2" />
+                                سداد دفعة
+                            </button>
+                            <button
+                                onClick={() => { setEditingOrder(null); setShowAddModal(true); soundManager.play('openWindow'); }}
+                                className="btn-primary flex items-center px-4 py-2 text-sm flex-shrink-0 text-white font-bold"
+                            >
+                                <Plus className="h-4 w-4 ml-2" />
+                                إضافة طلب جديد
+                            </button>
+                        </div>
                     </div>
 
                     {/* Static Customer Info */}
-                    {(customer.businessActivity || customer.usualProduct || customer.cliche || customer.clicheCode || customer.colorCount) && (
-                        <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {customer.businessActivity && (
-                                <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                                    <div className="bg-yellow-100 p-2 rounded-lg">
-                                        <Briefcase className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">النشاط التجاري</p>
-                                        <p className="text-sm font-bold text-white">{customer.businessActivity}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {customer.usualProduct && (
-                                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                                    <div className="bg-blue-100 p-2 rounded-lg">
-                                        <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">نوع المنتج المعتاد</p>
-                                        <p className="text-sm font-bold text-white">{customer.usualProduct}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {customer.colorCount && (
-                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                                    <div className="bg-orange-100 p-2 rounded-lg">
-                                        <Palette className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">عدد الألوان</p>
-                                        <p className="text-sm font-bold text-white">{customer.colorCount} لون</p>
-                                    </div>
-                                </div>
-                            )}
-                            {customer.cliche && (
-                                <div className="bg-pink-50 border border-pink-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                                    <div className="bg-pink-100 p-2 rounded-lg">
-                                        <Layers className="h-4 w-4 text-pink-600 flex-shrink-0" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">الأكلشية</p>
-                                        <p className="text-sm font-bold text-white">{customer.cliche}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {customer.clicheCode && (
-                                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                                    <div className="bg-teal-100 p-2 rounded-lg">
-                                        <Hash className="h-4 w-4 text-teal-600 flex-shrink-0" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">كود الأكلشية</p>
-                                        <p className="text-sm font-mono font-bold text-white">{customer.clicheCode}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 ml-0" style={{ animationDelay: '0.1s' }}>
-                    {[
-                        { label: 'إجمالي الطلبات', value: totalOrders, color: 'from-blue-500 to-indigo-500' },
-                        { label: 'طلبات مفتوحة', value: openOrders, color: 'from-orange-500 to-amber-500' },
-                        { label: 'في الإنتاج', value: inProductionOrders, color: 'from-yellow-500 to-yellow-600' },
-                        { label: 'توريدات مرتبطة', value: totalSuppliesLinked, color: 'from-purple-500 to-violet-500' },
-                    ].map((stat, i) => (
-                        <div key={i} className="glass-card p-4 flex items-center gap-3">
-                            <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-xl`}>
-                                <Package className="h-5 w-5 text-white" />
+                    {/* Static Customer Info - Basic Details Always Visible */}
+                    <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
+                            <div className="bg-yellow-100 p-2 rounded-lg">
+                                <Briefcase className="h-4 w-4 text-yellow-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-xs text-[#006af8] mb-0.5">{stat.label}</p>
-                                <p className="text-2xl font-bold text-white">{stat.value}</p>
+                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">النشاط التجاري</p>
+                                <p className="text-sm font-bold text-white">{customer.businessActivity || 'غير محدد'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
+                            <div className="bg-blue-100 p-2 rounded-lg">
+                                <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">نوع المنتج المعتاد</p>
+                                <p className="text-sm font-bold text-white">{customer.usualProduct || 'غير محدد'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
+                            <div className="bg-orange-100 p-2 rounded-lg">
+                                <Palette className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">عدد الألوان</p>
+                                <p className="text-sm font-bold text-white">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-pink-50 border border-pink-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
+                            <div className="bg-pink-100 p-2 rounded-lg">
+                                <Layers className="h-4 w-4 text-pink-600 flex-shrink-0" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">مقاس الأكلشية</p>
+                                <p className="text-sm font-bold text-white">{customer.cliche || 'غير محدد'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Profile Cliches (Additional) */}
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {Array.isArray(customer.profileCliches) && customer.profileCliches.map(pc => (
+                            <div key={pc.id} className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-purple-100 p-2 rounded-lg">
+                                        <Layers className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">{pc.name}</p>
+                                        <p className="text-sm font-bold text-white">{pc.dimensions}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleDeleteCustomerCliche(pc.id)}
+                                    className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-600 transition-all"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </button>
+                            </div>
+                        ))}
+                        {/* Add More Cliche Button Card */}
+                        <div
+                            onClick={() => setShowClicheModal(true)}
+                            className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-all group min-h-[60px]"
+                        >
+                            <Plus className="h-4 w-4 text-slate-400 group-hover:text-[#5235E8]" />
+                            <span className="text-sm font-bold text-slate-500 group-hover:text-[#5235E8]">أضف أكلشية جديد</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- CUSTOMER CLICHE MODAL --- */}
+                {showClicheModal && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Layers className="h-5 w-5 text-purple-600" />
+                                إضافة أكلشية لملف العميل
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">اسم الأكلشية</label>
+                                    <input
+                                        type="text"
+                                        placeholder="مثال: أكلشية 4 لون وجه واحد"
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        value={clicheForm.name}
+                                        onChange={e => setClicheForm({ ...clicheForm, name: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">المقاس (طول × عرض)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="مثال: 40 × 60"
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        value={clicheForm.dimensions}
+                                        onChange={e => setClicheForm({ ...clicheForm, dimensions: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-6">
+                                <button
+                                    onClick={handleAddCustomerCliche}
+                                    className="flex-1 bg-[#5235E8] text-white py-2 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all"
+                                >
+                                    حفظ الأكلشية
+                                </button>
+                                <button
+                                    onClick={() => setShowClicheModal(false)}
+                                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition-all"
+                                >
+                                    إلغاء
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Stats Row 1: Orders */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 ml-0" style={{ animationDelay: '0.1s' }}>
+                    {[
+                        { label: 'إجمالي الطلبات', value: totalOrders, color: 'from-blue-500 to-indigo-500', icon: Package },
+                        { label: 'طلبات مفتوحة', value: openOrders, color: 'from-orange-500 to-amber-500', icon: Clock },
+                        { label: 'في الإنتاج', value: inProductionOrders, color: 'from-yellow-500 to-amber-600', icon: Loader },
+                        { label: 'توريدات مرتبطة', value: totalSuppliesLinked, color: 'from-purple-500 to-indigo-600', icon: Link2 }
+                    ].map((stat, i) => (
+                        <div key={i} className="glass-card p-4 flex items-center gap-4 transition-all hover:scale-105">
+                            <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                                <stat.icon className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[#006af8] text-xs font-medium">{stat.label}</p>
+                                <p className="text-2xl font-bold text-white leading-none mt-1">{stat.value}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Stats Row 2: Financials */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 ml-0" style={{ animationDelay: '0.2s' }}>
+                    {[
+                        { label: 'إجمالي الكمية', value: `${totalQuantityOrdered} كجم`, color: 'from-cyan-500 to-blue-500', icon: Package },
+                        { label: 'قيمة الطلبات', value: `${totalOrdersAmount.toLocaleString()} ج.م`, color: 'from-blue-600 to-indigo-700', icon: DollarSign },
+                        { label: 'إجمالي المسدد', value: `${totalPaid.toLocaleString()} ج.م`, color: 'from-emerald-500 to-teal-600', icon: Wallet },
+                        { label: 'إجمالي المتبقي على العميل', value: `${remainingBalance.toLocaleString()} ج.م`, color: 'from-rose-500 to-red-600', icon: Info }
+                    ].map((stat, i) => (
+                        <div key={i} className="glass-card p-4 flex items-center gap-4 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                            <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                                <stat.icon className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[#006af8] text-xs font-medium">{stat.label}</p>
+                                <p className="text-xl font-bold text-white leading-none mt-1">{stat.value}</p>
                             </div>
                         </div>
                     ))}
@@ -586,6 +877,45 @@ const CustomerOrders = () => {
                                                 <p className="text-sm font-bold text-[#5235E8]">{orderSupplies.length} توريدة</p>
                                             </div>
                                         </div>
+
+                                        {/* Production Details (Cliche & Costs) */}
+                                        {(order.clicheWidth || order.clicheHeight || order.printingCostPerKg || order.cuttingCostPerKg) && (
+                                            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2 border-t border-slate-100 pt-2">
+                                                {(order.clicheWidth || order.clicheHeight) && (
+                                                    <div className="flex items-center gap-2 bg-pink-50 rounded-lg p-2">
+                                                        <Layers className="h-4 w-4 text-pink-500" />
+                                                        <div>
+                                                            <p className="text-[10px] text-pink-600 font-medium">مقاس الأكلشية</p>
+                                                            <p className="text-xs font-bold text-slate-800">{order.clicheHeight || 0} × {order.clicheWidth || 0}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {order.printingCostPerKg > 0 && (
+                                                    <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-2">
+                                                        <Printer className="h-4 w-4 text-blue-500" />
+                                                        <div>
+                                                            <p className="text-[10px] text-blue-600 font-medium">تكلفة المطبعه</p>
+                                                            <p className="text-xs font-bold text-slate-800">
+                                                                ${(order.printingCostPerKg * order.quantity).toLocaleString()}
+                                                                <span className="text-[9px] font-normal text-slate-500 block">(${order.printingCostPerKg}/كجم)</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {order.cuttingCostPerKg > 0 && (
+                                                    <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2">
+                                                        <Scissors className="h-4 w-4 text-orange-500" />
+                                                        <div>
+                                                            <p className="text-[10px] text-orange-600 font-medium">تكلفة المقص</p>
+                                                            <p className="text-xs font-bold text-slate-800">
+                                                                ${(order.cuttingCostPerKg * order.quantity).toLocaleString()}
+                                                                <span className="text-[9px] font-normal text-slate-500 block">(${order.cuttingCostPerKg}/كجم)</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Expanded: Linked Supplies */}
@@ -659,19 +989,182 @@ const CustomerOrders = () => {
                         })
                     )}
                 </div>
-            </div>
 
-            {/* Add/Edit Order Modal */}
-            <AddOrderModal
-                show={showAddModal}
-                editingOrder={editingOrder}
-                onClose={() => {
-                    setShowAddModal(false);
-                    setEditingOrder(null);
-                    soundManager.play('closeWindow');
-                }}
-                onSave={handleSaveOrder}
-            />
+                {/* Add/Edit Order Modal */}
+                <AddOrderModal
+                    show={showAddModal}
+                    editingOrder={editingOrder}
+                    onClose={() => {
+                        setShowAddModal(false);
+                        setEditingOrder(null);
+                        soundManager.play('closeWindow');
+                    }}
+                    onSave={handleSaveOrder}
+                />
+
+                {/* Payment Modal */}
+                <PaymentInstallmentModal
+                    show={showPaymentModal}
+                    customerName={customer?.name}
+                    payments={payments}
+                    onClose={() => setShowPaymentModal(false)}
+                    onSave={handleSavePayment}
+                    onDeletePayment={(paymentId) => {
+                        if (window.confirm('هل أنت متأكد من حذف هذه الدفعة؟')) {
+                            const all = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+                            localStorage.setItem('customer_payments', JSON.stringify(all.filter(p => p.id !== paymentId)));
+                            toast.success('تم حذف الدفعة');
+                            loadData();
+                        }
+                    }}
+                />
+            </div>
+        </div>
+    );
+};
+
+const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave, onDeletePayment }) => {
+    const [form, setForm] = useState({
+        amount: '',
+        method: 'CASH',
+        notes: ''
+    });
+
+    if (!show) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                {/* Header */}
+                <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors order-first">
+                        <XCircle className="h-6 w-6 text-slate-400" />
+                    </button>
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 text-right">
+                        <CreditCard className="h-6 w-6 text-emerald-600" />
+                        سداد ومدفوعات العميل: {customerName}
+                    </h3>
+                </div>
+
+                <div className="overflow-y-auto flex-1 p-6 space-y-8">
+                    {/* Add Payment Form Section */}
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
+                        <h4 className="text-sm font-bold text-emerald-800 mb-4 text-right flex items-center justify-end gap-2">
+                            تسجيل دفعة جديدة
+                            <Plus className="h-4 w-4" />
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 text-right">المبلغ المسدد <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="مثال: 5000"
+                                        value={form.amount}
+                                        onChange={e => setForm({ ...form, amount: e.target.value })}
+                                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right direction-ltr"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 text-right">طريقة الدفع</label>
+                                <select
+                                    value={form.method}
+                                    onChange={e => setForm({ ...form, method: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none text-right"
+                                >
+                                    <option value="CASH">نقدي</option>
+                                    <option value="BANK_TRANSFER">تحويل بنكي</option>
+                                    <option value="VODAFONE_CASH">فودافون كاش</option>
+                                    <option value="CHECK">شيك</option>
+                                </select>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 text-right">ملاحظات</label>
+                                <input
+                                    type="text"
+                                    placeholder="أي تفاصيل إضافية..."
+                                    value={form.notes}
+                                    onChange={e => setForm({ ...form, notes: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                onSave(form);
+                                setForm({ amount: '', method: 'CASH', notes: '' });
+                            }}
+                            className="w-full mt-6 bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                        >
+                            <CheckCircle className="h-5 w-5" />
+                            تأكيد تسجيل الدفعة
+                        </button>
+                    </div>
+
+                    {/* History Section */}
+                    <div>
+                        <h4 className="text-sm font-bold text-slate-500 mb-4 text-right flex items-center justify-end gap-2">
+                            سجل الدفعات السابقة
+                            <Clock className="h-4 w-4" />
+                        </h4>
+
+                        {payments.length === 0 ? (
+                            <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                <p className="text-slate-400 text-sm">لا توجد مدفوعات مسجلة بعد لهذا العميل.</p>
+                            </div>
+                        ) : (
+                            <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                                <table className="w-full text-right text-sm">
+                                    <thead className="bg-slate-50 border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-4 py-3 text-slate-600 font-bold">التاريخ</th>
+                                            <th className="px-4 py-3 text-slate-600 font-bold">المبلغ</th>
+                                            <th className="px-4 py-3 text-slate-600 font-bold">الطريقة</th>
+                                            <th className="px-4 py-3 text-slate-600 font-bold">الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {payments.sort((a, b) => b.id - a.id).map(payment => (
+                                            <tr key={payment.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="px-4 py-3 font-medium text-slate-600">{payment.date}</td>
+                                                <td className="px-4 py-3 font-bold text-emerald-600">{payment.amount?.toLocaleString()} ج.م</td>
+                                                <td className="px-4 py-3">
+                                                    <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">
+                                                        {payment.method === 'VODAFONE_CASH' ? 'فودافون' : payment.method === 'CASH' ? 'نقدي' : 'بنكي'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <button
+                                                        onClick={() => onDeletePayment(payment.id)}
+                                                        className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-center">
+                    <button
+                        onClick={onClose}
+                        className="px-10 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition-all"
+                    >
+                        إغلاق النافذة
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
