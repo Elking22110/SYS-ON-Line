@@ -452,9 +452,18 @@ const Dashboard = () => {
                     dy={10}
                   />
                   <YAxis
+                    yAxisId="left"
+                    orientation="left"
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#9CA3AF', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#F59E0B', fontSize: 12, fontWeight: 600 }}
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', fontWeight: 600, backdropFilter: 'blur(10px)' }}
@@ -464,6 +473,7 @@ const Dashboard = () => {
                     ]}
                   />
                   <Area
+                    yAxisId="left"
                     type="monotone"
                     dataKey="revenue"
                     stroke="#5235E8"
@@ -473,6 +483,7 @@ const Dashboard = () => {
                     activeDot={{ r: 8, strokeWidth: 3, stroke: 'white', fill: '#5235E8' }}
                   />
                   <Area
+                    yAxisId="right"
                     type="monotone"
                     dataKey="orders"
                     stroke="#F59E0B"

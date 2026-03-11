@@ -786,7 +786,7 @@ const POSMain = () => {
       <body>
         <div class="wrap">
          <div class="header">
-           <div class="store-name">${storeInfo.companyName || 'Elking'}</div>
+           <div class="store-name">${storeInfo.storeName || 'مصنع الشنط البلاستيكية الرائد - Elking'}</div>
           <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">${storeInfo.companyPhone || '01029022006'}</div>
            <div style="font-weight: 800; font-size: 14px; margin-top:4px;">فاتورة البيع</div>
         </div>

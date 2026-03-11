@@ -111,14 +111,14 @@ const StoreSettings = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-2">
-                اسم المتجر *
+                اسم المصنع *
               </label>
               <input
                 type="text"
                 value={storeInfo.storeName || ''}
                 onChange={(e) => handleInputChange('storeName', e.target.value)}
                 className="input-modern w-full"
-                placeholder="أدخل اسم المتجر"
+                placeholder="أدخل اسم المصنع"
                 required
               />
             </div>
@@ -302,7 +302,7 @@ const StoreSettings = () => {
         <h3 className="text-lg font-semibold text-slate-800 mb-4">معاينة الفاتورة</h3>
         <div className="bg-white text-black p-6 rounded-lg font-mono text-sm">
           <div className="text-center mb-4">
-            <h4 className="text-lg font-bold">{storeInfo.storeName || 'اسم المتجر'}</h4>
+            <h4 className="text-lg font-bold">{storeInfo.storeName || 'مصنع الشنط البلاستيكية الرائد - Elking'}</h4>
             {storeInfo.storeDescription && (
               <p className="text-sm text-gray-600">{storeInfo.storeDescription}</p>
             )}

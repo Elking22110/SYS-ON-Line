@@ -1,4 +1,4 @@
-﻿import { publish, EVENTS, subscribe } from '../utils/observerManager';
+import { publish, EVENTS, subscribe } from '../utils/observerManager';
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../components/NotificationSystem';
 import soundManager from '../utils/soundManager.js';
@@ -862,7 +862,7 @@ const Reports = () => {
         <body>
           <div class="wrap">
           <div class="header">
-            <div class="store-name">${storeInfo.companyName || 'Elking'}</div>
+            <div class="store-name">${storeInfo.storeName || 'مصنع الشنط البلاستيكية الرائد - Elking'}</div>
             <div class="store-info">${storeInfo.companyPhone || '01029022006'}</div>
             <div style="font-weight: 800; font-size: 14px; margin-top:4px;">فاتورة البيع</div>
           </div>
