@@ -310,7 +310,7 @@ const CustomerOrders = () => {
 
     // Cliche Management
     const [showClicheModal, setShowClicheModal] = useState(false);
-    const [clicheForm, setClicheForm] = useState({ name: '', dimensions: '' });
+    const [clicheForm, setClicheForm] = useState({ name: '', length: '', width: '' });
 
     // Payment Management
     const [payments, setPayments] = useState([]);
@@ -533,10 +533,13 @@ const CustomerOrders = () => {
     };
 
     const handleAddCustomerCliche = () => {
-        if (!clicheForm.name || !clicheForm.dimensions) {
+        if (!clicheForm.name || !clicheForm.length || !clicheForm.width) {
             toast.error('يرجى إدخال اسم ومقاس الأكلشية');
             return;
         }
+
+        const dimensions = `${clicheForm.length} × ${clicheForm.width}`;
+        const clicheToSave = { name: clicheForm.name, dimensions };
 
         const customers = JSON.parse(localStorage.getItem('customers') || '[]');
         let updatedCustomer = null;
@@ -545,7 +548,7 @@ const CustomerOrders = () => {
                 const currentCliches = Array.isArray(c.profileCliches) ? c.profileCliches : [];
                 updatedCustomer = {
                     ...c,
-                    profileCliches: [...currentCliches, { id: Date.now(), ...clicheForm }]
+                    profileCliches: [...currentCliches, { id: Date.now(), ...clicheToSave }]
                 };
                 return updatedCustomer;
             }
@@ -557,7 +560,7 @@ const CustomerOrders = () => {
             supabaseService.updateCustomer(updatedCustomer.id, updatedCustomer).catch(console.error);
             toast.success('تم إضافة الأكلشية للملف الشخصي');
             soundManager.play('save');
-            setClicheForm({ name: '', dimensions: '' });
+            setClicheForm({ name: '', length: '', width: '' });
             setShowClicheModal(false);
             loadData();
             publish(EVENTS.CUSTOMERS_CHANGED);
@@ -768,15 +771,27 @@ const CustomerOrders = () => {
                                         onChange={e => setClicheForm({ ...clicheForm, name: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">المقاس (طول × عرض)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="مثال: 40 × 60"
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                        value={clicheForm.dimensions}
-                                        onChange={e => setClicheForm({ ...clicheForm, dimensions: e.target.value })}
-                                    />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">الطول</label>
+                                        <input
+                                            type="number"
+                                            placeholder="طول"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center"
+                                            value={clicheForm.length}
+                                            onChange={e => setClicheForm({ ...clicheForm, length: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">العرض</label>
+                                        <input
+                                            type="number"
+                                            placeholder="عرض"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center"
+                                            value={clicheForm.width}
+                                            onChange={e => setClicheForm({ ...clicheForm, width: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex gap-2 mt-6">
