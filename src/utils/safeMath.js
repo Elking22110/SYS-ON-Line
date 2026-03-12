@@ -15,7 +15,7 @@ export const safeMath = {
     // Convert integer back to standard float amount (divide by 100)
     fromCents(cents) {
         if (!cents || isNaN(cents)) return 0;
-        return Number((Number(cents) / 100).toFixed(2));
+        return Number(cents) / 100;
     },
 
     // Safe Addition

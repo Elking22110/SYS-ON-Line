@@ -80,8 +80,8 @@ const Sidebar = () => {
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
         className={`
-          fixed md:static inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out
-          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+          fixed md:static inset-y-0 right-0 z-50 transform transition-all duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : 'translate-x-full'} md:translate-x-0
           w-64 lg:w-[260px]
           bg-[#5235E8] md:bg-transparent text-white flex flex-col h-full md:h-screen flex-shrink-0
           shadow-2xl md:shadow-none overflow-visible
@@ -161,7 +161,7 @@ const Sidebar = () => {
 
                   {/* Active indicator dot (when collapsed) */}
                   {isActive && !shouldShowLabels && (
-                    <div className="absolute -left-[2px] top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+                    <div className="absolute -right-[2px] top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
                   )}
                 </Link>
               );

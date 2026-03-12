@@ -981,15 +981,15 @@ const Products = () => {
         {/* Products Table */}
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-white bg-opacity-10">
                 <tr>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">الصورة</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">المنتج</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">السعر</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">المخزون</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">التصنيف</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">الإجراءات</th>
+                  <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">الصورة</th>
+                  <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">المنتج</th>
+                  <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">السعر</th>
+                  <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">المخزون</th>
+                  <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">التصنيف</th>
+                  <th className="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white divide-opacity-10">
@@ -1002,7 +1002,7 @@ const Products = () => {
                 )}
                 {filteredProducts.map((product, index) => (
                   <tr key={product.id} className="hover:bg-white hover:bg-opacity-5 transition-all duration-300">
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
                       <div className="flex items-center justify-center">
                         <div className="relative group">
                           <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden border-2 border-slate-400 hover:border-blue-500 transition-colors duration-300">
@@ -1022,77 +1022,24 @@ const Products = () => {
                               />
                             )}
                           </div>
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-lg md:rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <div className="flex space-x-1">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  document.getElementById(`image-upload-${product.id}`).click();
-                                }}
-                                className="p-1 bg-blue-500 rounded-full hover:bg-blue-600 transition-colors duration-300 min-w-[24px] min-h-[24px] cursor-pointer"
-                                title="رفع صورة"
-                                style={{
-                                  pointerEvents: 'auto',
-                                  zIndex: 10,
-                                  position: 'relative'
-                                }}
-                              >
-                                <Camera className="h-3 w-3 text-slate-800" />
-                              </button>
-                              {productImages[product.id] && (
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleImageDelete(product.id);
-                                  }}
-                                  className="p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors duration-300 min-w-[24px] min-h-[24px] cursor-pointer"
-                                  title="حذف الصورة"
-                                  style={{
-                                    pointerEvents: 'auto',
-                                    zIndex: 10,
-                                    position: 'relative'
-                                  }}
-                                >
-                                  <X className="h-3 w-3 text-slate-800" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          <input
-                            id={`image-upload-${product.id}`}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files[0]) {
-                                handleImageUpload(product.id, e.target.files[0]);
-                              }
-                            }}
-                          />
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div>
-                          <div className="text-sm md:text-base font-medium text-slate-800">{emojiManager.getProductEmoji(product)} {product.name}</div>
-                        </div>
-                      </div>
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-right">
+                      <div className="text-xs md:text-base font-medium text-slate-800">{emojiManager.getProductEmoji(product)} {product.name}</div>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm md:text-base text-slate-800 font-semibold">${product.price}</td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-semibold rounded-full ${product.stock <= product.minStock
-                        ? 'bg-red-500 bg-opacity-20 text-red-300 border border-red-500 border-opacity-30'
-                        : 'bg-green-500 bg-opacity-20 text-green-300 border border-green-500 border-opacity-30'
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-base text-slate-800 font-semibold text-right">${product.price}</td>
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-right">
+                      <span className={`inline-flex px-2 md:px-3 py-1 md:py-2 text-[10px] md:text-sm font-semibold rounded-full ${product.stock <= product.minStock
+                        ? 'bg-red-500 text-white shadow-sm'
+                        : 'bg-green-500 text-white shadow-sm'
                         }`}>
                         {product.stock}
                       </span>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm md:text-base text-blue-300 font-medium">{product.category}</td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2 md:space-x-3">
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-[10px] md:text-base text-blue-600 font-medium text-right">{product.category}</td>
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1100,14 +1047,14 @@ const Products = () => {
                             soundManager.play('update');
                             handleEditProduct(product);
                           }}
-                          className="p-2 bg-blue-500 bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all duration-300 text-blue-300 hover:text-blue-200 min-w-[40px] min-h-[40px] cursor-pointer"
+                          className="p-1.5 md:p-2 bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[32px] min-h-[32px] md:min-w-[40px] md:min-h-[40px] flex items-center justify-center cursor-pointer"
                           style={{
                             pointerEvents: 'auto',
                             zIndex: 10,
                             position: 'relative'
                           }}
                         >
-                          <Edit className="h-4 w-4 md:h-5 md:w-5" />
+                          <Edit className="h-3.5 w-3.5 md:h-5 md:w-5" />
                         </button>
                         <button
                           onClick={(e) => {
@@ -1116,14 +1063,14 @@ const Products = () => {
                             soundManager.play('delete');
                             handleDeleteProduct(product.id);
                           }}
-                          className="p-2 bg-red-500 bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all duration-300 text-red-300 hover:text-red-200 min-w-[40px] min-h-[40px] cursor-pointer"
+                          className="p-1.5 md:p-2 bg-red-600 hover:bg-red-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[32px] min-h-[32px] md:min-w-[40px] md:min-h-[40px] flex items-center justify-center cursor-pointer"
                           style={{
                             pointerEvents: 'auto',
                             zIndex: 10,
                             position: 'relative'
                           }}
                         >
-                          <Trash2 className="h-4 w-4 md:h-5 md:w-5" />
+                          <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
                         </button>
                       </div>
                     </td>

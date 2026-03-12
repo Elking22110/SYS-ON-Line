@@ -165,7 +165,7 @@ const Settings = () => {
 
       // إعدادات الضرائب
       taxEnabled: savedStoreInfo.taxEnabled !== undefined ? savedStoreInfo.taxEnabled : savedSettings.taxEnabled !== undefined ? savedSettings.taxEnabled : false,
-      taxRate: savedStoreInfo.taxRate || savedSettings.taxRate || 15,
+      taxRate: savedStoreInfo.taxRate !== undefined ? savedStoreInfo.taxRate : (savedSettings.taxRate !== undefined ? savedSettings.taxRate : ''),
       taxName: savedStoreInfo.taxName || savedSettings.taxName || 'ضريبة القيمة المضافة',
 
       // إعدادات المستخدمين
@@ -197,7 +197,7 @@ const Settings = () => {
 
       // إعدادات الأصوات
       soundsEnabled: savedSettings.soundsEnabled !== undefined ? savedSettings.soundsEnabled : true,
-      soundVolume: savedSettings.soundVolume !== undefined ? savedSettings.soundVolume : 0.7,
+      soundVolume: savedSettings.soundVolume !== undefined ? savedSettings.soundVolume : '',
       clickSounds: savedSettings.clickSounds !== undefined ? savedSettings.clickSounds : true,
       notificationSounds: savedSettings.notificationSounds !== undefined ? savedSettings.notificationSounds : true,
       systemSounds: savedSettings.systemSounds !== undefined ? savedSettings.systemSounds : true,
@@ -207,7 +207,9 @@ const Settings = () => {
       debugMode: savedSettings.debugMode !== undefined ? savedSettings.debugMode : false,
       analyticsEnabled: savedSettings.analyticsEnabled !== undefined ? savedSettings.analyticsEnabled : true,
       // المخزون
-      inventoryEnabled: savedStoreInfo.inventoryEnabled !== undefined ? savedStoreInfo.inventoryEnabled : (savedSettings.inventoryEnabled !== undefined ? savedSettings.inventoryEnabled : true)
+      inventoryEnabled: savedStoreInfo.inventoryEnabled !== undefined ? savedStoreInfo.inventoryEnabled : (savedSettings.inventoryEnabled !== undefined ? savedSettings.inventoryEnabled : true),
+      // نسبة الربح الافتراضية للطلبات
+      orderProfitMargin: savedSettings.orderProfitMargin !== undefined ? savedSettings.orderProfitMargin : ''
     };
   });
 
@@ -838,7 +840,8 @@ const Settings = () => {
         sidebarCollapsed: false,
         maintenanceMode: false,
         debugMode: false,
-        analyticsEnabled: true
+        analyticsEnabled: true,
+        orderProfitMargin: ''
       };
       setSettings(defaultSettings);
       toast.error('تم إعادة تعيين الإعدادات!');
@@ -904,6 +907,20 @@ const Settings = () => {
           rows={3}
           className="input-modern w-full px-3 py-2 text-right"
         />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-600 mb-2">نسبة الربح الافتراضية للطلبات (%)</label>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            value={settings.orderProfitMargin}
+            onChange={(e) => handleSettingChange('orderProfitMargin', parseFloat(e.target.value) || 0)}
+            className="input-modern w-full px-3 py-2 text-right"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1569,6 +1586,25 @@ const Settings = () => {
           />
           <div className="w-11 h-6 bg-white bg-opacity-20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
         </label>
+      </div>
+
+      <div className="p-4 bg-emerald-500 bg-opacity-10 border border-emerald-500 border-opacity-30 rounded-lg">
+        <h4 className="font-medium text-emerald-300 mb-3">💰 إعدادات الأرباح</h4>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">نسبة الربح الافتراضية للطلبات (%)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              placeholder="مثال: 10"
+              value={settings.orderProfitMargin}
+              onChange={(e) => handleSettingChange('orderProfitMargin', e.target.value)}
+              className="input-modern w-full px-3 py-2 text-right"
+            />
+            <p className="text-[10px] text-emerald-400 mt-1 font-medium italic">تطبق هذه النسبة تلقائياً على جميع الطلبات الجديدة (المجموع + تكلفة الأكلشية)</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-yellow-500 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg p-4">

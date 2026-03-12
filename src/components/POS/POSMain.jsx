@@ -1222,7 +1222,7 @@ const POSMain = () => {
         </div>
 
         {/* المحتوى الرئيسي */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <div className="flex flex-col xl:flex-row gap-4 lg:gap-6">
           {/* شبكة المنتجات */}
           <ProductGrid
             selectedCategory={selectedCategory}

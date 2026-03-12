@@ -282,8 +282,8 @@ const Dashboard = () => {
 
         {/* Card 1 - Daily Supply Qty */}
         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
-            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">🚚</span>
+          <div className="absolute top-4 right-4 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[3.5rem] md:text-[5rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.4)]">🚚</span>
           </div>
           <div className="relative z-10">
             <p className="text-indigo-100 text-sm font-semibold mb-2 tracking-wide uppercase">توريدات اليوم</p>
@@ -298,8 +298,8 @@ const Dashboard = () => {
 
         {/* Card 2 - Total Sales Today */}
         <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[28px] p-6 text-white shadow-xl shadow-fuchsia-500/20 relative overflow-hidden group cursor-pointer hover:shadow-fuchsia-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.5s' }}>
-            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">💰</span>
+          <div className="absolute top-4 right-4 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.5s' }}>
+            <span className="text-[3.5rem] md:text-[5rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.4)]">💰</span>
           </div>
           <div className="relative z-10">
             <p className="text-fuchsia-100 text-sm font-semibold mb-2 tracking-wide uppercase">مبيعات الوردية</p>
@@ -321,8 +321,8 @@ const Dashboard = () => {
 
         {/* Card 3 - Total Orders */}
         <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1s' }}>
-            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">🛒</span>
+          <div className="absolute top-4 right-4 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1s' }}>
+            <span className="text-[3.5rem] md:text-[5rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.4)]">🛒</span>
           </div>
           <div className="relative z-10">
             <p className="text-blue-100 text-sm font-semibold mb-2 tracking-wide uppercase">عدد الطلبات</p>
@@ -343,9 +343,9 @@ const Dashboard = () => {
         </div>
 
         {/* Card 4 - Customers */}
-        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group cursor-pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
-          <div className="absolute top-2 right-2 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1.5s' }}>
-            <span className="text-[5.7rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]">👥</span>
+        <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-[28px] p-6 text-white shadow-xl shadow-pink-500/20 relative overflow-hidden group pointer hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-4 right-4 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1.5s' }}>
+            <span className="text-[3.5rem] md:text-[5rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.4)]">👥</span>
           </div>
           <div className="relative z-10">
             <p className="text-pink-100 text-sm font-semibold mb-2 tracking-wide uppercase">إجمالي العملاء</p>
@@ -369,34 +369,34 @@ const Dashboard = () => {
 
         <div className="space-y-3">
           {recentOrders.length > 0 ? recentOrders.map((order) => (
-            <div key={order.id} className="flex items-center justify-between py-4 px-6 bg-slate-50/50 border border-slate-100/80 rounded-2xl hover:bg-indigo-50/50 hover:border-indigo-100 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
-              <div className="flex items-center min-w-[200px]">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold ml-4 shadow-inner group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors">
+            <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 px-6 bg-slate-50/50 border border-slate-100/80 rounded-2xl hover:bg-indigo-50/50 hover:border-indigo-100 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md gap-4">
+              <div className="flex items-center min-w-0 flex-1">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold ml-4 shadow-inner group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors flex-shrink-0">
                   {order.customer.charAt(0)}
                 </div>
-                <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors">
-                  <span className="truncate max-w-[120px]">
+                <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors truncate">
                     {order.customer || 'نقدي'}
-                  </span>
                 </span>
               </div>
 
-              <div className="min-w-[120px] font-black text-slate-800 text-lg">
-                {order.amount.toLocaleString()} <span className="text-sm text-slate-500 font-semibold">ج.م</span>
-              </div>
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                <div className="font-black text-slate-800 text-lg whitespace-nowrap">
+                  {order.amount.toLocaleString()} <span className="text-sm text-slate-500 font-semibold">ج.م</span>
+                </div>
 
-              <div className="min-w-[120px] text-slate-500 text-sm font-semibold flex items-center">
-                <Package className="w-4 h-4 ml-1 opacity-70" />
-                {order.items} منتجات
-              </div>
+                <div className="text-slate-500 text-sm font-semibold flex items-center whitespace-nowrap">
+                  <Package className="w-4 h-4 ml-1 opacity-70" />
+                  {order.items} منتجات
+                </div>
 
-              <div className="min-w-[120px] text-slate-500 text-sm font-semibold flex items-center">
-                <Clock className="w-4 h-4 ml-1 opacity-70" />
-                {order.time}
-              </div>
+                <div className="text-slate-500 text-sm font-semibold flex items-center whitespace-nowrap">
+                  <Clock className="w-4 h-4 ml-1 opacity-70" />
+                  {order.time}
+                </div>
 
-              <div className={`min-w-[100px] font-bold text-sm px-4 py-1.5 rounded-full text-center ${order.paymentMethod === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                {order.customer !== 'نقدي' ? order.customer : (order.paymentMethod === 'cash' ? 'نقدي' : 'بطاقة')}
+                <div className={`font-bold text-sm px-4 py-1.5 rounded-full text-center whitespace-nowrap ${order.paymentMethod === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {order.customer !== 'نقدي' ? order.customer : (order.paymentMethod === 'cash' ? 'نقدي' : 'بطاقة')}
+                </div>
               </div>
             </div>
           )) : (

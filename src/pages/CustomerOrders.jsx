@@ -13,9 +13,11 @@ import {
     Clock,
     CheckCircle,
     XCircle,
+    AlertCircle,
     Loader,
     ChevronDown,
     ChevronUp,
+    Calendar,
     AlertTriangle,
     Briefcase,
     Tag,
@@ -68,6 +70,10 @@ const emptyFormTemplate = {
     cuttingCostPerKg: '',
     notes: '',
     status: 'OPEN',
+    clicheEnabled: false,
+    profitMargin: '',
+    deliveryDate: '',
+    reminderDate: '',
 };
 
 const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
@@ -77,21 +83,24 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
         if (show) {
             if (editingOrder) {
                 setForm({
-                    productType: editingOrder.productType || '',
-                    color: editingOrder.color || '',
-                    size: editingOrder.size || '',
-                    quantity: editingOrder.quantity?.toString() || '',
-                    pricePerKg: editingOrder.pricePerKg?.toString() || '',
-                    colorCount: editingOrder.colorCount?.toString() || '',
-                    clicheWidth: editingOrder.clicheWidth?.toString() || '',
-                    clicheHeight: editingOrder.clicheHeight?.toString() || '',
-                    printingCostPerKg: editingOrder.printingCostPerKg?.toString() || '',
-                    cuttingCostPerKg: editingOrder.cuttingCostPerKg?.toString() || '',
-                    notes: editingOrder.notes || '',
-                    status: editingOrder.status || 'OPEN',
+                    ...editingOrder,
+                    clicheEnabled: !!(editingOrder.clicheHeight || editingOrder.clicheWidth || editingOrder.colorCount),
                 });
             } else {
-                setForm(emptyFormTemplate);
+                // Fetch default profit margin from settings
+                const savedSettings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
+                const defaultMargin = savedSettings.orderProfitMargin !== undefined ? savedSettings.orderProfitMargin : '';
+                
+                const today = new Date().toISOString().split('T')[0];
+                const delivery = addDays(today, 10).split('T')[0];
+                const reminder = addDays(today, 6).split('T')[0];
+
+                setForm({
+                    ...emptyFormTemplate,
+                    profitMargin: defaultMargin,
+                    deliveryDate: delivery,
+                    reminderDate: reminder
+                });
             }
         }
     }, [show, editingOrder]);
@@ -114,7 +123,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     overflowY: 'auto'
                 }}
             >
-                <h2 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2">
                     <Package className="h-5 w-5 text-blue-600" />
                     {editingOrder ? 'تعديل الطلب' : 'إضافة طلب جديد'}
                 </h2>
@@ -128,7 +137,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             placeholder="مثال: شنط بيور، أكياس بلاستيك..."
                             value={form.productType}
                             onChange={e => setForm({ ...form, productType: e.target.value })}
-                            className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                         />
                     </div>
 
@@ -143,7 +152,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="500"
                                 value={form.quantity}
                                 onChange={e => setForm({ ...form, quantity: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                         <div>
@@ -155,43 +164,79 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="150"
                                 value={form.pricePerKg}
                                 onChange={e => setForm({ ...form, pricePerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
 
-                    {/* Cliche Dimensions */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">طول الأكلشية</label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                placeholder="طول"
-                                value={form.clicheHeight}
-                                onChange={e => setForm({ ...form, clicheHeight: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
+                    {/* Cliche Toggle */}
+                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-2">
+                            <Layers className="h-5 w-5 text-purple-600" />
+                            <span className="text-sm font-bold text-slate-700">تفعيل تكلفة الأكلشية؟</span>
                         </div>
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">عرض الأكلشية</label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                placeholder="عرض"
-                                value={form.clicheWidth}
-                                onChange={e => setForm({ ...form, clicheWidth: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setForm({ ...form, clicheEnabled: !form.clicheEnabled })}
+                            className={`w-12 h-6 rounded-full transition-all relative ${form.clicheEnabled ? 'bg-purple-600' : 'bg-slate-300'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${form.clicheEnabled ? 'left-7' : 'left-1'}`} />
+                        </button>
                     </div>
+
+                    {/* Cliche Dimensions (Conditional) */}
+                    {form.clicheEnabled && (
+                        <div className="p-4 bg-purple-50 rounded-xl border border-purple-100 space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">طول الأكلشية <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.1"
+                                        placeholder="طول"
+                                        value={form.clicheHeight}
+                                        onChange={e => setForm({ ...form, clicheHeight: e.target.value })}
+                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">عرض الأكلشية <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.1"
+                                        placeholder="عرض"
+                                        value={form.clicheWidth}
+                                        onChange={e => setForm({ ...form, clicheWidth: e.target.value })}
+                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">عدد الألوان <span className="text-red-500">*</span></label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    placeholder="عدد الألوان"
+                                    value={form.colorCount}
+                                    onChange={e => setForm({ ...form, colorCount: e.target.value })}
+                                    className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                />
+                            </div>
+                            <div className="text-xs text-purple-600 font-bold bg-white p-2 rounded-lg border border-purple-100 flex justify-between">
+                                <span>تكلفة الأكلشية التقريبية:</span>
+                                <span>
+                                    {((parseFloat(form.clicheHeight) || 0) * (parseFloat(form.clicheWidth) || 0) * (parseFloat(form.colorCount) || 0) * 0.85).toLocaleString()} ج.م
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Printing & Cutting Costs */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المطبعه / كجم</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المطبعه / كجم <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 min="0"
@@ -199,11 +244,11 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="0.00"
                                 value={form.printingCostPerKg}
                                 onChange={e => setForm({ ...form, printingCostPerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المقص / كجم</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المقص / كجم <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 min="0"
@@ -211,13 +256,14 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="0.00"
                                 value={form.cuttingCostPerKg}
                                 onChange={e => setForm({ ...form, cuttingCostPerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
 
-                    {/* Color + Size + Color Count */}
-                    <div className="grid grid-cols-3 gap-3">
+
+
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">اللون</label>
                             <input
@@ -225,7 +271,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="أزرق..."
                                 value={form.color}
                                 onChange={e => setForm({ ...form, color: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                         <div>
@@ -235,17 +281,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="وسط..."
                                 value={form.size}
                                 onChange={e => setForm({ ...form, size: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">الألوان</label>
-                            <input
-                                type="number"
-                                placeholder="3"
-                                value={form.colorCount}
-                                onChange={e => setForm({ ...form, colorCount: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
@@ -256,7 +292,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                         <select
                             value={form.status}
                             onChange={e => setForm({ ...form, status: e.target.value })}
-                            className="w-full flex-1 appearance-none px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            className="w-full flex-1 appearance-none px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                         >
                             {ORDER_STATUSES.map(s => (
                                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -271,9 +307,30 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             rows={3}
                             value={form.notes}
                             onChange={e => setForm({ ...form, notes: e.target.value })}
-                            className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             placeholder="أي تفاصيل إضافية..."
                         />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">تاريخ التسليم <span className="text-red-500">*</span></label>
+                            <input
+                                type="date"
+                                value={form.deliveryDate}
+                                onChange={e => setForm({ ...form, deliveryDate: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">تاريخ التنبيه <span className="text-red-500">*</span></label>
+                            <input
+                                type="date"
+                                value={form.reminderDate}
+                                onChange={e => setForm({ ...form, reminderDate: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -406,8 +463,28 @@ const CustomerOrders = () => {
 
     // ─── CRUD ────────────────────────────────────────────────
     const handleSaveOrder = (formToSave) => {
-        if (!formToSave.productType || !formToSave.quantity) {
-            toast.error('يرجى إدخال نوع المنتج والكمية');
+        // Validation for required fields
+        const requiredFields = [
+            { key: 'productType', label: 'نوع المنتج' },
+            { key: 'quantity', label: 'الكمية' },
+            { key: 'pricePerKg', label: 'سعر الكيلو' },
+            { key: 'printingCostPerKg', label: 'تكلفة المطبعه' },
+            { key: 'cuttingCostPerKg', label: 'تكلفة المقص' }
+        ];
+
+        if (formToSave.clicheEnabled) {
+            requiredFields.push(
+                { key: 'clicheHeight', label: 'طول الأكلشية' },
+                { key: 'clicheWidth', label: 'عرض الأكلشية' },
+                { key: 'colorCount', label: 'عدد الألوان' }
+            );
+        }
+
+        const missing = requiredFields.filter(f => !formToSave[f.key] && formToSave[f.key] !== 0);
+        
+        if (missing.length > 0) {
+            const labels = missing.map(f => f.label).join('، ');
+            toast.error(`يرجى إدخال الحقول المطلوبة: ${labels}`);
             soundManager.play('error');
             return;
         }
@@ -427,16 +504,24 @@ const CustomerOrders = () => {
                         clicheWidth: parseFloat(formToSave.clicheWidth) || 0,
                         clicheHeight: parseFloat(formToSave.clicheHeight) || 0,
                         printingCostPerKg: parseFloat(formToSave.printingCostPerKg) || 0,
-                        cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0
+                        cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0,
+                        clicheEnabled: formToSave.clicheEnabled || false,
+                        clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0,
+                        profitMargin: parseFloat(formToSave.profitMargin) || 0
                     }
                     : o
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
             // Sync to Supabase
-            supabaseService.updateCustomerOrder(editingOrder.id, formToSave).catch(console.error);
+            supabaseService.updateCustomerOrder(editingOrder.id, {
+                ...formToSave,
+                profitMargin: parseFloat(formToSave.profitMargin) || 0,
+                clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0
+            }).catch(console.error);
             toast.success('تم تحديث الطلب بنجاح');
         } else {
             // Create
+            const clicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0;
             const newOrder = {
                 id: Date.now(),
                 customerId: id,
@@ -450,7 +535,10 @@ const CustomerOrders = () => {
                 clicheWidth: parseFloat(formToSave.clicheWidth) || 0,
                 clicheHeight: parseFloat(formToSave.clicheHeight) || 0,
                 printingCostPerKg: parseFloat(formToSave.printingCostPerKg) || 0,
-                cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0
+                cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0,
+                clicheEnabled: formToSave.clicheEnabled || false,
+                clicheCost: clicheCost,
+                profitMargin: parseFloat(formToSave.profitMargin) || 0,
             };
             allOrders.push(newOrder);
             localStorage.setItem('customer_orders', JSON.stringify(allOrders));
@@ -600,7 +688,18 @@ const CustomerOrders = () => {
 
     // Financial Stats
     const totalQuantityOrdered = orders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
-    const totalOrdersAmount = orders.reduce((sum, o) => sum + ((parseFloat(o.quantity) || 0) * (parseFloat(o.pricePerKg) || 0)), 0);
+    const totalOrdersAmount = orders.reduce((sum, o) => {
+        const qty = parseFloat(o.quantity) || 0;
+        const productTotal = qty * (parseFloat(o.pricePerKg) || 0);
+        const printingTotal = qty * (parseFloat(o.printingCostPerKg) || 0);
+        const cuttingTotal = qty * (parseFloat(o.cuttingCostPerKg) || 0);
+        const clicheTotal = parseFloat(o.clicheCost) || 0;
+        
+        const subtotal = productTotal + printingTotal + cuttingTotal + clicheTotal;
+        const profit = subtotal * ((parseFloat(o.profitMargin) || 0) / 100);
+        
+        return sum + subtotal + profit;
+    }, 0);
     const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
     const remainingBalance = totalOrdersAmount - totalPaid;
 
@@ -871,9 +970,44 @@ const CustomerOrders = () => {
                                 <div key={order.id} className="glass-card overflow-hidden">
                                     {/* Order Header */}
                                     <div className="p-4 md:p-5">
-                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                            {/* Left info */}
-                                            <div className="flex items-center gap-3 flex-wrap">
+                                        <div className="flex flex-col md:flex-row-reverse justify-between items-start md:items-center gap-3">
+                                            {/* Right actions (Now on the right/start of the row) */}
+                                            <div className="flex items-center gap-2 flex-nowrap">
+                                                <button
+                                                    onClick={() => handleEditOrder(order)}
+                                                    className="text-white bg-blue-600 hover:bg-blue-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    title="تعديل"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteOrder(order.id)}
+                                                    className="text-white bg-red-600 hover:bg-red-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    title="حذف"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => toggleExpand(order.id)}
+                                                    className="text-white bg-slate-700 hover:bg-slate-800 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    title="عرض التفاصيل"
+                                                >
+                                                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                                </button>
+                                                {/* Status change dropdown */}
+                                                <select
+                                                    value={order.status}
+                                                    onChange={(e) => handleChangeStatus(order, e.target.value)}
+                                                    className="text-xs bg-slate-800 border border-slate-700 text-white px-2 py-1 rounded-lg focus:outline-none h-8"
+                                                >
+                                                    {ORDER_STATUSES.map(s => (
+                                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            {/* Left info (Now on the left/end of the row) */}
+                                            <div className="flex items-center gap-3 flex-wrap order-first md:order-none">
                                                 <span className="text-lg font-bold text-[#5235E8] bg-[#5235E8] bg-opacity-10 px-3 py-1 rounded-full">
                                                     {order.orderNumber}
                                                 </span>
@@ -884,41 +1018,12 @@ const CustomerOrders = () => {
                                                 <span className="text-xs text-[#006af8] bg-slate-100 px-2 py-1 rounded-full">
                                                     {order.date}
                                                 </span>
-                                            </div>
-
-                                            {/* Right actions */}
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                {/* Status change dropdown */}
-                                                <select
-                                                    value={order.status}
-                                                    onChange={(e) => handleChangeStatus(order, e.target.value)}
-                                                    className="text-xs bg-white bg-opacity-10 border border-white border-opacity-20 text-slate-300 px-2 py-1 rounded-lg focus:outline-none"
-                                                >
-                                                    {ORDER_STATUSES.map(s => (
-                                                        <option key={s.value} value={s.value}>{s.label}</option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    onClick={() => handleEditOrder(order)}
-                                                    className="text-blue-400 hover:text-blue-300 p-1.5 hover:bg-blue-500 hover:bg-opacity-20 rounded-lg transition-colors"
-                                                    title="تعديل"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteOrder(order.id)}
-                                                    className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500 hover:bg-opacity-20 rounded-lg transition-colors"
-                                                    title="حذف"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => toggleExpand(order.id)}
-                                                    className="text-slate-400 hover:text-white p-1.5 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors"
-                                                    title="عرض التفاصيل"
-                                                >
-                                                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                                </button>
+                                                {order.deliveryDate && (
+                                                    <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full flex items-center gap-1">
+                                                        <Calendar className="h-3 w-3" />
+                                                        تسليم: {order.deliveryDate}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 
@@ -937,49 +1042,86 @@ const CustomerOrders = () => {
                                                 <p className="text-sm font-bold text-[#1e293b]">{[order.color, order.size].filter(Boolean).join(' / ') || '-'}</p>
                                             </div>
                                             <div className="bg-white bg-opacity-5 rounded-lg p-2">
-                                                <p className="text-xs text-[#006af8] mb-0.5">توريدات مرتبطة</p>
-                                                <p className="text-sm font-bold text-[#5235E8]">{orderSupplies.length} توريدة</p>
+                                                <p className="text-sm font-bold text-[#5235E8]">{orderSupplies.length > 0 ? 'تم توفير الخامات' : 'لم يتم توفير خامات'}</p>
                                             </div>
+                                            {order.reminderDate && (
+                                                <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-100">
+                                                    <p className="text-xs text-yellow-700 mb-0.5 flex items-center gap-1">
+                                                        <AlertCircle className="h-3 w-3" /> تنبيه الموعد
+                                                    </p>
+                                                    <p className="text-sm font-bold text-yellow-800">{order.reminderDate}</p>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        {/* Production Details (Cliche & Costs) */}
-                                        {(order.clicheWidth || order.clicheHeight || order.printingCostPerKg || order.cuttingCostPerKg) && (
-                                            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2 border-t border-slate-100 pt-2">
-                                                {(order.clicheWidth || order.clicheHeight) && (
-                                                    <div className="flex items-center gap-2 bg-pink-50 rounded-lg p-2">
-                                                        <Layers className="h-4 w-4 text-pink-500" />
-                                                        <div>
-                                                            <p className="text-[10px] text-pink-600 font-medium">مقاس الأكلشية</p>
-                                                            <p className="text-xs font-bold text-slate-800">{order.clicheHeight || 0} × {order.clicheWidth || 0}</p>
-                                                        </div>
+                                        {/* Cost Calculation Breakdown */}
+                                        <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                                            <h4 className="text-xs font-bold text-[#006af8] border-b border-slate-200 pb-2 mb-2">تفصيل الحساب الربحي والإنتاج:</h4>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* Production Costs */}
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <span className="text-slate-500 font-medium flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> تكلفة الخامة ({order.quantity} كجم):</span>
+                                                        <span className="font-bold text-slate-800">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
                                                     </div>
-                                                )}
-                                                {order.printingCostPerKg > 0 && (
-                                                    <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-2">
-                                                        <Printer className="h-4 w-4 text-blue-500" />
-                                                        <div>
-                                                            <p className="text-[10px] text-blue-600 font-medium">تكلفة المطبعه</p>
-                                                            <p className="text-xs font-bold text-slate-800">
-                                                                ${(order.printingCostPerKg * order.quantity).toLocaleString()}
-                                                                <span className="text-[9px] font-normal text-slate-500 block">(${order.printingCostPerKg}/كجم)</span>
-                                                            </p>
+                                                    
+                                                    {order.printingCostPerKg > 0 && (
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-slate-500 font-medium flex items-center gap-1.5"><Printer className="h-3.5 w-3.5" /> تكلفة المطبعه:</span>
+                                                            <span className="font-bold text-slate-800">${(order.quantity * order.printingCostPerKg).toLocaleString()}</span>
                                                         </div>
-                                                    </div>
-                                                )}
-                                                {order.cuttingCostPerKg > 0 && (
-                                                    <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2">
-                                                        <Scissors className="h-4 w-4 text-orange-500" />
-                                                        <div>
-                                                            <p className="text-[10px] text-orange-600 font-medium">تكلفة المقص</p>
-                                                            <p className="text-xs font-bold text-slate-800">
-                                                                ${(order.cuttingCostPerKg * order.quantity).toLocaleString()}
-                                                                <span className="text-[9px] font-normal text-slate-500 block">(${order.cuttingCostPerKg}/كجم)</span>
-                                                            </p>
+                                                    )}
+                                                    
+                                                    {order.cuttingCostPerKg > 0 && (
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-slate-500 font-medium flex items-center gap-1.5"><Scissors className="h-3.5 w-3.5" /> تكلفة المقص:</span>
+                                                            <span className="font-bold text-slate-800">${(order.quantity * order.cuttingCostPerKg).toLocaleString()}</span>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                    
+                                                    {order.clicheEnabled && order.clicheCost > 0 && (
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-slate-500 font-medium flex items-center gap-1.5"><Layers className="h-3.5 w-3.5" /> تكلفة الأكلشية:</span>
+                                                            <span className="font-bold text-slate-800">${(order.clicheCost || 0).toLocaleString()}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Totals and Profit */}
+                                                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                                                    {(() => {
+                                                        const raw = order.quantity * (order.pricePerKg || 0);
+                                                        const pr = order.quantity * (order.printingCostPerKg || 0);
+                                                        const cu = order.quantity * (order.cuttingCostPerKg || 0);
+                                                        const cl = parseFloat(order.clicheCost) || 0;
+                                                        const sub = raw + pr + cu + cl;
+                                                        const margin = parseFloat(order.profitMargin) || 0;
+                                                        const profit = sub * (margin / 100);
+                                                        const grandTotal = sub + profit;
+
+                                                        return (
+                                                            <>
+                                                                <div className="flex justify-between items-center text-xs">
+                                                                    <span className="text-slate-500 font-bold">إجمالي التكلفة:</span>
+                                                                    <span className="font-bold text-slate-700">${sub.toLocaleString()}</span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center text-xs text-emerald-600">
+                                                                    <span className="font-bold">نسبة الربح ({margin}%):</span>
+                                                                    <span className="font-bold">${profit.toLocaleString()}</span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                                                                    <span className="text-sm font-black text-[#5235E8]">الإجمالي النهائي:</span>
+                                                                    <span className="text-lg font-black text-[#5235E8] px-3 py-1 bg-[#5235E8] bg-opacity-10 rounded-lg">
+                                                                        ${grandTotal.toLocaleString()}
+                                                                    </span>
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
 
                                     {/* Expanded: Linked Supplies */}
@@ -988,7 +1130,7 @@ const CustomerOrders = () => {
                                             <div className="flex items-center justify-between mb-4">
                                                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                                                     <Link2 className="h-4 w-4 text-[#8410ff]" />
-                                                    <span className="text-[#8410ff]">التوريدات المرتبطة بهذا الطلب</span>
+                                                    <span className="text-[#8410ff]">بيانات توريدة الخامات لهذا الطلب</span>
                                                 </h3>
                                                 {orderSupplies.length > 0 && (
                                                     <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full">

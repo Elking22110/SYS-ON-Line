@@ -86,9 +86,16 @@ const SupplierDetails = () => {
         const supplierPayments = allPayments.filter(p => p.supplierId.toString() === id);
         setPayments(supplierPayments.sort((a, b) => b.id - a.id));
 
-        // Load open/in-production orders for linking
+        // Load open orders for linking (Only OPEN status AND not yet linked to any supply)
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-        const linkable = allOrders.filter(o => o.status === 'OPEN' || o.status === 'IN_PRODUCTION');
+        
+        // Get IDs of all orders already linked to supplies
+        const linkedOrderIds = allSupplies.map(s => s.linkedOrderId?.toString()).filter(Boolean);
+        
+        const linkable = allOrders.filter(o => 
+            o.status === 'OPEN' && 
+            !linkedOrderIds.includes(o.id?.toString())
+        );
         setOpenOrders(linkable);
     };
 

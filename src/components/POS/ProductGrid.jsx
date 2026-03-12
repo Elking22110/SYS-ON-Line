@@ -134,10 +134,10 @@ const ProductGrid = ({
         </div>
 
         {/* فئات المنتجات */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex overflow-x-auto pb-4 gap-2 no-scrollbar scroll-smooth">
           <button
             onClick={() => onCategoryChange('الكل')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${selectedCategory === 'الكل'
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${selectedCategory === 'الكل'
               ? 'bg-blue-500 text-white shadow-md'
               : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
               }`}
@@ -148,7 +148,7 @@ const ProductGrid = ({
             <button
               key={category.id || category.name || index}
               onClick={() => onCategoryChange(category.name)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${selectedCategory === category.name
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${selectedCategory === category.name
                 ? 'bg-blue-500 text-white shadow-md'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                 }`}

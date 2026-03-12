@@ -65,19 +65,34 @@ const Customers = () => {
         })
         : localCustomers;
 
-      const updatedCustomers = mergedCustomers.map(customer => {
-        const totalAmount = parseFloat(customer.totalAmount || customer.totalSpent) || 0;
-        const ordersCount = parseInt(customer.ordersCount || customer.orders) || 0;
-        let status = customer.status || 'جديد';
+      const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+      const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
 
-        if (totalAmount >= 5000) status = 'VIP';
-        else if (totalAmount >= 2000) status = 'نشط';
-        else if (ordersCount === 1) status = 'جديد';
+      const updatedCustomers = mergedCustomers.map(customer => {
+        const customerIdStr = customer.id?.toString();
+        
+        // Calculate dynamic stats from orders
+        const customerOrders = allOrders.filter(o => o.customerId?.toString() === customerIdStr);
+        const ordersCount = customerOrders.length;
+        
+        const totalSpentAmount = customerOrders.reduce((sum, o) => {
+          const productTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.pricePerKg) || 0);
+          const printingTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.printingCostPerKg) || 0);
+          const cuttingTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.cuttingCostPerKg) || 0);
+          const clicheTotal = parseFloat(o.clicheCost) || 0;
+          return sum + productTotal + printingTotal + cuttingTotal + clicheTotal;
+        }, 0);
+
+        let status = customer.status || 'جديد';
+        if (totalSpentAmount >= 5000) status = 'VIP';
+        else if (totalSpentAmount >= 2000) status = 'نشط';
+        else if (ordersCount > 0) status = 'نشط';
+        else status = 'جديد';
 
         return {
           ...customer,
           status,
-          totalSpent: totalAmount,
+          totalSpent: totalSpentAmount,
           orders: ordersCount,
           joinDate: customer.createdAt ? customer.createdAt.split('T')[0] : (customer.joinDate || getCurrentDate().split('T')[0])
         };
@@ -478,10 +493,10 @@ const Customers = () => {
                 <tr>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">العميل</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاتصال</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">النشاط / المنتج</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الأكلشية (طول × عرض)</th>
+                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden lg:table-cell">النشاط / المنتج</th>
+                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden xl:table-cell">الأكلشية (طول × عرض)</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المشتريات</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الحالة</th>
+                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden sm:table-cell">الحالة</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الإجراءات</th>
                 </tr>
               </thead>
@@ -518,7 +533,7 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Business Activity + Usual Product */}
-                    <td className="px-4 md:px-6 py-4">
+                    <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
                       <div className="space-y-1">
                         {customer.businessActivity ? (
                           <div className="text-xs font-bold text-slate-700 bg-slate-200 bg-opacity-50 px-2 py-0.5 rounded-full inline-block">{customer.businessActivity}</div>
@@ -529,7 +544,7 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Cliche */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden xl:table-cell">
                       <div className="space-y-1">
                         {customer.cliche ? (
                           <div className="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">{customer.cliche}</div>
@@ -548,7 +563,7 @@ const Customers = () => {
                       <div className="text-xs text-orange-400 mt-1">{customer.orders} طلب</div>
                     </td>
                     {/* Status */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(customer.status)}`}>
                         {customer.status}
                       </span>

@@ -736,6 +736,15 @@ img {
   background: rgba(102, 126, 234, 0.7);
 }
 
+/* إخفاء شريط التمرير */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* تحسينات للتصميم المتجاوب */
 @media (max-width: 1536px) {
   .glass-card {
