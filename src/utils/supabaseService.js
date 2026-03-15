@@ -82,8 +82,10 @@ const dbApi = {
                         }
                     });
                     
-                    // Ensure arrays are preserved
-                    merged.profileCliches = Array.isArray(lc.profileCliches) && lc.profileCliches.length > 0 ? lc.profileCliches : (sc.profileCliches || []);
+                    // دمج profileCliches: الاحتفاظ بالقائمة الأطول لضمان عدم فقدان أي أكلشي
+                    const localCliches = Array.isArray(lc.profileCliches) ? lc.profileCliches : [];
+                    const remoteCliches = Array.isArray(sc.profileCliches) ? sc.profileCliches : [];
+                    merged.profileCliches = localCliches.length >= remoteCliches.length ? localCliches : remoteCliches;
                     // Force conversion of core fields to ensure type consistency
                     merged.totalSpent = parseFloat(sc.totalSpent || sc.totalAmount || lc.totalSpent) || 0;
                     merged.orders = parseInt(sc.orders || sc.ordersCount || lc.orders) || 0;

@@ -19,16 +19,44 @@
 
 /* الوضع الفاتح */
 .light, [data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f3f4f9;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.6);
+  --bg-primary: #f1f5f9;
+  --bg-secondary: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(203, 213, 225, 0.8);
 }
 
 [data-theme="light"] .text-white {
   color: #ffffff !important;
+}
+
+/* تصحيح الألوان الباهتة في الوضع الفاتح */
+[data-theme="light"] .text-slate-400 { color: #475569 !important; }
+[data-theme="light"] .text-slate-500 { color: #334155 !important; }
+[data-theme="light"] .text-slate-600 { color: #1e293b !important; }
+[data-theme="light"] .text-emerald-300 { color: #064e3b !important; }
+[data-theme="light"] .text-emerald-400 { color: #065f46 !important; }
+[data-theme="light"] .text-yellow-300 { color: #854d0e !important; }
+[data-theme="light"] .text-blue-300 { color: #1e3a8a !important; }
+[data-theme="light"] .bg-white.bg-opacity-10, 
+[data-theme="light"] .bg-white.bg-opacity-20 { 
+  background-color: rgba(15, 23, 42, 0.05) !important; 
+}
+
+[data-theme="light"] .glass-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .bg-opacity-10, 
+[data-theme="light"] .bg-opacity-20 { 
+  --tw-bg-opacity: 0.25 !important; 
+}
+
+[data-theme="light"] .border-opacity-30 { 
+  --tw-border-opacity: 0.6 !important; 
 }
 
 /* الوضع الداكن */
@@ -680,7 +708,11 @@ img {
 }
 
 .input-modern::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .input-modern::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* تدرجات النص */

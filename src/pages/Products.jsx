@@ -168,31 +168,53 @@ const Products = () => {
   });
 
 
-  // تحميل البيانات من Supabase
+  // تحميل البيانات من Supabase مع فلترة المنتجات المحذوفة
   useEffect(() => {
     const loadAllData = async () => {
       try {
+        // قراءة قائمة المنتجات المحذوفة نهائياً (blacklist)
+        let deletedIds = [];
+        try {
+          deletedIds = JSON.parse(localStorage.getItem('deletedProductIds') || '[]');
+        } catch (_) { deletedIds = []; }
+
         const supabaseProducts = await supabaseService.getProducts();
         if (supabaseProducts && supabaseProducts.length > 0) {
-          // تحويل شكل البيانات من Prisma إلى الشكل المطلوب في React
-          const formatted = supabaseProducts.map(p => ({
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            price: p.price,
-            stock: p.quantity,
-            minStock: p.minQuantity,
-            barcode: p.barcode,
-            image: p.image,
-            supplyId: p.supplyId,
-            isSupplyProduct: p.supplyId ? true : false,
-            costPrice: p.costPrice
-          }));
+          // *** حذف المنتجات المحذوفة من Supabase إذا لم تُحذف بعد ***
+          // هذا يضمن أن الحذف ينتشر لجميع المتصفحات والأجهزة
+          const toDeleteFromSupabase = supabaseProducts.filter(p => deletedIds.includes(String(p.id)));
+          if (toDeleteFromSupabase.length > 0) {
+            console.log('حذف منتجات من Supabase (blacklist):', toDeleteFromSupabase.map(p => p.name));
+            for (const p of toDeleteFromSupabase) {
+              try { await supabaseService.deleteProduct(p.id); } catch (_) {}
+            }
+          }
+
+          const formatted = supabaseProducts
+            .filter(p => !deletedIds.includes(String(p.id)))
+            .map(p => ({
+              id: p.id,
+              name: p.name,
+              category: p.category,
+              price: p.price,
+              stock: p.quantity,
+              minStock: p.minQuantity,
+              barcode: p.barcode,
+              image: p.image,
+              supplyId: p.supplyId,
+              isSupplyProduct: p.supplyId ? true : false,
+              costPrice: p.costPrice
+            }));
           setProducts(formatted);
           localStorage.setItem('products', JSON.stringify(formatted));
         } else {
           const savedProducts = JSON.parse(localStorage.getItem('products') || '[]');
-          setProducts(savedProducts);
+          // فلترة أي منتجات محذوفة موجودة في localStorage
+          const filtered = savedProducts.filter(p => !deletedIds.includes(String(p.id)));
+          setProducts(filtered);
+          if (filtered.length !== savedProducts.length) {
+            localStorage.setItem('products', JSON.stringify(filtered));
+          }
         }
 
         const supabaseCategories = await supabaseService.getCategories();
@@ -225,6 +247,12 @@ const Products = () => {
         localStorage.setItem('productCategories', JSON.stringify(finalCategories));
       } catch (error) {
         console.error('Error loading initial data:', error);
+        // في حالة الخطأ اقرأ من localStorage مع فلترة المحذوفة
+        try {
+          const deletedIds = JSON.parse(localStorage.getItem('deletedProductIds') || '[]');
+          const savedProducts = JSON.parse(localStorage.getItem('products') || '[]');
+          setProducts(savedProducts.filter(p => !deletedIds.includes(String(p.id))));
+        } catch (_) { setProducts([]); }
       }
     };
 
@@ -232,6 +260,7 @@ const Products = () => {
   }, []);
 
   // بذرة بيانات أساسية (حقيقية) مرة واحدة فقط إذا كانت القوائم فارغة ولم تُستورد بيانات
+
   useEffect(() => {
     try {
       const savedProducts = JSON.parse(localStorage.getItem('products') || '[]');
@@ -302,78 +331,8 @@ const Products = () => {
     } catch (_) { }
   }, [setProducts, setCategories]);
 
-  // إعادة تهيئة كاملة: مسح البيانات الحالية وزراعة البيانات الجديدة بدون مقاسات (مرة واحدة)
-  useEffect(() => {
-    try {
-      const reseedDone = localStorage.getItem('reseed_done_msgroupplast_v3') === 'true';
-      if (reseedDone) return;
-
-      // مسح
-      localStorage.removeItem('products');
-      localStorage.removeItem('productCategories');
-
-      // فئات
-      const freshCategories = [
-        { name: 'نايلون بيور', description: 'شنط ورولات نايلون بيور' },
-        { name: 'نايلون مميز مطبوع', description: 'نايلون مميز مطبوع 1-2 لون' },
-        { name: 'نايلون عادي مطبوع', description: 'نايلون عادي مطبوع 1-2 لون' },
-        { name: 'مطبوع درجة أولي مميزه', description: 'درجة أولي مميزة مطبوع' },
-        { name: 'مطبوع درجة أولي عالي', description: 'درجة أولي عالي مطبوع' },
-        { name: 'مطبوع درجة أولي هاي', description: 'درجة أولي هاي مطبوع' },
-        { name: 'مطبوع كسر بيور', description: 'كسر بيور مطبوع' },
-        { name: 'مطبوع بيور 100%', description: 'بيور 100% مطبوع' },
-        { name: 'إضافات تصنيع', description: 'إضافات مثل اليد الخارجية والأكلاشية' }
-      ];
-
-      // منتجات بدون مقاسات داخل الاسم
-      let idc = Date.now();
-      const freshProducts = [
-        // نايلون بيور
-        { name: 'نايلون بيور - 1 لون (للكيلو)', price: 96, category: 'نايلون بيور' },
-        { name: 'نايلون بيور - 2 لون (للكيلو)', price: 98, category: 'نايلون بيور' },
-
-        // نايلون مميز مطبوع
-        { name: 'نايلون مميز مطبوع - 1 لون (للكيلو)', price: 86, category: 'نايلون مميز مطبوع' },
-        { name: 'نايلون مميز مطبوع - 2 لون (للكيلو)', price: 89, category: 'نايلون مميز مطبوع' },
-
-        // نايلون عادي مطبوع
-        { name: 'نايلون عادي مطبوع - 1 لون (للكيلو)', price: 76, category: 'نايلون عادي مطبوع' },
-        { name: 'نايلون عادي مطبوع - 2 لون (للكيلو)', price: 79, category: 'نايلون عادي مطبوع' },
-
-        // مطبوع درجة أولي مميزه
-        { name: 'مطبوع درجة أولي مميزه - 1 لون (للكيلو)', price: 65.5, category: 'مطبوع درجة أولي مميزه' },
-        { name: 'مطبوع درجة أولي مميزه - 2 لون (للكيلو)', price: 69.5, category: 'مطبوع درجة أولي مميزه' },
-
-        // مطبوع درجة أولي عالي
-        { name: 'مطبوع درجة أولي عالي - 1 لون (للكيلو)', price: 55.5, category: 'مطبوع درجة أولي عالي' },
-        { name: 'مطبوع درجة أولي عالي - 2 لون (للكيلو)', price: 59.5, category: 'مطبوع درجة أولي عالي' },
-
-        // مطبوع درجة أولي هاي
-        { name: 'مطبوع درجة أولي هاي - 1 لون (للكيلو)', price: 49.5, category: 'مطبوع درجة أولي هاي' },
-        { name: 'مطبوع درجة أولي هاي - 2 لون (للكيلو)', price: 52.5, category: 'مطبوع درجة أولي هاي' },
-
-        // مطبوع كسر بيور
-        { name: 'مطبوع كسر بيور - 1 لون (للكيلو)', price: 75, category: 'مطبوع كسر بيور' },
-        { name: 'مطبوع كسر بيور - 2 لون (للكيلو)', price: 79, category: 'مطبوع كسر بيور' },
-
-        // مطبوع بيور 100%
-        { name: 'مطبوع بيور 100% - 1 لون (للكيلو)', price: 88, category: 'مطبوع بيور 100%' },
-        { name: 'مطبوع بيور 100% - 2 لون (للكيلو)', price: 92, category: 'مطبوع بيور 100%' },
-
-        // إضافات
-        { name: 'يد خارجية (زيادة للكيلو)', price: 4, category: 'إضافات تصنيع' },
-        { name: 'أكلاشية (حسب المقاس)', price: 0, category: 'إضافات تصنيع' }
-      ].map(p => ({ id: idc++, stock: 500, minStock: 50, ...p }));
-
-      localStorage.setItem('productCategories', JSON.stringify(freshCategories));
-      localStorage.setItem('products', JSON.stringify(freshProducts));
-      setCategories(freshCategories);
-      setProducts(freshProducts);
-      localStorage.setItem('reseed_done_msgroupplast_v3', 'true');
-      try { publish(EVENTS.CATEGORIES_CHANGED, { type: 'reset_seed', count: freshCategories.length }); } catch (_) { }
-      try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'reset_seed', count: freshProducts.length }); } catch (_) { }
-    } catch (_) { }
-  }, []);
+  // تم إزالة useEffect لإعادة زرع البيانات (كانت تتسبب في إعادة المنتجات المحذوفة)
+  // المنتجات تُدار بالكامل عبر Supabase + blacklist
 
   // مزامنة الفئات مع فئات المنتجات: إضافة أي فئة تظهر داخل المنتجات وغير موجودة في قائمة الفئات
   useEffect(() => {
@@ -617,22 +576,45 @@ const Products = () => {
 
   const handleDeleteProduct = async (id) => {
     const product = products.find(p => p.id === id);
-    if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+    if (!product) return;
+    if (window.confirm('هل أنت متأكد من حذف هذا المنتج نهائياً؟ لن يمكن استرجاعه.')) {
       try {
-        await supabaseService.deleteProduct(id);
+        // 1. حذف من Supabase أولاً
+        try {
+          await supabaseService.deleteProduct(id);
+          console.log('تم حذف المنتج من Supabase:', id);
+        } catch (supabaseError) {
+          console.error('خطأ في حذف المنتج من Supabase:', supabaseError);
+          // حتى لو فشل Supabase، نكمل الحذف المحلي ونسجل في القائمة السوداء
+        }
 
+        // 2. إضافة ID إلى قائمة المنتجات المحذوفة نهائياً (blacklist)
+        try {
+          const deletedIds = JSON.parse(localStorage.getItem('deletedProductIds') || '[]');
+          if (!deletedIds.includes(String(id))) {
+            deletedIds.push(String(id));
+            localStorage.setItem('deletedProductIds', JSON.stringify(deletedIds));
+          }
+        } catch (_) {}
+
+        // 3. حذف من localStorage
         const updatedProducts = products.filter(p => p.id !== id);
         setProducts(updatedProducts);
         localStorage.setItem('products', JSON.stringify(updatedProducts));
 
+        // 4. حذف صورة المنتج إن وجدت
+        try { ImageManager.deleteProductImage(id); } catch (_) {}
+
+        // 5. إشعار باقي أجزاء السيستم
         window.dispatchEvent(new CustomEvent('productsUpdated', {
           detail: { action: 'deleted', product: product, products: updatedProducts }
         }));
+        try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete', productId: id, products: updatedProducts }); } catch (_) {}
 
-        publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete', productId: id, products: updatedProducts });
         notifyProductDeleted(product.name);
       } catch (error) {
         console.error('Failed to delete product:', error);
+        alert('حدث خطأ أثناء حذف المنتج. حاول مرة أخرى.');
       }
     }
   };
@@ -787,10 +769,10 @@ const Products = () => {
           <div className="glass-card hover-lift group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs font-medium text-slate-200 mb-1 uppercase tracking-wide">إجمالي المنتجات</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 mb-2">{products.length}</p>
+                <p className="text-xs font-bold text-slate-900 mb-1 uppercase tracking-wide">إجمالي المنتجات</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-black text-black mb-2">{products.length}</p>
                 <div className="flex items-center text-xs">
-                  <span className="text-blue-300 font-medium">منتجات متاحة</span>
+                  <span className="text-blue-600 font-bold">منتجات متاحة</span>
                 </div>
               </div>
               <div className="p-2 md:p-3 lg:p-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -802,12 +784,12 @@ const Products = () => {
           <div className="glass-card hover-lift group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs font-medium text-slate-200 mb-1 uppercase tracking-wide">قيمة المخزون</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 mb-2">
-                  ${products.reduce((total, p) => safeMath.add(total, safeMath.multiply(p.price, p.stock)), 0).toLocaleString('en-US')}
+                <p className="text-xs font-bold text-slate-900 mb-1 uppercase tracking-wide">قيمة المخزون</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-black text-black mb-2">
+                  {products.reduce((total, p) => safeMath.add(total, safeMath.multiply(parseFloat(p.price || 0), parseFloat(p.stock || 0))), 0).toLocaleString('ar-EG')} <span className="text-xs font-bold">ج.م</span>
                 </p>
                 <div className="flex items-center text-xs">
-                  <span className="text-green-300 font-medium">قيمة المخزون</span>
+                  <span className="text-emerald-600 font-bold">إجمالي قيمة البيع</span>
                 </div>
               </div>
               <div className="p-2 md:p-3 lg:p-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -819,11 +801,11 @@ const Products = () => {
           <div className="glass-card hover-lift group cursor-pointer p-6 md:p-8 lg:p-10 xl:p-12 col-span-2">
             <div className="flex items-center justify-between mb-6 md:mb-8">
               <div className="flex-1">
-                <p className="text-sm md:text-base font-medium text-slate-600 mb-2 uppercase tracking-wide">منخفضة المخزون</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-slate-800 mb-4">{lowStockProducts.length}</p>
+                <p className="text-sm md:text-base font-bold text-slate-900 mb-2 uppercase tracking-wide">منخفضة المخزون</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-black mb-4">{lowStockProducts.length}</p>
                 {console.log('لوحة التحكم - عدد المنتجات منخفضة المخزون:', lowStockProducts.length)}
                 <div className="flex items-center text-sm md:text-base">
-                  <span className="text-orange-300 font-medium">تحتاج إعادة تموين</span>
+                  <span className="text-orange-600 font-bold">تحتاج إعادة تموين</span>
                 </div>
                 {lowStockProducts.length > 0 && (
                   <div className="mt-4 text-sm md:text-base text-orange-200 max-h-32 md:max-h-40 overflow-y-auto">

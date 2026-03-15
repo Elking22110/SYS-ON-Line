@@ -98,11 +98,21 @@ const POSMain = () => {
 
   // تحميل المنتجات والفئات والاشتراك في تحديثهما
   useEffect(() => {
+    // مساعد: استبعاد المنتجات المحذوفة نهائياً
+    const getDeletedIds = () => {
+      try { return JSON.parse(localStorage.getItem('deletedProductIds') || '[]'); } catch (_) { return []; }
+    };
+
     const reloadProducts = () => {
       try {
         storageOptimizer.clearCache('products');
         const saved = storageOptimizer.get('products', []);
-        setProducts(saved);
+        const deletedIds = getDeletedIds();
+        // فلترة المنتجات المحذوفة نهائياً
+        const filtered = deletedIds.length > 0
+          ? saved.filter(p => !deletedIds.includes(String(p.id)))
+          : saved;
+        setProducts(filtered);
       } catch (_) { }
     };
     const reloadCategories = () => {

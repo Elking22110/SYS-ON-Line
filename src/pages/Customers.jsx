@@ -60,7 +60,13 @@ const Customers = () => {
             clicheHeight: sc.clicheHeight || localItem?.clicheHeight || '',
             colorCount: sc.colorCount || localItem?.colorCount || '',
             notes: sc.notes || localItem?.notes || '',
-            profileCliches: Array.isArray(localItem?.profileCliches) ? localItem.profileCliches : (sc.profileCliches || [])
+            profileCliches: (() => {
+              // دمج أكلاشيهات localStorage و Supabase - الاحتفاظ بالأطول (الأكثر بيانات)
+              const localCliches = Array.isArray(localItem?.profileCliches) ? localItem.profileCliches : [];
+              const supabaseCliches = Array.isArray(sc.profileCliches) ? sc.profileCliches : [];
+              // استخدام القائمة الأكثر بيانات لضمان عدم ضياع أي أكلشي
+              return localCliches.length >= supabaseCliches.length ? localCliches : supabaseCliches;
+            })()
           };
         })
         : localCustomers;
@@ -206,7 +212,9 @@ const Customers = () => {
             ? `${formData.clicheHeight} × ${formData.clicheWidth}`
             : (formData.cliche || ''),
           colorCount: formData.colorCount || '',
-          notes: formData.notes || ''
+          notes: formData.notes || '',
+          // الحفاظ على الأكلاشيهات الإضافية عند تحديث بيانات العميل
+          profileCliches: editingCustomer.profileCliches || []
         };
         setCustomers(prev => {
           const updated = prev.map(c => c.id === editingCustomer.id ? updatedCustomer : c);

@@ -1340,74 +1340,131 @@ const Settings = () => {
   );
 
   const renderAppearanceSettings = () => (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">المظهر</label>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => { soundManager.play('click'); handleSettingChange('theme', 'light'); }}
-            className={`p-4 rounded-lg border-2 flex flex-col items-center ${settings.theme === 'light'
-              ? 'border-purple-500 bg-purple-500 bg-opacity-20 text-purple-300'
-              : 'border-white border-opacity-20 bg-white bg-opacity-10 text-slate-800 hover:bg-opacity-20'
-              }`}
-          >
-            <Monitor className="h-6 w-6 mb-2" />
-            <span className="text-sm font-medium">فاتح</span>
-          </button>
-          <button
-            onClick={() => { soundManager.play('click'); handleSettingChange('theme', 'dark'); }}
-            className={`p-4 rounded-lg border-2 flex flex-col items-center ${settings.theme === 'dark'
-              ? 'border-purple-500 bg-purple-500 bg-opacity-20 text-purple-300'
-              : 'border-white border-opacity-20 bg-white bg-opacity-10 text-slate-800 hover:bg-opacity-20'
-              }`}
-          >
-            <Monitor className="h-6 w-6 mb-2" />
-            <span className="text-sm font-medium">داكن</span>
-          </button>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="section-header mb-2">
+        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+          <Palette className="h-5 w-5 text-purple-500" />
+          تخصيص المظهر العام
+        </h3>
+        <p className="text-sm text-slate-500 mr-7">اختر نظام الألوان الذي يناسب ذوقك وتفضيلاتك</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+             <Monitor className="h-4 w-4" /> وضع النظام
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => { soundManager.play('click'); handleSettingChange('theme', 'light'); }}
+              className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${settings.theme === 'light'
+                ? 'border-[#8B5CF6] ring-4 ring-[#8B5CF6]/10'
+                : 'border-slate-200 hover:border-slate-300'
+                }`}
+            >
+              <div className="h-24 mb-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-2 p-2 group-hover:scale-105 transition-transform">
+                 <div className="h-3 w-3/4 bg-slate-200 rounded"></div>
+                 <div className="h-3 w-1/2 bg-slate-100 rounded"></div>
+                 <div className="mt-auto h-4 w-full bg-[#8B5CF6]/20 rounded"></div>
+              </div>
+              <span className={`text-sm font-bold block text-center ${settings.theme === 'light' ? 'text-[#8B5CF6]' : 'text-slate-600'}`}>وضع فاتح</span>
+              {settings.theme === 'light' && <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#8B5CF6]" />}
+            </button>
+            
+            <button
+              onClick={() => { soundManager.play('click'); handleSettingChange('theme', 'dark'); }}
+              className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${settings.theme === 'dark'
+                ? 'border-[#8B5CF6] ring-4 ring-[#8B5CF6]/10'
+                : 'border-slate-200 hover:border-slate-300'
+                }`}
+            >
+              <div className="h-24 mb-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col gap-2 p-2 group-hover:scale-105 transition-transform">
+                 <div className="h-3 w-3/4 bg-slate-800 rounded"></div>
+                 <div className="h-3 w-1/2 bg-slate-700 rounded"></div>
+                 <div className="mt-auto h-4 w-full bg-[#8B5CF6]/40 rounded"></div>
+              </div>
+              <span className={`text-sm font-bold block text-center ${settings.theme === 'dark' ? 'text-[#8B5CF6]' : 'text-slate-400'}`}>وضع داكن</span>
+              {settings.theme === 'dark' && <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#8B5CF6]" />}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <Palette className="h-4 w-4" /> الألوان الأساسية المميزة
+          </label>
+          <div className="grid grid-cols-5 gap-3 mb-6">
+            {[
+              { color: '#8B5CF6', name: 'بنفسجي' },
+              { color: '#3B82F6', name: 'أزرق' },
+              { color: '#10B981', name: 'زمردي' },
+              { color: '#F59E0B', name: 'برتقالي' },
+              { color: '#EF4444', name: 'أحمر' },
+              { color: '#000000', name: 'أسود' },
+              { color: '#6366f1', name: 'نيلي' },
+              { color: '#ec4899', name: 'وردي' },
+              { color: '#14b8a6', name: 'تركوازي' },
+              { color: '#f97316', name: 'مشمشي' }
+            ].map(item => (
+              <button
+                key={item.color}
+                title={item.name}
+                onClick={() => { soundManager.play('click'); handleSettingChange('primaryColor', item.color); }}
+                className={`w-full aspect-square rounded-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${settings.primaryColor === item.color 
+                  ? 'ring-4 ring-offset-2 ring-slate-400 scale-105 shadow-lg' 
+                  : 'hover:shadow-md'
+                }`}
+                style={{ backgroundColor: item.color }}
+              >
+                {settings.primaryColor === item.color && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+             <div className="flex-1">
+                <p className="text-xs font-bold text-slate-800 mb-1">لون مخصص</p>
+                <p className="text-[10px] text-slate-500">اختر لوناً مميزاً لمتجرك</p>
+             </div>
+             <input 
+               type="color" 
+               value={settings.primaryColor}
+               onChange={(e) => handleSettingChange('primaryColor', e.target.value)}
+               className="w-12 h-10 rounded-lg cursor-pointer border-none bg-transparent"
+             />
+          </div>
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">اللون الأساسي</label>
-        <div className="flex space-x-3 mb-4">
-          {['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'].map(color => (
-            <button
-              key={color}
-              onClick={() => { soundManager.play('click'); handleSettingChange('primaryColor', color); }}
-              className={`w-12 h-12 rounded-lg border-2 ${settings.primaryColor === color ? 'border-white' : 'border-white border-opacity-30'
-                }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
+      <div className="h-px w-full bg-slate-100 my-2"></div>
 
-        {/* زر إعادة تعيين المظهر */}
+      <div className="flex flex-col md:flex-row gap-4 items-center">
         <button
           onClick={() => {
             soundManager.play('click');
             resetAppearanceToDefault();
           }}
-          className="w-full p-3 bg-gray-600 bg-opacity-20 hover:bg-opacity-30 text-slate-800 rounded-lg border border-gray-500 border-opacity-30 flex items-center justify-center space-x-2 transition-all duration-200"
+          className="flex-1 w-full p-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl border border-slate-200 flex items-center justify-center gap-3 transition-all duration-300 font-bold group"
         >
-          <RefreshCw className="h-4 w-4" />
-          <span className="text-sm font-medium">إعادة تعيين المظهر للألوان الأساسية</span>
+          <RefreshCw className="h-5 w-5 group-hover:rotate-180 transition-transform duration-500" />
+          إعادة الضبط للتنسيق الأصلي
         </button>
-      </div>
-
-      <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
-        <div>
-          <h4 className="font-medium text-slate-800">طي القائمة الجانبية</h4>
-          <p className="text-sm text-slate-600">إخفاء القائمة الجانبية افتراضياً</p>
+        
+        <div className="flex-1 w-full flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+          <div>
+            <h4 className="font-bold text-slate-800">طي القائمة الجانبية</h4>
+            <p className="text-xs text-slate-500">منح مساحة أكبر للعمل بالداخل</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.sidebarCollapsed}
+              onChange={(e) => handleSettingChange('sidebarCollapsed', e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+          </label>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={settings.sidebarCollapsed}
-            onChange={(e) => handleSettingChange('sidebarCollapsed', e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-white bg-opacity-20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-        </label>
       </div>
     </div>
   );
@@ -1692,18 +1749,22 @@ const Settings = () => {
                         soundManager.play('click');
                         setActiveTab(tab.id);
                       }}
-                      className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 min-h-[50px] cursor-pointer ${activeTab === tab.id
-                        ? 'bg-purple-500 bg-opacity-20 text-purple-300 border border-purple-500 border-opacity-30'
-                        : 'text-slate-800 hover:bg-white hover:bg-opacity-10'
+                      className={`w-full flex items-center p-4 rounded-2xl transition-all duration-300 min-h-[56px] cursor-pointer group relative overflow-hidden ${activeTab === tab.id
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg scale-105 z-20'
+                        : 'text-slate-600 hover:bg-white hover:shadow-md'
                         }`}
                       style={{
                         pointerEvents: 'auto',
-                        zIndex: 10,
                         position: 'relative'
                       }}
                     >
-                      <Icon className="h-5 w-5 mr-3" />
-                      <span className="font-medium">{tab.name}</span>
+                      <div className={`p-2 rounded-xl ml-3 ${activeTab === tab.id ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-white'} transition-colors`}>
+                        <Icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-white' : 'text-slate-500 group-hover:text-purple-600'}`} />
+                      </div>
+                      <span className="font-bold text-sm tracking-wide">{tab.name}</span>
+                      {activeTab === tab.id && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white opacity-20"></div>
+                      )}
                     </button>
                   );
                 })}

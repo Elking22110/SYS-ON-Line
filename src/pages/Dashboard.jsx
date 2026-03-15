@@ -124,12 +124,19 @@ const Dashboard = () => {
         .filter(s => (s.date || '').split('T')[0] === today)
         .reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0);
 
+      const totalStockValue = products.reduce((sum, p) => {
+        const price = parseFloat(p.price) || 0;
+        const stock = parseFloat(p.stock) || 0;
+        return safeMath.add(sum, safeMath.multiply(price, stock));
+      }, 0);
+
       setStats({
         totalSales,
         totalOrders,
         totalCustomers: customers.length,
         totalProducts: products.length,
-        dailySupplyQty: dailySupplyQty
+        dailySupplyQty: dailySupplyQty,
+        totalStockValue: totalStockValue
       });
 
       setRecentOrders(recent);
@@ -505,41 +512,45 @@ const Dashboard = () => {
 
         {/* SUMMARY CARD */}
         {/* SUMMARY CARD */}
-        <div className="bg-gradient-to-br from-indigo-900 via-[#362082] to-purple-950 border border-purple-500/30 rounded-[28px] p-8 shadow-2xl shadow-indigo-900/40 relative overflow-hidden text-white flex flex-col justify-between group animate-card-enter animate-card-enter-6">
+        <div className="bg-white border-2 border-slate-200 rounded-[28px] p-8 shadow-2xl shadow-slate-200/50 relative overflow-hidden text-slate-900 flex flex-col justify-between group animate-card-enter animate-card-enter-6">
           {/* Background Texture & Glow */}
-          <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-400/20 via-transparent to-transparent z-0 transition-opacity group-hover:opacity-60"></div>
-          {/* Shimmer overlay */}
-          <div className="absolute inset-0 animate-shimmer pointer-events-none z-0 rounded-[28px]"></div>
-
+          <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-400 to-transparent z-0 transition-opacity group-hover:opacity-10"></div>
+          
           <div className="relative z-10">
-            <h3 className="text-indigo-200 font-semibold mb-2 text-sm tracking-widest uppercase flex items-center">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mr-2 animate-pulse"></span>
-              ملخص واحصائيات اليوم
+            <h3 className="text-slate-500 font-bold mb-2 text-sm tracking-widest uppercase flex items-center">
+              <span className="w-2 h-2 rounded-full bg-purple-500 mr-2"></span>
+              ملخص إحصائيات اليوم
             </h3>
-            <h2 className="text-5xl font-black mb-1 drop-shadow-md tracking-tight text-emerald-400 z-20 animate-number-pop">
+            <h2 className="text-5xl font-black mb-1 tracking-tight text-black z-20">
               {todayStats.sales.toLocaleString()}
             </h2>
-            <p className="text-purple-200/80 text-sm font-medium mt-2 z-20">إجمالي الإيرادات <span className="text-xs">ج.م</span></p>
+            <p className="text-slate-500 text-sm font-bold mt-2 z-20">إجمالي الإيرادات <span className="text-xs">ج.م</span></p>
           </div>
 
           <div className="relative z-10 mt-10 mb-6 space-y-3 p-1">
-            <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-              <span className="text-indigo-100 text-sm font-medium flex items-center">
-                <ShoppingCart className="w-4 h-4 mr-2 text-indigo-300" /> عدد الفواتير
+            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:bg-slate-100 transition-colors cursor-default">
+              <span className="text-slate-600 text-sm font-bold flex items-center">
+                <ShoppingCart className="w-4 h-4 mr-2 text-purple-500" /> عدد الفواتير
               </span>
-              <span className="text-2xl font-black text-emerald-400">{todayStats.orders}</span>
+              <span className="text-2xl font-black text-black">{todayStats.orders}</span>
             </div>
-            <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-              <span className="text-indigo-100 text-sm font-medium flex items-center">
-                <Users className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي العملاء
+            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:bg-slate-100 transition-colors cursor-default">
+              <span className="text-slate-600 text-sm font-bold flex items-center">
+                <Users className="w-4 h-4 mr-2 text-purple-500" /> إجمالي العملاء
               </span>
-              <span className="text-2xl font-black text-emerald-400">{stats.totalCustomers}</span>
+              <span className="text-2xl font-black text-black">{stats.totalCustomers}</span>
             </div>
-            <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-              <span className="text-indigo-100 text-sm font-medium flex items-center">
-                <Package className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي المنتجات
+            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:bg-slate-100 transition-colors cursor-default">
+              <span className="text-slate-600 text-sm font-bold flex items-center">
+                <Package className="w-4 h-4 mr-2 text-purple-500" /> إجمالي المنتجات
               </span>
-              <span className="text-2xl font-black text-emerald-400">{stats.totalProducts || 0}</span>
+              <span className="text-2xl font-black text-black">{stats.totalProducts || 0}</span>
+            </div>
+            <div className="flex justify-between items-center bg-purple-50 border border-purple-100 p-4 rounded-2xl hover:bg-purple-100 transition-colors cursor-default">
+              <span className="text-purple-700 text-sm font-bold flex items-center">
+                <DollarSign className="w-4 h-4 mr-2" /> قيمة المخزون
+              </span>
+              <span className="text-2xl font-black text-black">{(stats.totalStockValue || 0).toLocaleString()} <span className="text-xs">ج.م</span></span>
             </div>
           </div>
 

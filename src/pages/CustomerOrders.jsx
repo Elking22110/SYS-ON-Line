@@ -537,7 +537,7 @@ const CustomerOrders = () => {
                     <div class="row"><span class="label">اللون / المقاس:</span><span class="value">${order.color || '-'} / ${order.size || '-'}</span></div>
                     <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${qty} كجم</span></div>
                     ${order.clicheEnabled ? `
-                        <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheWidth} × ${order.clicheHeight}</span></div>
+                        <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
                         <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
                     ` : ''}
                 </div>
@@ -994,8 +994,8 @@ const CustomerOrders = () => {
                             <div className="min-w-0">
                                 <p className="text-[10px] text-cyan-700 uppercase tracking-wider mb-0.5 font-bold">الأكلشية</p>
                                 <p className="text-sm font-black text-slate-900 truncate">
-                                    {customer.clicheWidth && customer.clicheHeight 
-                                        ? `${customer.clicheWidth} × ${customer.clicheHeight}` 
+                                    {customer.clicheHeight && customer.clicheWidth 
+                                        ? `${customer.clicheHeight} × ${customer.clicheWidth}` 
                                         : customer.cliche || 'غير محدد'}
                                 </p>
                             </div>
