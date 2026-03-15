@@ -1014,15 +1014,25 @@ class SupabaseService {
                 clicheCost: parseFloat(orderData.clicheCost) || 0,
                 color: orderData.color || '',
                 size: orderData.size || '',
+                bottomSize: orderData.bottomSize || '',
+                thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
                 status: orderData.status || 'OPEN',
                 createdAt: new Date().toISOString()
             };
-            const { data: res, error } = await supabase.from('CustomerOrder').upsert(payload).select().single();
-            if (error) throw error;
-            return res;
+            let result = await supabase.from('CustomerOrder').upsert(payload).select().single();
+            if (result.error) {
+                // If column does not exist yet in DB, retry without the new columns
+                if (result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.code === 'PGRST204') {
+                    delete payload.bottomSize;
+                    delete payload.thickness;
+                    result = await supabase.from('CustomerOrder').upsert(payload).select().single();
+                }
+                if (result.error) throw result.error;
+            }
+            return result.data;
         } catch (error) {
             console.error('Error adding customer order:', error);
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addCustomerOrder', [orderData]);
@@ -1034,7 +1044,7 @@ class SupabaseService {
         const offlineResult = await this.handleOfflineOperation('updateCustomerOrder', [id, orderData], options);
         if (offlineResult) return offlineResult;
         try {
-            const { data: res, error } = await supabase.from('CustomerOrder').update({
+            const payload = {
                 productType: orderData.productType,
                 quantity: parseFloat(orderData.quantity) || 0,
                 pricePerKg: parseFloat(orderData.pricePerKg) || 0,
@@ -1048,13 +1058,26 @@ class SupabaseService {
                 clicheCost: parseFloat(orderData.clicheCost) || 0,
                 color: orderData.color || '',
                 size: orderData.size || '',
+                bottomSize: orderData.bottomSize || '',
+                thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
                 status: orderData.status
-            }).eq('id', id.toString()).select().single();
-            if (error) throw error;
-            return res;
+            };
+
+            let result = await supabase.from('CustomerOrder').update(payload).eq('id', id.toString()).select().single();
+            
+            if (result.error) {
+                // Fallback for missing columns
+                if (result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.code === 'PGRST204') {
+                    delete payload.bottomSize;
+                    delete payload.thickness;
+                    result = await supabase.from('CustomerOrder').update(payload).eq('id', id.toString()).select().single();
+                }
+                if (result.error) throw result.error;
+            }
+            return result.data;
         } catch (error) {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'updateCustomerOrder', [id, orderData]);
             throw error;

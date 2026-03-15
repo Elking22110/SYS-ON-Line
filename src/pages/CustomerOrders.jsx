@@ -61,6 +61,8 @@ const emptyFormTemplate = {
     productType: '',
     color: '',
     size: '',
+    bottomSize: '',
+    thickness: '',
     quantity: '',
     pricePerKg: '',
     colorCount: '',
@@ -256,14 +258,12 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                         </div>
                     </div>
 
-
-
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">اللون</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">لون المنتج</label>
                             <input
                                 type="text"
-                                placeholder="أزرق..."
+                                placeholder="أحمر، أزرق..."
                                 value={form.color}
                                 onChange={e => setForm({ ...form, color: e.target.value })}
                                 className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
@@ -276,6 +276,29 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 placeholder="وسط..."
                                 value={form.size}
                                 onChange={e => setForm({ ...form, size: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">سفليات المنتج</label>
+                            <input
+                                type="text"
+                                placeholder="مثال: 5 سم"
+                                value={form.bottomSize}
+                                onChange={e => setForm({ ...form, bottomSize: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">سمك المنتج</label>
+                            <input
+                                type="text"
+                                placeholder="مثال: 50 ميكرون"
+                                value={form.thickness}
+                                onChange={e => setForm({ ...form, thickness: e.target.value })}
                                 className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
@@ -535,6 +558,8 @@ const CustomerOrders = () => {
                     <div class="section-title">تفاصيل التصنيع</div>
                     <div class="row"><span class="label">نوع المنتج:</span><span class="value">${order.productType || '-'}</span></div>
                     <div class="row"><span class="label">اللون / المقاس:</span><span class="value">${order.color || '-'} / ${order.size || '-'}</span></div>
+                    <div class="row"><span class="label">سفليات:</span><span class="value">${order.bottomSize || '-'}</span></div>
+                    <div class="row"><span class="label">السمك:</span><span class="value">${order.thickness || '-'}</span></div>
                     <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${qty} كجم</span></div>
                     ${order.clicheEnabled ? `
                         <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
@@ -1193,6 +1218,12 @@ const CustomerOrders = () => {
                                                 <p className="text-[10px] font-black text-indigo-700 uppercase tracking-wider mb-0.5">اللون / المقاس</p>
                                                 <p className="text-sm font-black text-slate-800">
                                                     {order.color || order.size ? `${order.color || '-'} / ${order.size || '-'}` : '-'}
+                                                </p>
+                                            </div>
+                                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 shadow-sm">
+                                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-wider mb-0.5">سفليات / سمك</p>
+                                                <p className="text-sm font-black text-slate-800">
+                                                    {order.bottomSize || order.thickness ? `${order.bottomSize || '-'} / ${order.thickness || '-'}` : '-'}
                                                 </p>
                                             </div>
                                             <div className={`rounded-lg p-2.5 shadow-sm border ${orderSupplies.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>

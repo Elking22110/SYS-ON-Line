@@ -117,6 +117,29 @@ function App() {
     };
   }, []);
 
+  // إضافة حماية قصوى ضد أي أخطاء مفاجئة في النظام
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      console.error('تم اصطياد خطأ عام في النظام:', event.error || event.message);
+      // منع ظهور الخطأ على شكل شاشة بيضاء أو توقف
+      event.preventDefault();
+    };
+
+    const handleUnhandledRejection = (event) => {
+      console.error('تم اصطياد خطأ اتصال غير معالج:', event.reason);
+      // منع توقف النظام بسبب رفض وعود الاتصالات (Promises)
+      event.preventDefault();
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
   // اختصارات لوحة المفاتيح
   useEffect(() => {
     const handleKeyDown = (event) => {
