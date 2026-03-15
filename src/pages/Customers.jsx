@@ -189,16 +189,7 @@ const Customers = () => {
   const handleUpdateCustomer = async (formData) => {
     if (editingCustomer && formData.name && formData.phone) {
       try {
-        await toast.promise(
-          supabaseService.updateCustomer(editingCustomer.id, formData),
-          {
-            loading: 'جاري تحديث بيانات العميل...',
-            success: 'تم تحديث البيانات بنجاح!',
-            error: 'عذراً، فشل تحديث بيانات العميل.'
-          }
-        );
-
-        // Merge all fields including local-only ones
+        // بناء الكائن الكامل أولاً ليشمل profileCliches والأكلشي المحسوب
         const updatedCustomer = {
           ...editingCustomer,
           name: formData.name,
@@ -216,6 +207,17 @@ const Customers = () => {
           // الحفاظ على الأكلاشيهات الإضافية عند تحديث بيانات العميل
           profileCliches: editingCustomer.profileCliches || []
         };
+
+        // إرسال الكائن الكامل لـ Supabase (يشمل profileCliches)
+        await toast.promise(
+          supabaseService.updateCustomer(editingCustomer.id, updatedCustomer),
+          {
+            loading: 'جاري تحديث بيانات العميل...',
+            success: 'تم تحديث البيانات بنجاح!',
+            error: 'عذراً، فشل تحديث بيانات العميل.'
+          }
+        );
+
         setCustomers(prev => {
           const updated = prev.map(c => c.id === editingCustomer.id ? updatedCustomer : c);
           localStorage.setItem('customers', JSON.stringify(updated));
