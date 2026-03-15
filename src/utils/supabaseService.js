@@ -1008,6 +1008,13 @@ class SupabaseService {
                 printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
                 cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
                 notes: orderData.notes || '',
+                clicheEnabled: !!orderData.clicheEnabled,
+                clicheCost: parseFloat(orderData.clicheCost) || 0,
+                color: orderData.color || '',
+                size: orderData.size || '',
+                deliveryDate: orderData.deliveryDate || '',
+                reminderDate: orderData.reminderDate || '',
+                profitMargin: parseFloat(orderData.profitMargin) || 0,
                 status: orderData.status || 'OPEN',
                 createdAt: new Date().toISOString()
             };
@@ -1035,6 +1042,13 @@ class SupabaseService {
                 printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
                 cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
                 notes: orderData.notes || '',
+                clicheEnabled: !!orderData.clicheEnabled,
+                clicheCost: parseFloat(orderData.clicheCost) || 0,
+                color: orderData.color || '',
+                size: orderData.size || '',
+                deliveryDate: orderData.deliveryDate || '',
+                reminderDate: orderData.reminderDate || '',
+                profitMargin: parseFloat(orderData.profitMargin) || 0,
                 status: orderData.status
             }).eq('id', id.toString()).select().single();
             if (error) throw error;

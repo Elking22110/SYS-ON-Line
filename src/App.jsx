@@ -225,7 +225,29 @@ function App() {
   return (
     <>
       {/* Removed TitleBar as requested */}
-      <Toaster position="top-right" containerStyle={{ zIndex: 999999 }} />
+      <Toaster 
+        position="top-right" 
+        containerStyle={{ zIndex: 999999 }} 
+        toastOptions={{
+          style: {
+            background: '#1e293b',
+            color: '#fff',
+            borderRadius: '12px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          }
+        }}
+      />
       <DataLoader>
         <NotificationProvider>
           <AuthProvider>

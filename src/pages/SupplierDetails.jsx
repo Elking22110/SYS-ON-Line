@@ -61,11 +61,13 @@ const SupplierDetails = () => {
         const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, loadData);
         const unsubInvoices = subscribe(EVENTS.INVOICES_CHANGED, loadData);
         const unsubCustomers = subscribe(EVENTS.CUSTOMERS_CHANGED, loadData);
+        const unsubOrders = subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, loadData);
 
         return () => {
             if (unsubSuppliers) unsubSuppliers();
             if (unsubInvoices) unsubInvoices();
             if (unsubCustomers) unsubCustomers();
+            if (unsubOrders) unsubOrders();
         };
     }, [id]);
 
@@ -89,12 +91,24 @@ const SupplierDetails = () => {
 
         // Load open orders for linking (Only OPEN status AND not yet linked to any supply)
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+        const allCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
         
+        // ORPHAN PROTECTION: Find and remove orders that belong to non-existent customers
+        const validOrders = allOrders.filter(order => {
+            const customerExists = allCustomers.some(c => c.id?.toString() === order.customerId?.toString());
+            return customerExists;
+        });
+
+        // If orphans were found, update the storage to clean up permanently
+        if (validOrders.length !== allOrders.length) {
+            localStorage.setItem('customer_orders', JSON.stringify(validOrders));
+        }
+
         // Get IDs of all orders already linked to supplies
         const linkedOrderIds = allSupplies.map(s => s.linkedOrderId?.toString()).filter(Boolean);
         
-        const linkable = allOrders.filter(o => 
-            o.status === 'OPEN' && 
+        const linkable = validOrders.filter(o => 
+            (o.status === 'OPEN' || o.status === 'IN_PRODUCTION') && 
             !linkedOrderIds.includes(o.id?.toString())
         );
         setOpenOrders(linkable);
@@ -707,13 +721,7 @@ const SupplierDetails = () => {
 
             {/* Add Supply Modal */}
             {showSupplyModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                            soundManager.play('closeWindow');
-                            setShowSupplyModal(false);
-                        }
-                    }}>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
                     <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-lg mx-4 shadow-2xl overflow-y-auto max-h-[90vh]">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -848,13 +856,7 @@ const SupplierDetails = () => {
 
             {/* Record Payment Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                            soundManager.play('closeWindow');
-                            setShowPaymentModal(false);
-                        }
-                    }}>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
                     <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">

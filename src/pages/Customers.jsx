@@ -241,10 +241,21 @@ const Customers = () => {
         setCustomers(prev => {
           const updated = prev.filter(c => c.id !== id);
           localStorage.setItem('customers', JSON.stringify(updated));
+          
+          // Also delete associated orders and payments for data integrity
+          const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+          const filteredOrders = allOrders.filter(o => o.customerId?.toString() !== id.toString());
+          localStorage.setItem('customer_orders', JSON.stringify(filteredOrders));
+
+          const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+          const filteredPayments = allPayments.filter(p => p.customerId?.toString() !== id.toString());
+          localStorage.setItem('customer_payments', JSON.stringify(filteredPayments));
+
           return updated;
         });
 
         publish(EVENTS.CUSTOMERS_CHANGED, { type: 'delete', customerId: id });
+        publish(EVENTS.CUSTOMER_ORDERS_CHANGED, { type: 'delete_bulk' });
         soundManager.play('delete');
       } catch (error) {
         console.error('Failed to delete customer:', error);
@@ -666,11 +677,6 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
   return (
     <div
       className="fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center z-[9999] backdrop-blur-sm p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
     >
       <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">

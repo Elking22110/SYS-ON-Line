@@ -142,7 +142,9 @@ const Expenses = () => {
             } else {
                 // إضافة جديدة
                 const savedOnline = await supabaseService.addExpense(newExpense);
-                const finalExpense = savedOnline ? { ...savedOnline, date: String(savedOnline.date).split('T')[0] } : newExpense;
+                const finalExpense = savedOnline 
+                    ? { ...savedOnline, type: savedOnline.category || savedOnline.type, date: String(savedOnline.date).split('T')[0] } 
+                    : newExpense;
                 updatedExpenses = [finalExpense, ...expenses];
                 notifySuccess('نجاح', 'تم تسجيل المصروف بنجاح');
             }
@@ -262,9 +264,9 @@ const Expenses = () => {
                     </div>
                 </div>
 
-                <div className="md:col-span-4 glass-card p-4 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-slate-300 flex flex-col justify-center items-center">
-                    <p className="text-sm text-slate-500 mb-1">إجمالي المصروفات المعروضة</p>
-                    <p className="text-3xl font-bold text-red-400">{Number(totals).toLocaleString('ar-EG')} ج.م</p>
+                <div className="md:col-span-4 bg-red-500/10 border border-red-500/20 rounded-xl p-6 flex flex-col justify-center items-center transition-all hover:bg-red-500/20">
+                    <p className="text-xs font-bold text-red-600 uppercase tracking-widest mb-2">إجمالي المصروفات المعروضة</p>
+                    <p className="text-3xl font-black text-red-600">{Number(totals).toLocaleString('ar-EG')} <small className="text-base font-bold">ج.م</small></p>
                 </div>
             </div>
 
@@ -281,35 +283,35 @@ const Expenses = () => {
                                 <th className="px-6 py-4 font-semibold text-center">الإجراءات</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-700/50 text-slate-600">
+                        <tbody className="divide-y divide-slate-200 text-slate-600 bg-white/50">
                             {filteredExpenses.length > 0 ? (
                                 filteredExpenses.map((expense) => (
-                                    <tr key={expense.id} className="hover:bg-gray-700/30 transition-colors group">
-                                        <td className="px-6 py-4 whitespace-nowrap">{expense.date}</td>
+                                    <tr key={expense.id} className="hover:bg-blue-50/50 transition-colors group">
+                                        <td className="px-6 py-4 whitespace-nowrap font-medium">{expense.date}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${expense.type === 'labor' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
-                                                expense.type === 'general' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                                                    'bg-gray-500/20 text-slate-500 border border-gray-500/30'
+                                            <span className={`px-3 py-1 rounded-lg text-xs font-bold ring-1 ring-inset ${expense.type === 'labor' ? 'bg-orange-50 text-orange-600 ring-orange-200' :
+                                                expense.type === 'general' ? 'bg-blue-50 text-blue-600 ring-blue-200' :
+                                                    'bg-slate-50 text-slate-600 ring-slate-200'
                                                 }`}>
                                                 {expenseTypes[expense.type]}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="font-bold text-red-300">{Number(expense.amount).toLocaleString('ar-EG')}</span>
+                                            <span className="font-bold text-slate-900 text-base">{Number(expense.amount).toLocaleString('ar-EG')}</span>
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-slate-800">{expense.description}</td>
+                                        <td className="px-6 py-4 font-medium text-slate-700">{expense.description}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <div className="flex justify-center space-x-2 space-x-reverse opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex justify-center space-x-2 space-x-reverse opacity-0 group-hover:opacity-100 transition-all">
                                                 <button
                                                     onClick={() => openEditModal(expense)}
-                                                    className="p-1.5 bg-gray-700 hover:bg-blue-600 rounded text-slate-600 hover:text-slate-800 transition-colors"
+                                                    className="p-2 bg-blue-50 hover:bg-blue-600 rounded-lg text-blue-600 hover:text-white transition-all shadow-sm"
                                                     title="تعديل"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(expense.id)}
-                                                    className="p-1.5 bg-gray-700 hover:bg-red-600 rounded text-slate-600 hover:text-slate-800 transition-colors"
+                                                    className="p-2 bg-red-50 hover:bg-red-600 rounded-lg text-red-600 hover:text-white transition-all shadow-sm"
                                                     title="حذف"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -336,8 +338,8 @@ const Expenses = () => {
 
             {/* نافذة إضافة/تعديل مصروف */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={closeModal}>
-                    <div className="bg-white border border-slate-300 rounded-2xl p-6 w-full max-w-md shadow-2xl relative flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white border border-slate-300 rounded-2xl p-6 w-full max-w-md shadow-2xl relative flex flex-col">
 
                         {/* Header Content Fixed */}
                         <div className="flex justify-between items-center mb-6">

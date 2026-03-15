@@ -41,10 +41,10 @@ import supabaseService from '../utils/supabaseService';
 import toast from 'react-hot-toast';
 
 const ORDER_STATUSES = [
-    { value: 'OPEN', label: 'مفتوح', color: 'bg-blue-500 bg-opacity-20 text-blue-300', icon: Clock },
-    { value: 'IN_PRODUCTION', label: 'في الإنتاج', color: 'bg-yellow-500 bg-opacity-20 text-yellow-300', icon: Loader },
-    { value: 'DONE', label: 'منتهي', color: 'bg-green-500 bg-opacity-20 text-green-400', icon: CheckCircle },
-    { value: 'CLOSED', label: 'مغلق', color: 'bg-gray-500 bg-opacity-20 text-gray-400', icon: XCircle },
+    { value: 'OPEN', label: 'مفتوح', color: 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-700/50', icon: Clock },
+    { value: 'IN_PRODUCTION', label: 'في الإنتاج', color: 'bg-amber-500 text-white shadow-sm ring-1 ring-amber-600/50', icon: Loader },
+    { value: 'DONE', label: 'منتهي', color: 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-700/50', icon: CheckCircle },
+    { value: 'CLOSED', label: 'مغلق', color: 'bg-slate-600 text-white shadow-sm ring-1 ring-slate-700/50', icon: XCircle },
 ];
 
 // Generate sequential order number
@@ -110,11 +110,6 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] backdrop-blur-sm"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                    onClose();
-                }
-            }}
         >
             <div
                 className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg mx-4"
@@ -708,6 +703,11 @@ const CustomerOrders = () => {
             return;
         }
 
+        if (remainingBalance <= 0) {
+            toast.error('لا توجد مديونية على هذا العميل لسدادها.');
+            return;
+        }
+
         if (amount > remainingBalance) {
             toast.error(`المبلغ المدخل (${amount.toLocaleString()}) أكبر من المديونية المتبقية (${remainingBalance.toLocaleString()}).`);
             return;
@@ -875,16 +875,16 @@ const CustomerOrders = () => {
                                 <User className="h-7 w-7 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl md:text-2xl font-bold text-white mb-2">{customer.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-black text-slate-900 mb-2">{customer.name}</h1>
                                 <div className="flex flex-wrap items-center gap-2 text-sm">
                                     {customer.phone && (
-                                        <span className="flex items-center gap-1 bg-green-500 bg-opacity-20 text-green-300 px-3 py-1 rounded-full">
-                                            <Phone className="h-3 w-3" /> {customer.phone}
+                                        <span className="flex items-center gap-1.5 bg-green-100 border border-green-200 text-green-700 px-4 py-1.5 rounded-full font-bold shadow-sm">
+                                            <Phone className="h-3.5 w-3.5" /> {customer.phone}
                                         </span>
                                     )}
                                     {customer.notes && (
-                                        <span className="flex items-center gap-1 bg-purple-500 bg-opacity-20 text-purple-300 px-3 py-1 rounded-full">
-                                            <FileText className="h-3 w-3" /> {customer.notes}
+                                        <span className="flex items-center gap-1.5 bg-indigo-100 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full font-bold shadow-sm">
+                                            <FileText className="h-3.5 w-3.5" /> {customer.notes}
                                         </span>
                                     )}
                                 </div>
@@ -910,45 +910,94 @@ const CustomerOrders = () => {
                     </div>
 
                     {/* Static Customer Info */}
-                    {/* Static Customer Info - Basic Details Always Visible */}
-                    <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                            <div className="bg-yellow-100 p-2 rounded-lg">
-                                <Briefcase className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                    {/* Unified Financial Summary Area - Prominent at the top */}
+                    <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-blue-500/20">
+                            <div className="bg-blue-500/20 p-2 rounded-lg">
+                                <Hash className="h-4 w-4 text-blue-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">النشاط التجاري</p>
-                                <p className="text-sm font-bold text-slate-800">{customer.businessActivity || 'غير محدد'}</p>
+                                <p className="text-[10px] text-blue-600 uppercase tracking-wider mb-0.5 font-bold">إجمالي الطلبات</p>
+                                <p className="text-lg font-black text-slate-800">{totalOrders} <small className="text-[10px] font-normal text-slate-500">طلب</small></p>
                             </div>
                         </div>
 
-                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                            <div className="bg-blue-100 p-2 rounded-lg">
-                                <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-orange-500/20">
+                            <div className="bg-orange-500/20 p-2 rounded-lg">
+                                <Package className="h-4 w-4 text-orange-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">نوع المنتج المعتاد</p>
-                                <p className="text-sm font-bold text-slate-800">{customer.usualProduct || 'غير محدد'}</p>
+                                <p className="text-[10px] text-orange-600 uppercase tracking-wider mb-0.5 font-bold">إجمالي الكمية</p>
+                                <p className="text-lg font-black text-slate-800">{totalQuantityOrdered.toLocaleString()} <small className="text-[10px] font-normal text-slate-500">كجم</small></p>
                             </div>
                         </div>
 
-                        <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                            <div className="bg-orange-100 p-2 rounded-lg">
-                                <Palette className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-emerald-500/20">
+                            <div className="bg-emerald-500/20 p-2 rounded-lg">
+                                <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">عدد الألوان</p>
-                                <p className="text-sm font-bold text-slate-800">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
+                                <p className="text-[10px] text-emerald-600 uppercase tracking-wider mb-0.5 font-bold">إجمالي المسدد</p>
+                                <p className="text-lg font-black text-emerald-700">{totalPaid.toLocaleString()} <small className="text-[10px] font-normal text-slate-500">ج.م</small></p>
                             </div>
                         </div>
 
-                        <div className="bg-pink-50 border border-pink-100 rounded-xl p-3 flex items-start gap-3 transition-all hover:shadow-md">
-                            <div className="bg-pink-100 p-2 rounded-lg">
-                                <Layers className="h-4 w-4 text-pink-600 flex-shrink-0" />
+                        <div className={`border rounded-xl p-3 flex items-start gap-3 transition-all hover:scale-[1.02] ${remainingBalance > 0 ? 'bg-red-500/10 border-red-500/30 shadow-red-100 shadow-sm' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+                            <div className={`${remainingBalance > 0 ? 'bg-red-500/20' : 'bg-emerald-500/20'} p-2 rounded-lg`}>
+                                <AlertTriangle className={`h-4 w-4 ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
                             </div>
                             <div>
-                                <p className="text-xs text-[#006af8] mb-0.5 font-medium">مقاس الأكلشية</p>
-                                <p className="text-sm font-bold text-slate-800">{customer.cliche || 'غير محدد'}</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5 font-bold">المديونية المتبقية</p>
+                                <p className={`text-lg font-black ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                    {remainingBalance <= 0 ? 0 : remainingBalance.toLocaleString()} <small className="text-[10px] font-normal opacity-60">ج.م</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Expanded Profile Details - Matching the Stat Cards style */}
+                    <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-amber-100 border border-amber-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-amber-200/50 shadow-sm">
+                            <div className="bg-amber-500/20 p-2 rounded-lg">
+                                <Briefcase className="h-4 w-4 text-amber-700 flex-shrink-0" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] text-amber-700 uppercase tracking-wider mb-0.5 font-bold">النشاط التجاري</p>
+                                <p className="text-sm font-black text-slate-900 truncate">{customer.businessActivity || 'غير محدد'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-indigo-100 border border-indigo-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-indigo-200/50 shadow-sm">
+                            <div className="bg-indigo-500/20 p-2 rounded-lg">
+                                <Tag className="h-4 w-4 text-indigo-700 flex-shrink-0" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] text-indigo-700 uppercase tracking-wider mb-0.5 font-bold">المنتج المعتاد</p>
+                                <p className="text-sm font-black text-slate-900 truncate">{customer.usualProduct || 'غير محدد'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-pink-100 border border-pink-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-pink-200/50 shadow-sm">
+                            <div className="bg-pink-500/20 p-2 rounded-lg">
+                                <Palette className="h-4 w-4 text-pink-700 flex-shrink-0" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-pink-700 uppercase tracking-wider mb-0.5 font-bold">الألوان</p>
+                                <p className="text-sm font-black text-slate-900">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-cyan-100 border border-cyan-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-cyan-200/50 shadow-sm">
+                            <div className="bg-cyan-500/20 p-2 rounded-lg">
+                                <Layers className="h-4 w-4 text-cyan-700 flex-shrink-0" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] text-cyan-700 uppercase tracking-wider mb-0.5 font-bold">الأكلشية</p>
+                                <p className="text-sm font-black text-slate-900 truncate">
+                                    {customer.clicheWidth && customer.clicheHeight 
+                                        ? `${customer.clicheWidth} × ${customer.clicheHeight}` 
+                                        : customer.cliche || 'غير محدد'}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1045,78 +1094,7 @@ const CustomerOrders = () => {
                     </div>
                 )}
 
-                {/* Unified Financial Summary Section */}
-                <div className="glass-card overflow-hidden" style={{ animationDelay: '0.1s' }}>
-                    <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                             <div className="bg-[#5235E8]/10 p-2 rounded-lg">
-                                 <DollarSign className="h-5 w-5 text-[#5235E8]" />
-                             </div>
-                             <h3 className="text-lg font-bold text-indigo-100">الملخص المالي العام للعميل</h3>
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                                <span className="text-xs font-bold text-blue-300 flex items-center gap-1">
-                                    <Loader className="h-3 w-3 animate-spin" />
-                                    {inProductionOrders} أوردر قيد الإنتاج
-                                </span>
-                            </div>
-                            <div className="bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
-                                <span className="text-xs font-bold text-purple-300 flex items-center gap-1">
-                                    <Link2 className="h-3 w-3" />
-                                    {totalSuppliesLinked} توريدات مرتبطة
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-4 md:p-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="bg-blue-50 p-2 rounded-lg">
-                                        <Hash className="h-5 w-5 text-blue-600" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-500">إجمالي الطلبات</span>
-                                </div>
-                                <div className="text-xl font-black text-slate-800">{totalOrders} <small className="text-xs font-normal text-slate-400">طلب</small></div>
-                            </div>
-
-                            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="bg-orange-50 p-2 rounded-lg">
-                                        <Package className="h-5 w-5 text-orange-600" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-500">إجمالي الكمية</span>
-                                </div>
-                                <div className="text-xl font-black text-slate-800">{totalQuantityOrdered.toLocaleString()} <small className="text-xs font-normal text-slate-400">كجم</small></div>
-                            </div>
-
-                            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="bg-emerald-50 p-2 rounded-lg">
-                                        <CheckCircle className="h-5 w-5 text-emerald-600" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-500">إجمالي المسدد</span>
-                                </div>
-                                <div className="text-xl font-black text-emerald-600">{totalPaid.toLocaleString()} <small className="text-xs font-normal text-slate-400">ج.م</small></div>
-                            </div>
-
-                            <div className={`bg-white border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all ${remainingBalance > 0 ? 'border-red-100' : 'border-emerald-100'}`}>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className={`${remainingBalance > 0 ? 'bg-red-50' : 'bg-emerald-50'} p-2 rounded-lg`}>
-                                        <AlertTriangle className={`h-5 w-5 ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-500">المديونية المتبقية</span>
-                                </div>
-                                <div className={`text-xl font-black ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                    {remainingBalance <= 0 ? 0 : remainingBalance.toLocaleString()} <small className="text-xs font-normal text-slate-400">ج.م</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Orders List */}
+                {/* Orders List Section */}
                 <div className="space-y-4" style={{ animationDelay: '0.2s' }}>
                     {orders.length === 0 ? (
                         <div className="glass-card p-10 text-center text-[#006af8]">
@@ -1170,10 +1148,12 @@ const CustomerOrders = () => {
                                                 <select
                                                     value={order.status}
                                                     onChange={(e) => handleChangeStatus(order, e.target.value)}
-                                                    className="text-xs bg-slate-800 border border-slate-700 text-white px-2 py-1 rounded-lg focus:outline-none h-8"
+                                                    className={`text-[11px] font-black h-8 px-2 rounded-lg border-none focus:outline-none cursor-pointer transition-all shadow-md appearance-none text-center min-w-[90px] ${statusInfo.color}`}
                                                 >
                                                     {ORDER_STATUSES.map(s => (
-                                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                                        <option key={s.value} value={s.value} className="text-slate-900 bg-white font-bold">
+                                                            {s.label}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -1201,20 +1181,25 @@ const CustomerOrders = () => {
 
                                         {/* Order Details Summary */}
                                         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
-                                            <div className="bg-white bg-opacity-5 rounded-lg p-2">
-                                                <p className="text-xs text-[#006af8] mb-0.5">نوع المنتج</p>
-                                                <p className="text-sm font-bold text-[#1e293b]">{order.productType || '-'}</p>
+                                            <div className="bg-slate-100/50 border border-slate-200 rounded-lg p-2.5 shadow-sm">
+                                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-wider mb-0.5">نوع المنتج</p>
+                                                <p className="text-sm font-black text-slate-800">{order.productType || '-'}</p>
                                             </div>
-                                            <div className="bg-white bg-opacity-5 rounded-lg p-2">
-                                                <p className="text-xs text-[#006af8] mb-0.5">الكمية</p>
-                                                <p className="text-sm font-bold text-[#ff8200]">{order.quantity?.toLocaleString()} كجم</p>
+                                            <div className="bg-orange-50 border border-orange-100 rounded-lg p-2.5 shadow-sm">
+                                                <p className="text-[10px] font-black text-orange-700 uppercase tracking-wider mb-0.5">الكمية</p>
+                                                <p className="text-sm font-black text-orange-600">{order.quantity?.toLocaleString()} <small className="text-[10px]">كجم</small></p>
                                             </div>
-                                            <div className="bg-white bg-opacity-5 rounded-lg p-2">
-                                                <p className="text-xs text-[#006af8] mb-0.5">اللون / المقاس</p>
-                                                <p className="text-sm font-bold text-[#1e293b]">{[order.color, order.size].filter(Boolean).join(' / ') || '-'}</p>
+                                            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 shadow-sm">
+                                                <p className="text-[10px] font-black text-indigo-700 uppercase tracking-wider mb-0.5">اللون / المقاس</p>
+                                                <p className="text-sm font-black text-slate-800">
+                                                    {order.color || order.size ? `${order.color || '-'} / ${order.size || '-'}` : '-'}
+                                                </p>
                                             </div>
-                                            <div className="bg-white bg-opacity-5 rounded-lg p-2">
-                                                <p className="text-sm font-bold text-[#5235E8]">{orderSupplies.length > 0 ? 'تم توفير الخامات' : 'لم يتم توفير خامات'}</p>
+                                            <div className={`rounded-lg p-2.5 shadow-sm border ${orderSupplies.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-0.5">توفير الخامات</p>
+                                                <p className={`text-sm font-black ${orderSupplies.length > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                    {orderSupplies.length > 0 ? 'تم توفير الخامات' : 'لم يتم توفير خامات'}
+                                                </p>
                                             </div>
                                             {order.reminderDate && (
                                                 <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-100">
