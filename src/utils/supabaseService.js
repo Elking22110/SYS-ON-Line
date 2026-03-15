@@ -177,24 +177,53 @@ const dbApi = {
     getExpenses: async () => { const { data } = await supabase.from('Expense').select('*'); return data || []; },
     addExpense: async (dataArg) => {
         const payload = { ...dataArg };
-        if (!payload.id) payload.id = Date.now().toString();
+        if (!payload.id) payload.id = String(Date.now());
+        
+        // Map UI 'type' to DB 'category'
+        const category = payload.category || payload.type || 'other';
 
-        const allowed = ['amount', 'description', 'date', 'id', 'category', 'shiftId', 'user'];
-        const cleanPayload = {};
-        allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
+        // Strict mapping to DB columns to prevent 400 Bad Request (extra fields)
+        const cleanPayload = {
+            id: payload.id,
+            amount: parseFloat(payload.amount) || 0,
+            description: payload.description || '',
+            date: payload.date || new Date().toISOString(),
+            category: category,
+            shiftId: payload.shiftId || null
+        };
 
-        const { data: res, error } = cleanPayload.id
-            ? await supabase.from('Expense').upsert(cleanPayload).select().single()
-            : await supabase.from('Expense').insert(cleanPayload).select().single();
-        if (error) throw error; return res;
+        const { data: res, error } = await supabase.from('Expense')
+            .upsert(cleanPayload)
+            .select();
+            
+        if (error) {
+            console.error('Supabase AddExpense Error:', error);
+            throw error;
+        }
+        return res && res.length > 0 ? res[0] : null;
     },
     updateExpense: async (id, data) => {
-        const allowed = ['amount', 'description', 'date', 'category', 'shiftId', 'user'];
-        const cleanPayload = {};
-        allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
+        // Map UI 'type' to DB 'category'
+        const category = data.category || data.type;
+        
+        const cleanPayload = {
+            amount: parseFloat(data.amount) || 0,
+            description: data.description || '',
+            date: data.date || new Date().toISOString(),
+            category: category,
+            shiftId: data.shiftId || null
+        };
 
-        const { data: res, error } = await supabase.from('Expense').update(cleanPayload).eq('id', id).select().single();
-        if (error) throw error; return res;
+        const { data: res, error } = await supabase.from('Expense')
+            .update(cleanPayload)
+            .eq('id', id)
+            .select();
+            
+        if (error) {
+            console.error('Supabase UpdateExpense Error:', error);
+            throw error;
+        }
+        return res && res.length > 0 ? res[0] : null;
     },
     deleteExpense: async (id) => { const { error } = await supabase.from('Expense').delete().eq('id', id); if (error) throw error; return true; },
 

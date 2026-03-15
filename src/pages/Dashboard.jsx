@@ -128,6 +128,7 @@ const Dashboard = () => {
         totalSales,
         totalOrders,
         totalCustomers: customers.length,
+        totalProducts: products.length,
         dailySupplyQty: dailySupplyQty
       });
 
@@ -311,7 +312,7 @@ const Dashboard = () => {
                 </span>
               ) : (
                 <span className="flex items-center bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full text-red-300 border border-red-400/20 shadow-sm">
-                  <TrendingDown className="w-3.5 h-3.5 mr-1" /> {salesChange}%
+                  <TrendingDown className="w-3.5 h-3.5 mr-1" /> {Math.abs(salesChange)}%
                 </span>
               )}
               <span className="mr-2 text-white/70 font-medium">عن أمس</span>
@@ -538,7 +539,7 @@ const Dashboard = () => {
               <span className="text-indigo-100 text-sm font-medium flex items-center">
                 <Package className="w-4 h-4 mr-2 text-indigo-300" /> إجمالي المنتجات
               </span>
-              <span className="text-2xl font-black text-emerald-400">{stats.totalProducts}</span>
+              <span className="text-2xl font-black text-emerald-400">{stats.totalProducts || 0}</span>
             </div>
           </div>
 
@@ -547,7 +548,7 @@ const Dashboard = () => {
               {salesChange >= 0 ? (
                 <><TrendingUp className="w-4 h-4 mr-2 text-emerald-400" /> <span className="text-emerald-50">+{salesChange}% ارتفاع عن أمس</span></>
               ) : (
-                <><TrendingDown className="w-4 h-4 mr-2 text-rose-400" /> <span className="text-rose-50">{salesChange}% تراجع عن أمس</span></>
+                <><TrendingDown className="w-4 h-4 mr-2 text-rose-400" /> <span className="text-rose-50">{Math.abs(salesChange)}% تراجع عن أمس</span></>
               )}
             </div>
           )}

@@ -260,7 +260,7 @@ const POSMain = () => {
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const settings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
         const rawFlag = (storeInfo.inventoryEnabled !== undefined ? storeInfo.inventoryEnabled : settings.inventoryEnabled);
-        const inventoryEnabled = !(rawFlag === false || rawFlag === 'false' || rawFlag === 0 || rawFlag === '0'); // افتراضياً مفعّل إلا لو صرّح بالتعطيل
+        const inventoryEnabled = rawFlag === true || rawFlag === 'true' || rawFlag === 1 || rawFlag === '1'; 
         if (inventoryEnabled) {
           const productsMap = new Map(products.map(p => [p.id, p]));
           const outOfStock = cart.find(it => {
@@ -487,7 +487,7 @@ const POSMain = () => {
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const settings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
         const rawFlag = (storeInfo.inventoryEnabled !== undefined ? storeInfo.inventoryEnabled : settings.inventoryEnabled);
-        const inventoryEnabled = !(rawFlag === false || rawFlag === 'false' || rawFlag === 0 || rawFlag === '0');
+        const inventoryEnabled = rawFlag === true || rawFlag === 'true' || rawFlag === 1 || rawFlag === '1';
         if (inventoryEnabled) {
           const updatePromises = cart.map(async (cartItem) => {
             const index = updatedProducts.findIndex(p => p.id === cartItem.id);
@@ -816,9 +816,8 @@ const POSMain = () => {
             ${itemsArr.map(item => `
               <tr>
                 <td>${item.name || 'منتج غير محدد'}</td>
-                <td class="center">${Number(item.quantity || 0)}</td>
-                <td class="center">${((Number(item.price) || 0)).toLocaleString('en-US')}</td>
-                <td class="center">${(safeMath.multiply(Number(item.price) || 0, Number(item.quantity) || 0)).toLocaleString('en-US')}</td>
+                <td class="center">${((Number(item.price) || 0)).toLocaleString('ar-EG')}</td>
+                <td class="center">${(safeMath.multiply(Number(item.price) || 0, Number(item.quantity) || 0)).toLocaleString('ar-EG')}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -827,37 +826,37 @@ const POSMain = () => {
         <div class="summary">
           <div class="summary-row">
             <span>المجموع الفرعي:</span>
-            <span>${(subtotal || 0).toLocaleString('en-US')} جنيه</span>
+            <span>${(subtotal || 0).toLocaleString('ar-EG')} ج.م</span>
           </div>
           
           ${discountAmount > 0 ? `
             <div class="summary-row">
               <span>الخصم:</span>
-              <span>-${discountAmount.toLocaleString('en-US')} جنيه</span>
+              <span>-${discountAmount.toLocaleString('ar-EG')} ج.م</span>
             </div>
           ` : ''}
           
           ${taxAmount > 0 ? `
             <div class="summary-row">
               <span>الضريبة:</span>
-              <span>+${taxAmount.toLocaleString('en-US')} جنيه</span>
+              <span>+${taxAmount.toLocaleString('ar-EG')} ج.م</span>
             </div>
           ` : ''}
           
           ${(snapshot?.downPayment?.enabled) ? `
             <div class="summary-row">
               <span>العربون:</span>
-              <span>${((snapshot.downPayment.amount || 0)).toLocaleString('en-US')} جنيه</span>
+              <span>${((snapshot.downPayment.amount || 0)).toLocaleString('ar-EG')} ج.م</span>
             </div>
             <div class="summary-row">
               <span>المبلغ المتبقي:</span>
-              <span>${remainingAmount.toLocaleString('en-US')} جنيه</span>
+              <span>${remainingAmount.toLocaleString('ar-EG')} ج.م</span>
             </div>
           ` : ''}
           
           <div class="summary-row total-row">
             <span>${(snapshot?.downPayment?.enabled ? 'المبلغ المتبقي:' : 'الإجمالي:')}</span>
-            <span>${((snapshot?.downPayment?.enabled ? remainingAmount : total)).toLocaleString('en-US')} جنيه</span>
+            <span>${((snapshot?.downPayment?.enabled ? remainingAmount : total)).toLocaleString('ar-EG')} ج.م</span>
           </div>
         </div>
         

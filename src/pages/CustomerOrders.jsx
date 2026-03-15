@@ -458,8 +458,119 @@ const CustomerOrders = () => {
     const getOrderLinkedSupplies = (orderId) =>
         linkedSupplies.filter(s => s.linkedOrderId?.toString() === orderId?.toString());
 
-    const toggleExpand = (orderId) =>
-        setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+    // ─── Printing Orders ─────────────────────────────────────
+    const handlePrintOrder = (order) => {
+        soundManager.play('openWindow');
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            toast.error('يرجى السماح بالنوافذ المنبثقة للطباعة');
+            return;
+        }
+
+        const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
+        const storeName = storeInfo.storeName || 'إلكينج';
+        const storePhone = storeInfo.phone || '';
+        const storeAddress = storeInfo.address || '';
+        const storeLogo = storeInfo.logo || '';
+
+        const qty = parseFloat(order.quantity) || 0;
+        const price = parseFloat(order.pricePerKg) || 0;
+        const printing = parseFloat(order.printingCostPerKg) || 0;
+        const cutting = parseFloat(order.cuttingCostPerKg) || 0;
+        const cliche = parseFloat(order.clicheCost) || 0;
+        const subtotal = (qty * price) + (qty * printing) + (qty * cutting) + cliche;
+        const margin = parseFloat(order.profitMargin) || 0;
+        const grandTotal = subtotal + (subtotal * (margin / 100));
+        
+        let logoHtml = '';
+        if (storeLogo) {
+            logoHtml = `<div style="text-align: center; margin-bottom: 20px;">
+                <img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" onload="window.print()" onerror="window.print()" />
+            </div>`;
+        } else {
+            // If no logo, we print immediately
+            setTimeout(() => { if(printWindow.print) printWindow.print(); }, 500);
+        }
+
+        const html = `
+            <!DOCTYPE html>
+            <html dir="rtl" lang="ar">
+            <head>
+                <meta charset="UTF-8">
+                <title>فاتورة طلب تشغيل - ${order.orderNumber}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
+                    .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+                    .header h1 { margin: 0; color: #5235E8; font-size: 24px; }
+                    .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
+                    .section { margin-bottom: 20px; }
+                    .section-title { font-weight: bold; background: #f8f9fa; padding: 5px 10px; border-right: 4px solid #5235E8; margin-bottom: 10px; }
+                    .row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 5px 0; }
+                    .row:last-child { border-bottom: none; }
+                    .label { color: #666; font-size: 14px; }
+                    .value { font-weight: bold; font-size: 14px; }
+                    .totals { margin-top: 30px; border-top: 2px solid #5235E8; padding-top: 15px; }
+                    .totals .row { padding: 8px 0; }
+                    .totals .grand-total { font-size: 18px; color: #5235E8; font-weight: 900; }
+                    .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    @media print {
+                        body { padding: 0; }
+                        button { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${logoHtml}
+                <div class="header">
+                    <h1>${storeName}</h1>
+                    <p>${storePhone ? 'ت: ' + storePhone : ''} ${storeAddress ? ' | ' + storeAddress : ''}</p>
+                    <p style="margin-top: 10px; font-weight: bold; font-size: 18px;">فاتورة طلب تشغيل</p>
+                    <p>رقم الطلب: ${order.orderNumber}</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">بيانات العميل</div>
+                    <div class="row"><span class="label">اسم العميل:</span><span class="value">${customer.name}</span></div>
+                    <div class="row"><span class="label">رقم الهاتف:</span><span class="value">${customer.phone || '-'}</span></div>
+                    <div class="row"><span class="label">تاريخ الطلب:</span><span class="value">${order.date}</span></div>
+                    <div class="row"><span class="label">تاريخ الاستلام:</span><span class="value">${order.deliveryDate || '-'}</span></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">تفاصيل التصنيع</div>
+                    <div class="row"><span class="label">نوع المنتج:</span><span class="value">${order.productType || '-'}</span></div>
+                    <div class="row"><span class="label">اللون / المقاس:</span><span class="value">${order.color || '-'} / ${order.size || '-'}</span></div>
+                    <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${qty} كجم</span></div>
+                    ${order.clicheEnabled ? `
+                        <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheWidth} × ${order.clicheHeight}</span></div>
+                        <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
+                    ` : ''}
+                </div>
+
+                <div class="section">
+                    <div class="section-title">التكاليف المبدئية للإنتاج</div>
+                    <div class="row"><span class="label">سعر كيلو الشراء (خام):</span><span class="value">${price.toLocaleString()} ج.م</span></div>
+                    <div class="row"><span class="label">إجمالي التكلفة بالمادة الخام:</span><span class="value">${(qty * price).toLocaleString()} ج.م</span></div>
+                    
+                    ${printing > 0 ? `<div class="row"><span class="label">تكلفة الطباعة:</span><span class="value">${(qty * printing).toLocaleString()} ج.م</span></div>` : ''}
+                    ${cutting > 0 ? `<div class="row"><span class="label">تكلفة المقص:</span><span class="value">${(qty * cutting).toLocaleString()} ج.م</span></div>` : ''}
+                    ${cliche > 0 ? `<div class="row"><span class="label">تكلفة الأكلشية:</span><span class="value">${cliche.toLocaleString()} ج.م</span></div>` : ''}
+                </div>
+
+                <div class="totals">
+                    <div class="row grand-total"><span class="label">إجمالي قيمة الفاتورة:</span><span class="value">${grandTotal.toLocaleString()} ج.م</span></div>
+                </div>
+
+                <div class="footer">
+                    تم إصدار هذه الفاتورة من النظام <br>
+                </div>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+    };
 
     // ─── CRUD ────────────────────────────────────────────────
     const handleSaveOrder = (formToSave) => {
@@ -545,6 +656,13 @@ const CustomerOrders = () => {
             // Sync to Supabase
             supabaseService.addCustomerOrder(newOrder).catch(console.error);
             toast.success(`تم إنشاء الطلب ${newOrder.orderNumber} بنجاح`);
+
+            // عرض تنبيه لطباعة الفاتورة بعد إنشاء الطلب مباشرة
+            setTimeout(() => {
+                if (window.confirm('تم حفظ الأوردر بنجاح! هل تود معاينة/طباعة فاتورة تفاصيل الطلب الآن؟')) {
+                    handlePrintOrder(newOrder);
+                }
+            }, 600);
         }
 
         soundManager.play('save');
@@ -584,8 +702,14 @@ const CustomerOrders = () => {
     };
 
     const handleSavePayment = (paymentData) => {
-        if (!paymentData.amount) {
-            toast.error('يرجى إدخال المبلغ');
+        const amount = parseFloat(paymentData.amount);
+        if (!amount || amount <= 0) {
+            toast.error('يرجى إدخال مبلغ صحيح');
+            return;
+        }
+
+        if (amount > remainingBalance) {
+            toast.error(`المبلغ المدخل (${amount.toLocaleString()}) أكبر من المديونية المتبقية (${remainingBalance.toLocaleString()}).`);
             return;
         }
 
@@ -595,7 +719,7 @@ const CustomerOrders = () => {
             customerId: id,
             customerName: customer?.name || '',
             date: getCurrentDate().split('T')[0],
-            amount: parseFloat(paymentData.amount),
+            amount: amount,
             note: paymentData.notes || ''
         };
 
@@ -612,12 +736,22 @@ const CustomerOrders = () => {
 
     const handleChangeStatus = (order, newStatus) => {
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-        const updated = allOrders.map(o => o.id === order.id ? { ...o, status: newStatus } : o);
+        const updatedOrd = { ...order, status: newStatus };
+        const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);
         localStorage.setItem('customer_orders', JSON.stringify(updated));
         // Sync to Supabase
-        supabaseService.updateCustomerOrder(order.id, { ...order, status: newStatus }).catch(console.error);
+        supabaseService.updateCustomerOrder(order.id, updatedOrd).catch(console.error);
         soundManager.play('save');
         loadData();
+
+        // عرض تنبيه طباعة الفاتورة عند الانتهاء من الطلب (مغلق)
+        if (newStatus === 'CLOSED') {
+            setTimeout(() => {
+                if(window.confirm('ممتاز! تم إغلاق الأوردر، هل ترغب في طباعة فاتورة الحساب النهائية الآن للعميل؟')) {
+                    handlePrintOrder(updatedOrd);
+                }
+            }, 600);
+        }
     };
 
     const handleAddCustomerCliche = () => {
@@ -784,7 +918,7 @@ const CustomerOrders = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-[#006af8] mb-0.5 font-medium">النشاط التجاري</p>
-                                <p className="text-sm font-bold text-white">{customer.businessActivity || 'غير محدد'}</p>
+                                <p className="text-sm font-bold text-slate-800">{customer.businessActivity || 'غير محدد'}</p>
                             </div>
                         </div>
 
@@ -794,7 +928,7 @@ const CustomerOrders = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-[#006af8] mb-0.5 font-medium">نوع المنتج المعتاد</p>
-                                <p className="text-sm font-bold text-white">{customer.usualProduct || 'غير محدد'}</p>
+                                <p className="text-sm font-bold text-slate-800">{customer.usualProduct || 'غير محدد'}</p>
                             </div>
                         </div>
 
@@ -804,7 +938,7 @@ const CustomerOrders = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-[#006af8] mb-0.5 font-medium">عدد الألوان</p>
-                                <p className="text-sm font-bold text-white">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
+                                <p className="text-sm font-bold text-slate-800">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
                             </div>
                         </div>
 
@@ -814,7 +948,7 @@ const CustomerOrders = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-[#006af8] mb-0.5 font-medium">مقاس الأكلشية</p>
-                                <p className="text-sm font-bold text-white">{customer.cliche || 'غير محدد'}</p>
+                                <p className="text-sm font-bold text-slate-800">{customer.cliche || 'غير محدد'}</p>
                             </div>
                         </div>
                     </div>
@@ -829,7 +963,7 @@ const CustomerOrders = () => {
                                     </div>
                                     <div>
                                         <p className="text-xs text-[#006af8] mb-0.5 font-medium">{pc.name}</p>
-                                        <p className="text-sm font-bold text-white">{pc.dimensions}</p>
+                                        <p className="text-sm font-bold text-slate-700">{pc.dimensions}</p>
                                     </div>
                                 </div>
                                 <button
@@ -911,44 +1045,75 @@ const CustomerOrders = () => {
                     </div>
                 )}
 
-                {/* Stats Row 1: Orders */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 ml-0" style={{ animationDelay: '0.1s' }}>
-                    {[
-                        { label: 'إجمالي الطلبات', value: totalOrders, color: 'from-blue-500 to-indigo-500', icon: Package },
-                        { label: 'طلبات مفتوحة', value: openOrders, color: 'from-orange-500 to-amber-500', icon: Clock },
-                        { label: 'في الإنتاج', value: inProductionOrders, color: 'from-yellow-500 to-amber-600', icon: Loader },
-                        { label: 'توريدات مرتبطة', value: totalSuppliesLinked, color: 'from-purple-500 to-indigo-600', icon: Link2 }
-                    ].map((stat, i) => (
-                        <div key={i} className="glass-card p-4 flex items-center gap-4 transition-all hover:scale-105">
-                            <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                                <stat.icon className="h-5 w-5 text-white" />
+                {/* Unified Financial Summary Section */}
+                <div className="glass-card overflow-hidden" style={{ animationDelay: '0.1s' }}>
+                    <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                             <div className="bg-[#5235E8]/10 p-2 rounded-lg">
+                                 <DollarSign className="h-5 w-5 text-[#5235E8]" />
+                             </div>
+                             <h3 className="text-lg font-bold text-indigo-100">الملخص المالي العام للعميل</h3>
+                        </div>
+                        <div className="flex gap-2">
+                            <div className="bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                                <span className="text-xs font-bold text-blue-300 flex items-center gap-1">
+                                    <Loader className="h-3 w-3 animate-spin" />
+                                    {inProductionOrders} أوردر قيد الإنتاج
+                                </span>
                             </div>
-                            <div>
-                                <p className="text-[#006af8] text-xs font-medium">{stat.label}</p>
-                                <p className="text-2xl font-bold text-white leading-none mt-1">{stat.value}</p>
+                            <div className="bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
+                                <span className="text-xs font-bold text-purple-300 flex items-center gap-1">
+                                    <Link2 className="h-3 w-3" />
+                                    {totalSuppliesLinked} توريدات مرتبطة
+                                </span>
                             </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                    <div className="p-4 md:p-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="bg-blue-50 p-2 rounded-lg">
+                                        <Hash className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-500">إجمالي الطلبات</span>
+                                </div>
+                                <div className="text-xl font-black text-slate-800">{totalOrders} <small className="text-xs font-normal text-slate-400">طلب</small></div>
+                            </div>
 
-                {/* Stats Row 2: Financials */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 ml-0" style={{ animationDelay: '0.2s' }}>
-                    {[
-                        { label: 'إجمالي الكمية', value: `${totalQuantityOrdered} كجم`, color: 'from-cyan-500 to-blue-500', icon: Package },
-                        { label: 'قيمة الطلبات', value: `${totalOrdersAmount.toLocaleString()} ج.م`, color: 'from-blue-600 to-indigo-700', icon: DollarSign },
-                        { label: 'إجمالي المسدد', value: `${totalPaid.toLocaleString()} ج.م`, color: 'from-emerald-500 to-teal-600', icon: Wallet },
-                        { label: 'إجمالي المتبقي على العميل', value: `${remainingBalance.toLocaleString()} ج.م`, color: 'from-rose-500 to-red-600', icon: Info }
-                    ].map((stat, i) => (
-                        <div key={i} className="glass-card p-4 flex items-center gap-4 transition-all hover:scale-105 active:scale-95 cursor-pointer">
-                            <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                                <stat.icon className="h-5 w-5 text-white" />
+                            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="bg-orange-50 p-2 rounded-lg">
+                                        <Package className="h-5 w-5 text-orange-600" />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-500">إجمالي الكمية</span>
+                                </div>
+                                <div className="text-xl font-black text-slate-800">{totalQuantityOrdered.toLocaleString()} <small className="text-xs font-normal text-slate-400">كجم</small></div>
                             </div>
-                            <div>
-                                <p className="text-[#006af8] text-xs font-medium">{stat.label}</p>
-                                <p className="text-xl font-bold text-white leading-none mt-1">{stat.value}</p>
+
+                            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="bg-emerald-50 p-2 rounded-lg">
+                                        <CheckCircle className="h-5 w-5 text-emerald-600" />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-500">إجمالي المسدد</span>
+                                </div>
+                                <div className="text-xl font-black text-emerald-600">{totalPaid.toLocaleString()} <small className="text-xs font-normal text-slate-400">ج.م</small></div>
+                            </div>
+
+                            <div className={`bg-white border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all ${remainingBalance > 0 ? 'border-red-100' : 'border-emerald-100'}`}>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className={`${remainingBalance > 0 ? 'bg-red-50' : 'bg-emerald-50'} p-2 rounded-lg`}>
+                                        <AlertTriangle className={`h-5 w-5 ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-500">المديونية المتبقية</span>
+                                </div>
+                                <div className={`text-xl font-black ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                    {remainingBalance <= 0 ? 0 : remainingBalance.toLocaleString()} <small className="text-xs font-normal text-slate-400">ج.م</small>
+                                </div>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
 
                 {/* Orders List */}
@@ -973,6 +1138,13 @@ const CustomerOrders = () => {
                                         <div className="flex flex-col md:flex-row-reverse justify-between items-start md:items-center gap-3">
                                             {/* Right actions (Now on the right/start of the row) */}
                                             <div className="flex items-center gap-2 flex-nowrap">
+                                                <button
+                                                    onClick={() => handlePrintOrder(order)}
+                                                    className="text-white bg-indigo-600 hover:bg-indigo-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    title="معاينة وطباعة الفاتورة"
+                                                >
+                                                    <Printer className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => handleEditOrder(order)}
                                                     className="text-white bg-blue-600 hover:bg-blue-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"

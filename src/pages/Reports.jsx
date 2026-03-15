@@ -297,7 +297,7 @@ const Reports = () => {
         const itemTotal = safeMath.multiply(price, qty);
         productSales[pid].sales += qty;
         productSales[pid].revenue = safeMath.add(productSales[pid].revenue, itemTotal);
-        productSales[pid].profit = safeMath.add(productSales[pid].profit, safeMath.calculatePercentage(itemTotal, 30)); // تقدير ربح افتراضي 30%
+        productSales[pid].profit = safeMath.add(productSales[pid].profit, safeMath.calculatePercentage(itemTotal, 30));
       });
     });
 
@@ -461,7 +461,7 @@ const Reports = () => {
         content: (
           <div className="text-slate-600 mb-4">
             <p>رقم الفاتورة: <span className="text-slate-800 font-mono">#{invoice.id}</span></p>
-            <p>المبلغ: <span className="text-slate-800 font-bold">{invoice.total} جنيه</span></p>
+            <p>المبلغ: <span className="text-slate-800 font-bold">{(Number(invoice.total) || 0).toLocaleString('ar-EG')} ج.م</span></p>
             <p>العميل: <span className="text-slate-800">{invoice.customer?.name || 'عميل غير محدد'}</span></p>
           </div>
         ),
@@ -687,8 +687,8 @@ const Reports = () => {
           content: (
             <div className="mb-4 p-4 bg-white border border-slate-200 rounded-lg text-right">
               <p className="text-slate-800 font-medium">فاتورة #{invoice.id}</p>
-              <p className="text-slate-500 text-sm">عدد المنتجات: {invoice.items.length}</p>
-              <p className="text-slate-500 text-sm">إجمالي الفاتورة: {invoice.total} جنيه</p>
+              <p className="text-slate-500 text-sm">عدد المنتجات: {invoice.items.length.toLocaleString('ar-EG')}</p>
+              <p className="text-slate-500 text-sm">إجمالي الفاتورة: {(Number(invoice.total) || 0).toLocaleString('ar-EG')} ج.م</p>
             </div>
           ),
           message: 'هل أنت متأكد من حذف جميع المنتجات من هذه الفاتورة؟',
@@ -791,9 +791,9 @@ const Reports = () => {
           content: (
             <div className="mb-4 p-4 bg-white border border-slate-200 rounded-lg text-right">
               <p className="text-slate-800 font-medium">{itemToRemove.name}</p>
-              <p className="text-slate-500 text-sm">الكمية: {itemToRemove.quantity}</p>
-              <p className="text-slate-500 text-sm">السعر: {itemToRemove.price} جنيه</p>
-              <p className="text-slate-500 text-sm">المجموع: {safeMath.multiply(itemToRemove.price, itemToRemove.quantity)} جنيه</p>
+              <p className="text-slate-500 text-sm">الكمية: {itemToRemove.quantity.toLocaleString('ar-EG')}</p>
+              <p className="text-slate-500 text-sm">السعر: {itemToRemove.price.toLocaleString('ar-EG')} ج.م</p>
+              <p className="text-slate-500 text-sm">المجموع: {safeMath.multiply(itemToRemove.price, itemToRemove.quantity).toLocaleString('ar-EG')} ج.م</p>
             </div>
           ),
           message: 'هل أنت متأكد من حذف هذا المنتج من الفاتورة؟',

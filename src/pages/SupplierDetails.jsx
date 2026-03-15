@@ -14,7 +14,8 @@ import {
     Trash2,
     AlertTriangle,
     Link2,
-    X
+    X,
+    Printer
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
 import { formatDate, getCurrentDate } from '../utils/dateUtils.js';
@@ -212,6 +213,96 @@ const SupplierDetails = () => {
         setShowSupplyModal(false);
         setNewSupply({ productName: '', quantity: '', unitPrice: '', paidAmount: '0', linkedOrderId: '' });
         loadData();
+        // Auto print prompt for new supply
+        setTimeout(() => {
+            if (window.confirm('تم تسجيل التوريدة بنجاح! هل تود طباعة إيصال استلام للمورد الآن؟')) {
+                handlePrintSupply(supply);
+            }
+        }, 600);
+    };
+
+    // Handle Printing Supply Receipt
+    const handlePrintSupply = (supply) => {
+        soundManager.play('openWindow');
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            toast.error('يرجى السماح بالنوافذ المنبثقة للطباعة');
+            return;
+        }
+
+        const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
+        const storeName = storeInfo.storeName || 'إلكينج';
+        const storeLogo = storeInfo.logo || '';
+        
+        // Find existing linked order if any
+        let linkedOrderText = supply.linkedOrderNumber ? `مرتبط بطلب: ${supply.linkedOrderNumber}` : '';
+
+        const html = `
+            <!DOCTYPE html>
+            <html dir="rtl" lang="ar">
+            <head>
+                <meta charset="UTF-8">
+                <title>إيصال استلام توريدة - ${supply.supplyNumber}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
+                    .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+                    .header h1 { margin: 0; color: #5235E8; font-size: 24px; }
+                    .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
+                    .section { margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 8px; }
+                    .section-title { font-weight: bold; background: #f8f9fa; padding: 5px 10px; border-right: 4px solid #5235E8; margin-bottom: 10px; margin-top: -15px; margin-right: -15px; width: fit-content; border-bottom-left-radius: 8px; }
+                    .row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 5px 0; }
+                    .row:last-child { border-bottom: none; }
+                    .label { color: #666; font-size: 14px; }
+                    .value { font-weight: bold; font-size: 14px; }
+                    .totals { margin-top: 30px; border-top: 2px solid #5235E8; padding-top: 15px; }
+                    .totals .row { padding: 8px 0; }
+                    .totals .grand-total { font-size: 18px; color: #5235E8; font-weight: 900; }
+                    .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    @media print {
+                        body { padding: 0; }
+                        button { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px;" /></div>` : ''}
+                <div class="header">
+                    <h1>${storeName}</h1>
+                    <p style="margin-top: 10px; font-weight: bold; font-size: 18px;">إيصال استلام بضاعة (توريدة)</p>
+                    <p>رقم الإيصال: ${supply.supplyNumber}</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">بيانات المورد</div>
+                    <div class="row"><span class="label">اسم المورد:</span><span class="value">${supplier?.name || '-'}</span></div>
+                    <div class="row"><span class="label">تاريخ التوريد:</span><span class="value">${supply.date}</span></div>
+                    <div class="row"><span class="label">الحالة التشغيلية:</span><span class="value">${linkedOrderText || 'توريد عام'}</span></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">تفاصيل المنتج والمواد الخام</div>
+                    <div class="row"><span class="label">اسم المنتج المورد:</span><span class="value">${supply.productName}</span></div>
+                    <div class="row"><span class="label">الكمية:</span><span class="value">${supply.quantity.toLocaleString()} كجم</span></div>
+                    <div class="row"><span class="label">سعر الوحدة (الكيلو):</span><span class="value">${supply.unitPrice.toLocaleString()} ج.م</span></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">الحساب المالي للإيصال</div>
+                    <div class="row"><span class="label">إجمالي قيمة التوريدة:</span><span class="value">${supply.totalPrice.toLocaleString()} ج.م</span></div>
+                    <div class="row"><span class="label" style="color: green;">ما تم سداده في هذه العملية:</span><span class="value" style="color: green;">${supply.paidAmount.toLocaleString()} ج.م</span></div>
+                    <div class="row"><span class="label" style="color: red;">المديونية المتبقية من هذه العملية:</span><span class="value" style="color: red;">${supply.remainingAmount.toLocaleString()} ج.م</span></div>
+                </div>
+
+                <div class="footer">
+                    تم إصدار هذا الإيصال من نظام الإدارة الآلي <br>
+                </div>
+                <script>window.onload = function() { setTimeout(function(){ window.print(); }, 500); }</script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
     };
 
     // Handle adding a payment
@@ -227,8 +318,13 @@ const SupplierDetails = () => {
             return;
         }
 
+        if (totalRemaining <= 0) {
+            alert("لا مديونية حالية لهذا المورد لسدادها.");
+            return;
+        }
+
         if (amount > totalRemaining) {
-            alert("لا يمكن سداد مبلغ أكبر من إجمالي المديونية.");
+            alert(`المبلغ المدخل (${amount.toLocaleString()}) أكبر من إجمالي المديونية المتبقية (${totalRemaining.toLocaleString()}).`);
             return;
         }
 
@@ -398,7 +494,7 @@ const SupplierDetails = () => {
                     <div className="flex flex-col items-end bg-white/50 p-4 rounded-2xl border border-white backdrop-blur-sm">
                         <p className="text-xs text-[#006af8] mb-1 font-bold">صافي المديونية الحالية</p>
                         <h2 className="text-3xl font-black text-red-600">
-                            ${totalRemaining.toLocaleString()}
+                            {totalRemaining <= 0 ? 0 : totalRemaining.toLocaleString()} ج.م
                         </h2>
                     </div>
                 </div>
@@ -409,13 +505,13 @@ const SupplierDetails = () => {
                         <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
                         <AlertTriangle className="h-10 w-10 text-red-500 mb-2" />
                         <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المديونية المتبقية</p>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">${totalRemaining.toLocaleString()}</h3>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{totalRemaining <= 0 ? 0 : totalRemaining.toLocaleString()} ج.م</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-green-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
                         <CreditCard className="h-10 w-10 text-emerald-500 mb-2" />
                         <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المدفوع للمورد</p>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">${calculateTotalPaid().toLocaleString()}</h3>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{calculateTotalPaid().toLocaleString()} ج.م</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
@@ -498,14 +594,14 @@ const SupplierDetails = () => {
                                                 <td className="px-4 py-4 text-sm text-[#006af8] font-medium text-right">{supply.date}</td>
                                                 <td className="px-4 py-4 text-sm font-bold text-slate-800 text-right">{supply.productName}</td>
                                                 <td className="px-4 py-4 text-sm text-[#ff8200] font-bold text-right">{supply.quantity.toLocaleString()} كجم</td>
-                                                <td className="px-4 py-4 text-sm text-slate-600 text-right">${supply.unitPrice}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-600 text-right">{supply.unitPrice.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-4 text-sm font-bold text-slate-900 text-right">
                                                     <span className="bg-slate-100 px-2 py-1 rounded-md bg-opacity-50">
-                                                        ${supply.totalPrice.toLocaleString()}
+                                                        {supply.totalPrice.toLocaleString()} ج.م
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-emerald-600 font-bold text-right">${supply.paidAmount.toLocaleString()}</td>
-                                                <td className="px-4 py-4 text-sm text-red-600 font-bold text-right">${supply.remainingAmount.toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-sm text-emerald-600 font-bold text-right">{supply.paidAmount.toLocaleString()} ج.م</td>
+                                                <td className="px-4 py-4 text-sm text-red-600 font-bold text-right">{supply.remainingAmount.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-4 text-sm font-bold text-red-500 text-right">
                                                     <span className="bg-red-50 px-2 py-1 rounded">
                                                         {supply.wasteQuantity || 0} كجم
@@ -524,13 +620,22 @@ const SupplierDetails = () => {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4 text-sm text-right text-left">
-                                                    <button
-                                                        onClick={() => handleDeleteSupply(supply.id)}
-                                                        className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
-                                                        title="حذف التوريدة"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    <div className="flex gap-2 justify-end">
+                                                        <button
+                                                            onClick={() => handlePrintSupply(supply)}
+                                                            className="text-indigo-500 hover:text-indigo-400 hover:bg-indigo-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                                                            title="طباعة إيصال التوريدة"
+                                                        >
+                                                            <Printer className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteSupply(supply.id)}
+                                                            className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                                                            title="حذف التوريدة"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -566,7 +671,7 @@ const SupplierDetails = () => {
                                                 <td className="px-6 py-4 text-sm text-slate-700 text-right whitespace-nowrap">{payment.date}</td>
                                                 <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-right whitespace-nowrap">
                                                     <span className="bg-emerald-50 px-2 py-1 rounded">
-                                                        ${payment.amount}
+                                                        {payment.amount.toLocaleString()} ج.م
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
@@ -664,7 +769,7 @@ const SupplierDetails = () => {
 
                             <div className="bg-[#5235E8]/5 p-4 rounded-2xl border border-[#5235E8]/10 flex justify-between items-center">
                                 <span className="text-slate-600 font-bold">إجمالي التكلفة:</span>
-                                <span className="text-2xl font-black text-[#5235E8]">${newSupplyTotal.toLocaleString()}</span>
+                                <span className="text-2xl font-black text-[#5235E8]">{newSupplyTotal.toLocaleString()} ج.م</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -683,7 +788,7 @@ const SupplierDetails = () => {
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-2">المتبقي مديونية</label>
                                     <div className="px-4 py-3 rounded-xl bg-red-50 text-red-600 font-bold text-right border border-red-100">
-                                        ${newSupplyRemaining.toLocaleString()}
+                                        {newSupplyRemaining.toLocaleString()} ج.م
                                     </div>
                                 </div>
                             </div>

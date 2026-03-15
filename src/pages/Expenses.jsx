@@ -38,6 +38,7 @@ const Expenses = () => {
             if (onlineExpenses && onlineExpenses.length > 0) {
                 const mapped = onlineExpenses.map(e => ({
                     ...e,
+                    type: e.type || e.category || 'other', // Handle both aliases
                     date: e.date instanceof Date ? e.date.toISOString().split('T')[0] : String(e.date).split('T')[0]
                 }));
                 setExpenses(mapped);
@@ -137,7 +138,7 @@ const Expenses = () => {
                 // وضع التعديل
                 await saveExpensesToSupabase(newExpense, true);
                 updatedExpenses = expenses.map(exp => exp.id === formData.id ? newExpense : exp);
-                notifySuccess('نجاح', 'تم تعديل المصروف بنجاح بنجاح');
+                notifySuccess('نجاح', 'تم تعديل المصروف بنجاح');
             } else {
                 // إضافة جديدة
                 const savedOnline = await supabaseService.addExpense(newExpense);
@@ -263,7 +264,7 @@ const Expenses = () => {
 
                 <div className="md:col-span-4 glass-card p-4 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-slate-300 flex flex-col justify-center items-center">
                     <p className="text-sm text-slate-500 mb-1">إجمالي المصروفات المعروضة</p>
-                    <p className="text-3xl font-bold text-red-400">{Number(totals).toLocaleString('en-US')} ج.م</p>
+                    <p className="text-3xl font-bold text-red-400">{Number(totals).toLocaleString('ar-EG')} ج.م</p>
                 </div>
             </div>
 
@@ -294,7 +295,7 @@ const Expenses = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="font-bold text-red-300">{Number(expense.amount).toLocaleString('en-US')}</span>
+                                            <span className="font-bold text-red-300">{Number(expense.amount).toLocaleString('ar-EG')}</span>
                                         </td>
                                         <td className="px-6 py-4 font-medium text-slate-800">{expense.description}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -378,12 +379,12 @@ const Expenses = () => {
                                         step="any"
                                         value={formData.amount}
                                         onChange={handleInputChange}
-                                        className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr font-bold text-xl text-left pl-10 transition-colors focus:bg-white"
+                                        className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr font-bold text-xl text-right pr-12 transition-colors focus:bg-white"
                                         placeholder="0.00"
                                         autoComplete="off"
                                         required
                                     />
-                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm pointer-events-none">ج.م</span>
                                 </div>
                             </div>
 

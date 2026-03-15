@@ -433,7 +433,7 @@ const PaymentManager = ({
           <div className="flex justify-between">
             <span className="text-slate-500">إجمالي الفاتورة:</span>
             <span className="text-slate-800 font-semibold">
-              {(getTotal || 0).toLocaleString('en-US')} جنيه
+              {(getTotal || 0).toLocaleString('ar-EG')} ج.م
             </span>
           </div>
 
@@ -442,14 +442,14 @@ const PaymentManager = ({
               <div className="flex justify-between">
                 <span className="text-slate-500">العربون:</span>
                 <span className="text-blue-600 font-semibold">
-                  {(downPayment.amount || 0).toLocaleString('en-US')} جنيه
+                  {(downPayment.amount || 0).toLocaleString('ar-EG')} ج.م
                 </span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-slate-500">المتبقي:</span>
                 <span className="text-amber-600 font-semibold">
-                  {(getRemainingAmount || 0).toLocaleString('en-US')} جنيه
+                  {(getRemainingAmount || 0).toLocaleString('ar-EG')} ج.م
                 </span>
               </div>
 
