@@ -34,7 +34,7 @@ import {
     Info
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
-import { getCurrentDate } from '../utils/dateUtils.js';
+import { getCurrentDate, addDays } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
 import { publish, subscribe, EVENTS } from '../utils/observerManager';
 import supabaseService from '../utils/supabaseService';
