@@ -127,18 +127,7 @@ const dbApi = {
             ? await supabase.from('Customer').upsert(cleanPayload).select().single()
             : await supabase.from('Customer').insert(cleanPayload).select().single();
             
-        if (result.error) {
-            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes') || result.error.message?.includes('bagSizes')) {
-                delete cleanPayload.sizeWidth;
-                delete cleanPayload.sizeHeight;
-                delete cleanPayload.profileSizes;
-                delete cleanPayload.bagSizes;
-                result = cleanPayload.id
-                    ? await supabase.from('Customer').upsert(cleanPayload).select().single()
-                    : await supabase.from('Customer').insert(cleanPayload).select().single();
-            }
-            if (result.error) throw result.error;
-        }
+        if (result.error) throw result.error;
         return result.data;
     },
     updateCustomer: async (id, data) => {
@@ -152,16 +141,7 @@ const dbApi = {
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
         let result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
-        if (result.error) {
-            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes') || result.error.message?.includes('bagSizes')) {
-                delete cleanPayload.sizeWidth;
-                delete cleanPayload.sizeHeight;
-                delete cleanPayload.profileSizes;
-                delete cleanPayload.bagSizes;
-                result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
-            }
-            if (result.error) throw result.error;
-        }
+        if (result.error) throw result.error;
         publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: result.data });
         return result.data;
     },
@@ -1142,17 +1122,7 @@ class SupabaseService {
                 createdAt: new Date().toISOString()
             };
             let result = await supabase.from('CustomerOrder').upsert(payload).select().single();
-            if (result.error) {
-                // If column does not exist yet in DB, retry without the new columns
-                if (result.error.code === 'PGRST204' || result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.message?.includes('sizes') || result.error.message?.includes('bottomEnabled')) {
-                    delete payload.bottomSize;
-                    delete payload.thickness;
-                    delete payload.sizes;
-                    delete payload.bottomEnabled;
-                    result = await supabase.from('CustomerOrder').upsert(payload).select().single();
-                }
-                if (result.error) throw result.error;
-            }
+            if (result.error) throw result.error;
             return result.data;
         } catch (error) {
             console.error('Error adding customer order:', error);
@@ -1191,17 +1161,7 @@ class SupabaseService {
 
             let result = await supabase.from('CustomerOrder').update(payload).eq('id', id.toString()).select().single();
             
-            if (result.error) {
-                // Fallback for missing columns
-                if (result.error.code === 'PGRST204' || result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.message?.includes('sizes') || result.error.message?.includes('bottomEnabled')) {
-                    delete payload.bottomSize;
-                    delete payload.thickness;
-                    delete payload.sizes;
-                    delete payload.bottomEnabled;
-                    result = await supabase.from('CustomerOrder').update(payload).eq('id', id.toString()).select().single();
-                }
-                if (result.error) throw result.error;
-            }
+            if (result.error) throw result.error;
             return result.data;
         } catch (error) {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'updateCustomerOrder', [id, orderData]);
