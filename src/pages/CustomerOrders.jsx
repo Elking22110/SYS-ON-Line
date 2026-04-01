@@ -28,6 +28,7 @@ import {
     FileText,
     Printer,
     Scissors,
+    Calculator,
     DollarSign,
     CreditCard,
     Wallet,
@@ -666,6 +667,19 @@ const CustomerOrders = () => {
                     ${order.clicheEnabled ? `
                         <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
                         <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
+                    ` : ''}
+                    
+                    {/* Supplier Info if available */}
+                    ${orderSupplies.length > 0 ? `
+                        <div style="margin-top: 10px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #f0fdf4;">
+                            <div style="font-weight: bold; color: #166534; font-size: 14px; margin-bottom: 5px; border-bottom: 1px solid #bbf7d0;">بيانات توريد الخامات:</div>
+                            ${orderSupplies.map(s => `
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
+                                    <span>المورد: <strong>${s.supplierName}</strong></span>
+                                    <span>رقم التوريدة: <strong>${s.supplyNumber || s.id}</strong></span>
+                                </div>
+                            `).join('')}
+                        </div>
                     ` : ''}
                 </div>
 
@@ -1470,34 +1484,34 @@ const CustomerOrders = () => {
                                         {/* Order Details Summary */}
                                         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
                                             <div className="bg-slate-100/50 border border-slate-200 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-wider mb-0.5">نوع المنتج</p>
-                                                <p className="text-sm font-black text-slate-800">{order.productType || '-'}</p>
+                                                <p className="text-[12px] font-black text-blue-800 uppercase tracking-wider mb-1">نوع المنتج</p>
+                                                <p className="text-[15px] font-black text-slate-800">{order.productType || '-'}</p>
                                             </div>
                                             <div className="bg-orange-50 border border-orange-100 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-[10px] font-black text-orange-700 uppercase tracking-wider mb-0.5">الكمية</p>
-                                                <p className="text-sm font-black text-orange-600">{order.quantity?.toLocaleString()} <small className="text-[10px]">كجم</small></p>
+                                                <p className="text-xs font-black text-orange-800 uppercase tracking-wider mb-1">الكمية</p>
+                                                <p className="text-[15px] font-black text-orange-600">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
                                             </div>
                                             <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-[10px] font-black text-indigo-700 uppercase tracking-wider mb-0.5">اللون / المقاس</p>
-                                                <p className="text-sm font-black text-slate-800">
+                                                <p className="text-xs font-black text-indigo-800 uppercase tracking-wider mb-1">اللون / المقاس</p>
+                                                <p className="text-[15px] font-black text-slate-800">
                                                     {order.color || order.size ? `${order.color || '-'} / ${order.size || '-'}` : '-'}
                                                 </p>
                                             </div>
                                             <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-wider mb-0.5">سفليات / سمك</p>
-                                                <p className="text-sm font-black text-slate-800">
+                                                <p className="text-xs font-black text-blue-800 uppercase tracking-wider mb-1">سفليات / سمك</p>
+                                                <p className="text-[15px] font-black text-slate-800">
                                                     {order.bottomSize || order.thickness ? `${order.bottomSize || '-'} / ${order.thickness || '-'}` : '-'}
                                                 </p>
                                             </div>
                                             <div className={`rounded-lg p-2.5 shadow-sm border ${orderSupplies.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-0.5">توفير الخامات</p>
+                                                <p className="text-xs font-black text-slate-600 uppercase tracking-wider mb-1">توفير الخامات</p>
                                                 <div className={`text-sm font-black ${orderSupplies.length > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                     {orderSupplies.length > 0 ? (
                                                         <div className="space-y-0.5">
                                                             {orderSupplies.map((s, idx) => (
                                                                 <div key={s.id || idx} className="flex flex-col leading-tight">
-                                                                    <span className="truncate max-w-[120px]">{s.supplierName}</span>
-                                                                    <span className="text-[9px] opacity-70">رقم: {s.supplyNumber || s.id?.toString().slice(-6)}</span>
+                                                                    <span className="text-[13px] leading-tight truncate">{s.supplierName}</span>
+                                                                    <span className="text-[10px] opacity-75 font-bold">التوريدة: {s.supplyNumber || s.id?.toString().slice(-6)}</span>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -1515,35 +1529,38 @@ const CustomerOrders = () => {
                                         </div>
 
                                         {/* Cost Calculation Breakdown */}
-                                        <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                                            <h4 className="text-xs font-bold text-[#006af8] border-b border-slate-200 pb-2 mb-2">تفصيل الحساب الربحي والإنتاج:</h4>
+                                        <div className="mt-4 p-5 bg-slate-50/80 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                            <h4 className="text-[15px] font-black text-indigo-700 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                                                <Calculator className="h-4 w-4" />
+                                                تفصيل الحساب الربحي والإنتاج:
+                                            </h4>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {/* Production Costs */}
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-500 font-medium flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> تكلفة الخامة ({order.quantity} كجم):</span>
-                                                        <span className="font-bold text-slate-800">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
+                                                <div className="space-y-3">
+                                                    <div className="flex justify-between items-center text-[15px]">
+                                                        <span className="text-slate-600 font-bold flex items-center gap-2"><Package className="h-4 w-4 text-slate-400" /> تكلفة الخامة ({order.quantity} كجم):</span>
+                                                        <span className="font-black text-slate-900">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
                                                     </div>
 
                                                     {order.printingCostPerKg > 0 && (
-                                                        <div className="flex justify-between items-center text-sm">
-                                                            <span className="text-slate-500 font-medium flex items-center gap-1.5"><Printer className="h-3.5 w-3.5" /> تكلفة المطبعه:</span>
-                                                            <span className="font-bold text-slate-800">${(order.quantity * order.printingCostPerKg).toLocaleString()}</span>
+                                                        <div className="flex justify-between items-center text-[15px]">
+                                                            <span className="text-slate-600 font-bold flex items-center gap-2"><Printer className="h-4 w-4 text-slate-400" /> تكلفة المطبعه:</span>
+                                                            <span className="font-black text-slate-900">${(order.quantity * order.printingCostPerKg).toLocaleString()}</span>
                                                         </div>
                                                     )}
 
                                                     {order.cuttingCostPerKg > 0 && (
-                                                        <div className="flex justify-between items-center text-sm">
-                                                            <span className="text-slate-500 font-medium flex items-center gap-1.5"><Scissors className="h-3.5 w-3.5" /> تكلفة المقص:</span>
-                                                            <span className="font-bold text-slate-800">${(order.quantity * order.cuttingCostPerKg).toLocaleString()}</span>
+                                                        <div className="flex justify-between items-center text-[15px]">
+                                                            <span className="text-slate-600 font-bold flex items-center gap-2"><Scissors className="h-4 w-4 text-slate-400" /> تكلفة المقص:</span>
+                                                            <span className="font-black text-slate-900">${(order.quantity * order.cuttingCostPerKg).toLocaleString()}</span>
                                                         </div>
                                                     )}
 
                                                     {order.clicheEnabled && order.clicheCost > 0 && (
-                                                        <div className="flex justify-between items-center text-sm">
-                                                            <span className="text-slate-500 font-medium flex items-center gap-1.5"><Layers className="h-3.5 w-3.5" /> تكلفة الأكلشية:</span>
-                                                            <span className="font-bold text-slate-800">${(order.clicheCost || 0).toLocaleString()}</span>
+                                                        <div className="flex justify-between items-center text-[15px]">
+                                                            <span className="text-slate-600 font-bold flex items-center gap-2"><Layers className="h-4 w-4 text-slate-400" /> تكلفة الأكلشية:</span>
+                                                            <span className="font-black text-slate-900">${(order.clicheCost || 0).toLocaleString()}</span>
                                                         </div>
                                                     )}
                                                 </div>
