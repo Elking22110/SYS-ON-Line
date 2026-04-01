@@ -1491,9 +1491,18 @@ const CustomerOrders = () => {
                                             </div>
                                             <div className={`rounded-lg p-2.5 shadow-sm border ${orderSupplies.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
                                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-0.5">توفير الخامات</p>
-                                                <p className={`text-sm font-black ${orderSupplies.length > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                    {orderSupplies.length > 0 ? 'تم توفير الخامات' : 'لم يتم توفير خامات'}
-                                                </p>
+                                                <div className={`text-sm font-black ${orderSupplies.length > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                    {orderSupplies.length > 0 ? (
+                                                        <div className="space-y-0.5">
+                                                            {orderSupplies.map((s, idx) => (
+                                                                <div key={s.id || idx} className="flex flex-col leading-tight">
+                                                                    <span className="truncate max-w-[120px]">{s.supplierName}</span>
+                                                                    <span className="text-[9px] opacity-70">رقم: {s.supplyNumber || s.id?.toString().slice(-6)}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : 'لم يتم توفير خامات'}
+                                                </div>
                                             </div>
                                             {order.reminderDate && (
                                                 <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-100">
