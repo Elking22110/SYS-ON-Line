@@ -108,7 +108,7 @@ const dbApi = {
             'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
             'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent',
             'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
-            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes'
+            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes', 'bagSizes'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
@@ -118,10 +118,11 @@ const dbApi = {
             : await supabase.from('Customer').insert(cleanPayload).select().single();
             
         if (result.error) {
-            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes')) {
+            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes') || result.error.message?.includes('bagSizes')) {
                 delete cleanPayload.sizeWidth;
                 delete cleanPayload.sizeHeight;
                 delete cleanPayload.profileSizes;
+                delete cleanPayload.bagSizes;
                 result = cleanPayload.id
                     ? await supabase.from('Customer').upsert(cleanPayload).select().single()
                     : await supabase.from('Customer').insert(cleanPayload).select().single();
@@ -135,17 +136,18 @@ const dbApi = {
             'name', 'phone', 'email', 'address', 'points', 'totalPurchases', 'orders',
             'lastVisit', 'joinDate', 'status', 'totalSpent',
             'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
-            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes'
+            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes', 'bagSizes'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
         let result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
         if (result.error) {
-            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes')) {
+            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes') || result.error.message?.includes('bagSizes')) {
                 delete cleanPayload.sizeWidth;
                 delete cleanPayload.sizeHeight;
                 delete cleanPayload.profileSizes;
+                delete cleanPayload.bagSizes;
                 result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
             }
             if (result.error) throw result.error;

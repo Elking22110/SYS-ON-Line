@@ -21,7 +21,8 @@ import {
   Palette,
   Layers,
   Hash,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
 import { formatDate, formatTimeOnly, getCurrentDate } from '../utils/dateUtils.js';
@@ -156,6 +157,7 @@ const Customers = () => {
           usualProduct: formData.usualProduct || '',
           sizeWidth: formData.sizeWidth || '',
           sizeHeight: formData.sizeHeight || '',
+          bagSizes: formData.bagSizes || [],
           clicheWidth: formData.clicheWidth || '',
           clicheHeight: formData.clicheHeight || '',
           cliche: (formData.clicheWidth && formData.clicheHeight)
@@ -202,6 +204,7 @@ const Customers = () => {
           usualProduct: formData.usualProduct || '',
           sizeWidth: formData.sizeWidth || '',
           sizeHeight: formData.sizeHeight || '',
+          bagSizes: formData.bagSizes || [],
           clicheWidth: formData.clicheWidth || '',
           clicheHeight: formData.clicheHeight || '',
           cliche: (formData.clicheWidth && formData.clicheHeight)
@@ -715,6 +718,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
     usualProduct: '',
     sizeWidth: '',
     sizeHeight: '',
+    bagSizes: [],
     cliche: '',
     clicheWidth: '',
     clicheHeight: '',
@@ -732,6 +736,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
         usualProduct: editingCustomer.usualProduct || '',
         sizeWidth: editingCustomer.sizeWidth || '',
         sizeHeight: editingCustomer.sizeHeight || '',
+        bagSizes: editingCustomer.bagSizes || [],
         cliche: editingCustomer.cliche || '',
         clicheWidth: editingCustomer.clicheWidth || '',
         clicheHeight: editingCustomer.clicheHeight || '',
@@ -741,11 +746,34 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
       setFormData({
         name: '', phone: '', notes: '', address: '',
         businessActivity: '', usualProduct: '', 
-        sizeWidth: '', sizeHeight: '',
+        sizeWidth: '', sizeHeight: '', bagSizes: [],
         cliche: '', clicheWidth: '', clicheHeight: '', colorCount: ''
       });
     }
   }, [editingCustomer, show]);
+
+  const handleAddSize = () => {
+    setFormData(prev => ({
+      ...prev,
+      bagSizes: [...(prev.bagSizes || []), { id: Date.now(), width: '', length: '' }]
+    }));
+  };
+
+  const handleRemoveSize = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      bagSizes: prev.bagSizes.filter(s => s.id !== id)
+    }));
+  };
+
+  const handleSizeChange = (id, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      bagSizes: prev.bagSizes.map(s => 
+        s.id === id ? { ...s, [field]: value } : s
+      )
+    }));
+  };
 
   if (!show) return null;
 
@@ -875,6 +903,68 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                   className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Dynamic Bag Sizes List */}
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="flex justify-between items-center mb-3">
+              <label className="block text-sm font-bold text-slate-700 flex items-center gap-1">
+                <Hash className="h-4 w-4 text-purple-600" />
+                مقاسات إضافية
+              </label>
+              <button
+                type="button"
+                onClick={handleAddSize}
+                className="text-xs font-bold text-purple-600 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                title="إضافة مقاس آخر"
+              >
+                <Plus className="h-3 w-3" />
+                إضافة مقاس
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {(!formData.bagSizes || formData.bagSizes.length === 0) && (
+                <div className="text-center py-4 text-xs font-medium text-slate-400 bg-white border border-slate-100 rounded-lg">
+                  لا توجد مقاسات إضافية. يمكنك إضافة مقاسات متعددة للعميل من هنا.
+                </div>
+              )}
+              
+              {formData.bagSizes?.map((size, index) => (
+                <div key={size.id || index} className="flex flex-row items-center gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative group">
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">عرض (سم)</label>
+                    <input
+                      type="number"
+                      placeholder="مثال: 30"
+                      value={size.width || ''}
+                      onChange={(e) => handleSizeChange(size.id, 'width', e.target.value)}
+                      className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 focus:bg-white"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">طول (سم)</label>
+                    <input
+                      type="number"
+                      placeholder="مثال: 40"
+                      value={size.length || size.height || ''}
+                      onChange={(e) => handleSizeChange(size.id, 'length', e.target.value)}
+                      className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 focus:bg-white"
+                    />
+                  </div>
+                  <div className="pt-5">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSize(size.id)}
+                      className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                      title="حذف المقاس"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
