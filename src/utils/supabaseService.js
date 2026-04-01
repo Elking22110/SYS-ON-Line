@@ -113,10 +113,22 @@ const dbApi = {
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
 
-        const { data: res, error } = cleanPayload.id
+        let result = cleanPayload.id
             ? await supabase.from('Customer').upsert(cleanPayload).select().single()
             : await supabase.from('Customer').insert(cleanPayload).select().single();
-        if (error) throw error; return res;
+            
+        if (result.error) {
+            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes')) {
+                delete cleanPayload.sizeWidth;
+                delete cleanPayload.sizeHeight;
+                delete cleanPayload.profileSizes;
+                result = cleanPayload.id
+                    ? await supabase.from('Customer').upsert(cleanPayload).select().single()
+                    : await supabase.from('Customer').insert(cleanPayload).select().single();
+            }
+            if (result.error) throw result.error;
+        }
+        return result.data;
     },
     updateCustomer: async (id, data) => {
         const allowed = [
@@ -128,10 +140,18 @@ const dbApi = {
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
-        const { data: res, error } = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
-        if (error) throw error;
-        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: res });
-        return res;
+        let result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
+        if (result.error) {
+            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes')) {
+                delete cleanPayload.sizeWidth;
+                delete cleanPayload.sizeHeight;
+                delete cleanPayload.profileSizes;
+                result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
+            }
+            if (result.error) throw result.error;
+        }
+        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: result.data });
+        return result.data;
     },
     deleteCustomer: async (id) => { const { error } = await supabase.from('Customer').delete().eq('id', id); if (error) throw error; return true; },
 
