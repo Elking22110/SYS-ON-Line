@@ -82,10 +82,20 @@ const dbApi = {
                         }
                     });
                     
-                    // دمج profileCliches: الاحتفاظ بالقائمة الأطول لضمان عدم فقدان أي أكلشي
+                    // دمج profileCliches: السحابة تفوز لأنها المرجع الرئيسي
                     const localCliches = Array.isArray(lc.profileCliches) ? lc.profileCliches : [];
                     const remoteCliches = Array.isArray(sc.profileCliches) ? sc.profileCliches : [];
-                    merged.profileCliches = localCliches.length >= remoteCliches.length ? localCliches : remoteCliches;
+                    merged.profileCliches = remoteCliches.length >= localCliches.length ? remoteCliches : localCliches;
+
+                    // دمج profileSizes: السحابة تفوز لأنها المرجع الرئيسي
+                    const localSizes = Array.isArray(lc.profileSizes) ? lc.profileSizes : [];
+                    const remoteSizes = Array.isArray(sc.profileSizes) ? sc.profileSizes : [];
+                    merged.profileSizes = remoteSizes.length >= localSizes.length ? remoteSizes : localSizes;
+
+                    // حفظ المقاسات من السحابة إن وجدت
+                    if (sc.sizeWidth) merged.sizeWidth = sc.sizeWidth;
+                    if (sc.sizeHeight) merged.sizeHeight = sc.sizeHeight;
+
                     // Force conversion of core fields to ensure type consistency
                     merged.totalSpent = parseFloat(sc.totalSpent || sc.totalAmount || lc.totalSpent) || 0;
                     merged.orders = parseInt(sc.orders || sc.ordersCount || lc.orders) || 0;

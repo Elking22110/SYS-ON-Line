@@ -519,10 +519,24 @@ const CustomerOrders = () => {
 
     // ─── Load ────────────────────────────────────────────────
     const loadData = React.useCallback(async () => {
-        // Customer from local storage (already merged with Supabase in Customers.jsx)
-        const customers = JSON.parse(localStorage.getItem('customers') || '[]');
-        const found = customers.find(c => c.id?.toString() === id);
-        setCustomer(found || null);
+        // Customer - try cloud first, fallback to local
+        try {
+            const cloudCustomers = await supabaseService.getCustomers();
+            if (cloudCustomers && cloudCustomers.length > 0) {
+                // Save merged cloud data to localStorage
+                localStorage.setItem('customers', JSON.stringify(cloudCustomers));
+                const found = cloudCustomers.find(c => c.id?.toString() === id);
+                setCustomer(found || null);
+            } else {
+                const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
+                const found = localCustomers.find(c => c.id?.toString() === id);
+                setCustomer(found || null);
+            }
+        } catch (e) {
+            const localCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
+            const found = localCustomers.find(c => c.id?.toString() === id);
+            setCustomer(found || null);
+        }
 
         // Orders - try Supabase first, fallback to localStorage
         try {
