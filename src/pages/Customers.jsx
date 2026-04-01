@@ -62,12 +62,17 @@ const Customers = () => {
             clicheHeight: sc.clicheHeight || localItem?.clicheHeight || '',
             colorCount: sc.colorCount || localItem?.colorCount || '',
             notes: sc.notes || localItem?.notes || '',
+            sizeWidth: sc.sizeWidth || localItem?.sizeWidth || '',
+            sizeHeight: sc.sizeHeight || localItem?.sizeHeight || '',
+            profileSizes: (() => {
+              const localSizes = Array.isArray(localItem?.profileSizes) ? localItem.profileSizes : [];
+              const supabaseSizes = Array.isArray(sc.profileSizes) ? sc.profileSizes : [];
+              return supabaseSizes.length >= localSizes.length ? supabaseSizes : localSizes;
+            })(),
             profileCliches: (() => {
-              // دمج أكلاشيهات localStorage و Supabase - الاحتفاظ بالأطول (الأكثر بيانات)
               const localCliches = Array.isArray(localItem?.profileCliches) ? localItem.profileCliches : [];
               const supabaseCliches = Array.isArray(sc.profileCliches) ? sc.profileCliches : [];
-              // استخدام القائمة الأكثر بيانات لضمان عدم ضياع أي أكلشي
-              return localCliches.length >= supabaseCliches.length ? localCliches : supabaseCliches;
+              return supabaseCliches.length >= localCliches.length ? supabaseCliches : localCliches;
             })()
           };
         })
