@@ -108,30 +108,50 @@ const dbApi = {
             'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
             'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent',
             'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
-            'colorCount', 'notes', 'profileCliches'
+            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
 
-        const { data: res, error } = cleanPayload.id
+        let result = cleanPayload.id
             ? await supabase.from('Customer').upsert(cleanPayload).select().single()
             : await supabase.from('Customer').insert(cleanPayload).select().single();
-        if (error) throw error; return res;
+            
+        if (result.error) {
+            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes')) {
+                delete cleanPayload.sizeWidth;
+                delete cleanPayload.sizeHeight;
+                delete cleanPayload.profileSizes;
+                result = cleanPayload.id
+                    ? await supabase.from('Customer').upsert(cleanPayload).select().single()
+                    : await supabase.from('Customer').insert(cleanPayload).select().single();
+            }
+            if (result.error) throw result.error;
+        }
+        return result.data;
     },
     updateCustomer: async (id, data) => {
         const allowed = [
             'name', 'phone', 'email', 'address', 'points', 'totalPurchases', 'orders',
             'lastVisit', 'joinDate', 'status', 'totalSpent',
             'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
-            'colorCount', 'notes', 'profileCliches'
+            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
-        const { data: res, error } = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
-        if (error) throw error;
-        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: res });
-        return res;
+        let result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
+        if (result.error) {
+            if (result.error.code === 'PGRST204' || result.error.message?.includes('sizeWidth') || result.error.message?.includes('profileSizes')) {
+                delete cleanPayload.sizeWidth;
+                delete cleanPayload.sizeHeight;
+                delete cleanPayload.profileSizes;
+                result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
+            }
+            if (result.error) throw result.error;
+        }
+        publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: result.data });
+        return result.data;
     },
     deleteCustomer: async (id) => { const { error } = await supabase.from('Customer').delete().eq('id', id); if (error) throw error; return true; },
 
@@ -1014,6 +1034,8 @@ class SupabaseService {
                 clicheCost: parseFloat(orderData.clicheCost) || 0,
                 color: orderData.color || '',
                 size: orderData.size || '',
+                sizes: orderData.sizes || [],
+                bottomEnabled: !!orderData.bottomEnabled,
                 bottomSize: orderData.bottomSize || '',
                 thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
@@ -1025,9 +1047,11 @@ class SupabaseService {
             let result = await supabase.from('CustomerOrder').upsert(payload).select().single();
             if (result.error) {
                 // If column does not exist yet in DB, retry without the new columns
-                if (result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.code === 'PGRST204') {
+                if (result.error.code === 'PGRST204' || result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.message?.includes('sizes') || result.error.message?.includes('bottomEnabled')) {
                     delete payload.bottomSize;
                     delete payload.thickness;
+                    delete payload.sizes;
+                    delete payload.bottomEnabled;
                     result = await supabase.from('CustomerOrder').upsert(payload).select().single();
                 }
                 if (result.error) throw result.error;
@@ -1058,6 +1082,8 @@ class SupabaseService {
                 clicheCost: parseFloat(orderData.clicheCost) || 0,
                 color: orderData.color || '',
                 size: orderData.size || '',
+                sizes: orderData.sizes || [],
+                bottomEnabled: !!orderData.bottomEnabled,
                 bottomSize: orderData.bottomSize || '',
                 thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
@@ -1070,9 +1096,11 @@ class SupabaseService {
             
             if (result.error) {
                 // Fallback for missing columns
-                if (result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.code === 'PGRST204') {
+                if (result.error.code === 'PGRST204' || result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.message?.includes('sizes') || result.error.message?.includes('bottomEnabled')) {
                     delete payload.bottomSize;
                     delete payload.thickness;
+                    delete payload.sizes;
+                    delete payload.bottomEnabled;
                     result = await supabase.from('CustomerOrder').update(payload).eq('id', id.toString()).select().single();
                 }
                 if (result.error) throw result.error;
