@@ -20,7 +20,8 @@ import {
   Tag,
   Palette,
   Layers,
-  Hash
+  Hash,
+  Users
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
 import { formatDate, formatTimeOnly, getCurrentDate } from '../utils/dateUtils.js';
@@ -76,11 +77,11 @@ const Customers = () => {
 
       const updatedCustomers = mergedCustomers.map(customer => {
         const customerIdStr = customer.id?.toString();
-        
+
         // Calculate dynamic stats from orders
         const customerOrders = allOrders.filter(o => o.customerId?.toString() === customerIdStr);
         const ordersCount = customerOrders.length;
-        
+
         const totalSpentAmount = customerOrders.reduce((sum, o) => {
           const productTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.pricePerKg) || 0);
           const printingTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.printingCostPerKg) || 0);
@@ -153,6 +154,8 @@ const Customers = () => {
           status: 'جديد',
           businessActivity: formData.businessActivity || '',
           usualProduct: formData.usualProduct || '',
+          sizeWidth: formData.sizeWidth || '',
+          sizeHeight: formData.sizeHeight || '',
           clicheWidth: formData.clicheWidth || '',
           clicheHeight: formData.clicheHeight || '',
           cliche: (formData.clicheWidth && formData.clicheHeight)
@@ -197,6 +200,8 @@ const Customers = () => {
           address: formData.address,
           businessActivity: formData.businessActivity || '',
           usualProduct: formData.usualProduct || '',
+          sizeWidth: formData.sizeWidth || '',
+          sizeHeight: formData.sizeHeight || '',
           clicheWidth: formData.clicheWidth || '',
           clicheHeight: formData.clicheHeight || '',
           cliche: (formData.clicheWidth && formData.clicheHeight)
@@ -251,7 +256,7 @@ const Customers = () => {
         setCustomers(prev => {
           const updated = prev.filter(c => c.id !== id);
           localStorage.setItem('customers', JSON.stringify(updated));
-          
+
           // Also delete associated orders and payments for data integrity
           const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
           const filteredOrders = allOrders.filter(o => o.customerId?.toString() !== id.toString());
@@ -354,7 +359,7 @@ const Customers = () => {
             </button>
             <button
               onClick={() => { soundManager.play('openWindow'); setShowAddModal(true); }}
-              className="btn-primary flex items-center px-3 md:px-4 py-2 md:py-3 text-xs md:text-xs lg:text-sm font-semibold"
+              className="btn-primary flex items-center px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm lg:text-sm font-semibold"
             >
               <Plus className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3" />
               إضافة عميل جديد
@@ -363,69 +368,103 @@ const Customers = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 xl:gap-8">
-          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">إجمالي العملاء</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">{customers.length}</p>
-                <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-blue-300 font-medium">عملاء مسجلون</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 mb-8 mt-4">
+          <div className="glass-card group cursor-pointer p-3 md:p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">إجمالي العملاء</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">{customers.length}</p>
+                <div className="flex items-center text-[10px] md:text-[11px]">
+                  <span className="text-blue-300 font-medium truncate">عملاء مسجلون</span>
                 </div>
               </div>
-              <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <User className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Users className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">عملاء VIP</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
+          <div className="glass-card group cursor-pointer p-3 md:p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">عملاء VIP</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
                   {customers.filter(c => c.status === 'VIP').length}
                 </p>
-                <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-slate-500 font-medium">عملاء مميزون</span>
+                <div className="flex items-center text-[10px] md:text-[11px]">
+                  <span className="text-slate-500 font-medium truncate">عملاء مميزون</span>
                 </div>
               </div>
-              <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Star className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-purple-500 to-violet-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Star className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">متوسط قيمة المشتريات</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
+          <div className="glass-card group cursor-pointer p-3 md:p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">متوسط الشراء</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
                   ${Math.round(customers.reduce((total, c) => safeMath.add(total, c.totalSpent), 0) / (customers.length || 1))}
                 </p>
-                <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-green-300 font-medium">متوسط المشتريات</span>
+                <div className="flex items-center text-[10px] md:text-[11px]">
+                  <span className="text-green-300 font-medium truncate">كقيمة للمشتريات</span>
                 </div>
               </div>
-              <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <DollarSign className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <DollarSign className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">عملاء جدد هذا الشهر</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
+          <div className="glass-card group cursor-pointer p-3 md:p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">عملاء جدد</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
                   {customers.filter(c => c.status === 'جديد').length}
                 </p>
-                <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-orange-300 font-medium">عملاء جدد</span>
+                <div className="flex items-center text-[10px] md:text-[11px]">
+                  <span className="text-orange-300 font-medium truncate">هذا الشهر</span>
                 </div>
               </div>
-              <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Calendar className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-white" />
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Calendar className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card group cursor-pointer p-3 md:p-4 border-r-4 border-blue-400">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[10px] md:text-[11px] font-medium text-blue-300 mb-1 uppercase tracking-wide truncate">إجمالي الكمية (كجم)</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                  {customers.reduce((total, c) => total + (c.totalQuantity || 0), 0).toLocaleString()}
+                </p>
+                <div className="flex items-center text-[10px] md:text-[11px]">
+                  <span className="text-slate-300 font-medium truncate">المسلمة للعملاء</span>
+                </div>
+              </div>
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card group cursor-pointer p-3 md:p-4 border-r-4 border-red-400">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-[10px] md:text-[11px] font-medium text-red-300 mb-1 uppercase tracking-wide truncate">إجمالي الهالك (كجم)</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                  {customers.reduce((total, c) => total + (c.totalWaste || 0), 0).toLocaleString()}
+                </p>
+                <div className="flex items-center text-[10px] md:text-[11px]">
+                  <span className="text-slate-300 font-medium truncate">المرتجع / الهالك</span>
+                </div>
+              </div>
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Trash2 className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
           </div>
@@ -515,7 +554,8 @@ const Customers = () => {
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">العميل</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاتصال</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden lg:table-cell">النشاط / المنتج</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden xl:table-cell">الأكلشية (طول × عرض)</th>
+                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden xl:table-cell">مقاس المنتج</th>
+                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاستهلاك والهالك (كجم)</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المشتريات</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden sm:table-cell">الحالة</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الإجراءات</th>
@@ -564,16 +604,36 @@ const Customers = () => {
                         ) : <span className="text-xs text-slate-400">—</span>}
                       </div>
                     </td>
-                    {/* Cliche */}
+                    {/* Product Size */}
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden xl:table-cell">
                       <div className="space-y-1">
-                        {customer.cliche ? (
-                          <div className="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">{customer.cliche}</div>
-                        ) : null}
-                        {customer.colorCount ? (
-                          <div className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full inline-block">{customer.colorCount} لون</div>
-                        ) : null}
-                        {!customer.cliche && !customer.colorCount && <span className="text-xs text-slate-400">—</span>}
+                          <div className="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md inline-block">
+                              {(() => {
+                                  // 1. Show size from customer profile if exists
+                                  if (customer.sizeWidth && customer.sizeHeight) {
+                                      return `${customer.sizeWidth} × ${customer.sizeHeight} سم`;
+                                  }
+                                  
+                                  // 2. Fallback to latest order size 
+                                  const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+                                  const userOrders = allOrders.filter(o => String(o.customerId) === String(customer.id));
+                                  if (userOrders.length > 0) {
+                                      const lastOrder = userOrders[userOrders.length - 1];
+                                      if (lastOrder.sizeWidth && lastOrder.sizeHeight) return `${lastOrder.sizeWidth} × ${lastOrder.sizeHeight} سم`;
+                                      if (lastOrder.size) return lastOrder.size;
+                                  }
+                                  return '—';
+                              })()}
+                          </div>
+                      </div>
+                    </td>
+                    {/* Quantity & Waste */}
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                      <div className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-md mb-1 border border-blue-200 shadow-sm flex items-center justify-between">
+                          <span>الكمية:</span> <span>{customer.totalQuantity || 0} كجم</span>
+                      </div>
+                      <div className="text-xs font-bold text-rose-700 bg-rose-100 px-2 py-1 rounded-md border border-rose-200 shadow-sm flex items-center justify-between">
+                          <span>الهالك:</span> <span>{customer.totalWaste || 0} كجم</span>
                       </div>
                     </td>
                     {/* Total Spent */}
@@ -653,6 +713,8 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
     address: '',
     businessActivity: '',
     usualProduct: '',
+    sizeWidth: '',
+    sizeHeight: '',
     cliche: '',
     clicheWidth: '',
     clicheHeight: '',
@@ -668,6 +730,8 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
         address: editingCustomer.address || '',
         businessActivity: editingCustomer.businessActivity || '',
         usualProduct: editingCustomer.usualProduct || '',
+        sizeWidth: editingCustomer.sizeWidth || '',
+        sizeHeight: editingCustomer.sizeHeight || '',
         cliche: editingCustomer.cliche || '',
         clicheWidth: editingCustomer.clicheWidth || '',
         clicheHeight: editingCustomer.clicheHeight || '',
@@ -676,8 +740,9 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
     } else {
       setFormData({
         name: '', phone: '', notes: '', address: '',
-        businessActivity: '', usualProduct: '', cliche: '',
-        clicheWidth: '', clicheHeight: '', colorCount: ''
+        businessActivity: '', usualProduct: '', 
+        sizeWidth: '', sizeHeight: '',
+        cliche: '', clicheWidth: '', clicheHeight: '', colorCount: ''
       });
     }
   }, [editingCustomer, show]);
@@ -779,7 +844,43 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Row 3: Cliche Width × Cliche Height */}
+          {/* Row 3: Product Size Width × Height */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5 align-right">عرض المنتج المعتاد (سم)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Hash className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  type="number"
+                  placeholder="مثال: 30"
+                  value={formData.sizeWidth}
+                  onChange={(e) => setFormData({ ...formData, sizeWidth: e.target.value })}
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">طول المنتج المعتاد (سم)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Hash className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  type="number"
+                  placeholder="مثال: 40"
+                  value={formData.sizeHeight}
+                  onChange={(e) => setFormData({ ...formData, sizeHeight: e.target.value })}
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px w-full bg-slate-100 my-4"></div>
+
+          {/* Row 4: Cliche Width × Cliche Height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5 align-right">عرض الأكلشية الأساسي (سم)</label>

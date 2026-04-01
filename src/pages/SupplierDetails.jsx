@@ -92,7 +92,7 @@ const SupplierDetails = () => {
         // Load open orders for linking (Only OPEN status AND not yet linked to any supply)
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         const allCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
-        
+
         // ORPHAN PROTECTION: Find and remove orders that belong to non-existent customers
         const validOrders = allOrders.filter(order => {
             const customerExists = allCustomers.some(c => c.id?.toString() === order.customerId?.toString());
@@ -106,9 +106,9 @@ const SupplierDetails = () => {
 
         // Get IDs of all orders already linked to supplies
         const linkedOrderIds = allSupplies.map(s => s.linkedOrderId?.toString()).filter(Boolean);
-        
-        const linkable = validOrders.filter(o => 
-            (o.status === 'OPEN' || o.status === 'IN_PRODUCTION') && 
+
+        const linkable = validOrders.filter(o =>
+            (o.status === 'OPEN' || o.status === 'IN_PRODUCTION') &&
             !linkedOrderIds.includes(o.id?.toString())
         );
         setOpenOrders(linkable);
@@ -247,7 +247,7 @@ const SupplierDetails = () => {
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const storeName = storeInfo.storeName || 'إلكينج';
         const storeLogo = storeInfo.logo || '';
-        
+
         // Find existing linked order if any
         let linkedOrderText = supply.linkedOrderNumber ? `مرتبط بطلب: ${supply.linkedOrderNumber}` : '';
 
@@ -514,7 +514,7 @@ const SupplierDetails = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5" style={{ animationDelay: '0.1s' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" style={{ animationDelay: '0.1s' }}>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
                         <AlertTriangle className="h-10 w-10 text-red-500 mb-2" />
@@ -526,6 +526,12 @@ const SupplierDetails = () => {
                         <CreditCard className="h-10 w-10 text-emerald-500 mb-2" />
                         <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المدفوع للمورد</p>
                         <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{calculateTotalPaid().toLocaleString()} ج.م</h3>
+                    </div>
+                    <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                        <Package className="h-10 w-10 text-[#006af8] mb-2" />
+                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي الكمية (كجم)</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{supplies.reduce((total, s) => total + (parseFloat(s.quantity) || 0), 0).toLocaleString()} كجم</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>

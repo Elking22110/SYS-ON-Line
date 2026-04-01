@@ -186,7 +186,7 @@ const Products = () => {
           if (toDeleteFromSupabase.length > 0) {
             console.log('حذف منتجات من Supabase (blacklist):', toDeleteFromSupabase.map(p => p.name));
             for (const p of toDeleteFromSupabase) {
-              try { await supabaseService.deleteProduct(p.id); } catch (_) {}
+              try { await supabaseService.deleteProduct(p.id); } catch (_) { }
             }
           }
 
@@ -595,7 +595,7 @@ const Products = () => {
             deletedIds.push(String(id));
             localStorage.setItem('deletedProductIds', JSON.stringify(deletedIds));
           }
-        } catch (_) {}
+        } catch (_) { }
 
         // 3. حذف من localStorage
         const updatedProducts = products.filter(p => p.id !== id);
@@ -603,13 +603,13 @@ const Products = () => {
         localStorage.setItem('products', JSON.stringify(updatedProducts));
 
         // 4. حذف صورة المنتج إن وجدت
-        try { ImageManager.deleteProductImage(id); } catch (_) {}
+        try { ImageManager.deleteProductImage(id); } catch (_) { }
 
         // 5. إشعار باقي أجزاء السيستم
         window.dispatchEvent(new CustomEvent('productsUpdated', {
           detail: { action: 'deleted', product: product, products: updatedProducts }
         }));
-        try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete', productId: id, products: updatedProducts }); } catch (_) {}
+        try { publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete', productId: id, products: updatedProducts }); } catch (_) { }
 
         notifyProductDeleted(product.name);
       } catch (error) {
@@ -1287,7 +1287,7 @@ const Products = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">المخزون</label>
+                  <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">عدد البكر</label>
                   <input
                     type="number"
                     value={newProduct.stock}
@@ -1297,7 +1297,7 @@ const Products = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">الحد الأدنى</label>
+                  <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">الوزن الإجمالي</label>
                   <input
                     type="number"
                     value={newProduct.minStock}

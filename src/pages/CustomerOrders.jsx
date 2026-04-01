@@ -31,7 +31,8 @@ import {
     DollarSign,
     CreditCard,
     Wallet,
-    Info
+    Info,
+    X
 } from 'lucide-react';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate, addDays } from '../utils/dateUtils.js';
@@ -60,8 +61,11 @@ const generateOrderNumber = () => {
 const emptyFormTemplate = {
     productType: '',
     color: '',
-    size: '',
+    sizeWidth: '',
+    sizeHeight: '',
+    sizes: [], // For additional sizes
     bottomSize: '',
+    bottomEnabled: false,
     thickness: '',
     quantity: '',
     pricePerKg: '',
@@ -87,12 +91,14 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                 setForm({
                     ...editingOrder,
                     clicheEnabled: !!(editingOrder.clicheHeight || editingOrder.clicheWidth || editingOrder.colorCount),
+                    bottomEnabled: editingOrder.bottomEnabled !== undefined ? editingOrder.bottomEnabled : !!editingOrder.bottomSize,
+                    sizes: editingOrder.sizes || []
                 });
             } else {
                 // Fetch default profit margin from settings
                 const savedSettings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
                 const defaultMargin = savedSettings.orderProfitMargin !== undefined ? savedSettings.orderProfitMargin : '';
-                
+
                 const today = new Date().toISOString().split('T')[0];
                 const delivery = addDays(today, 10).split('T')[0];
                 const reminder = addDays(today, 6).split('T')[0];
@@ -137,6 +143,122 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                         />
                     </div>
+                    {/* Color and Thickness */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">اللون</label>
+                            <input
+                                type="text"
+                                placeholder="مثال: أحمر، شفاف..."
+                                value={form.color}
+                                onChange={e => setForm({ ...form, color: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">السمك</label>
+                            <input
+                                type="text"
+                                placeholder="مثال: 50 ميكرون"
+                                value={form.thickness}
+                                onChange={e => setForm({ ...form, thickness: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Dimensions (Width x Height) */}
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="block text-sm font-bold text-slate-700">المقاسات (عرض × طول) <span className="text-red-500">*</span></label>
+                            <button
+                                type="button"
+                                onClick={() => setForm({ ...form, sizes: [...(form.sizes || []), { width: '', height: '' }] })}
+                                className="text-xs flex items-center gap-1 bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded-lg hover:bg-purple-200 transition-colors"
+                            >
+                                + إضافة مقاس آخر
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <input
+                                    type="number" step="0.1" placeholder="العرض الأساسي (سم)"
+                                    value={form.sizeWidth} onChange={e => setForm({ ...form, sizeWidth: e.target.value })}
+                                    className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                />
+                            </div>
+                            <div>
+                                <input
+                                    type="number" step="0.1" placeholder="الطول الأساسي (سم)"
+                                    value={form.sizeHeight} onChange={e => setForm({ ...form, sizeHeight: e.target.value })}
+                                    className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                />
+                            </div>
+                        </div>
+                        {(form.sizes || []).map((s, idx) => (
+                            <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-center mt-2 relative">
+                                <input
+                                    type="number" step="0.1" placeholder={`عرض مقاس ${idx + 2} (سم)`}
+                                    value={s.width}
+                                    onChange={e => {
+                                        const newSizes = [...form.sizes];
+                                        newSizes[idx].width = e.target.value;
+                                        setForm({ ...form, sizes: newSizes });
+                                    }}
+                                    className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-purple-500 bg-white"
+                                />
+                                <input
+                                    type="number" step="0.1" placeholder={`طول مقاس ${idx + 2} (سم)`}
+                                    value={s.height}
+                                    onChange={e => {
+                                        const newSizes = [...form.sizes];
+                                        newSizes[idx].height = e.target.value;
+                                        setForm({ ...form, sizes: newSizes });
+                                    }}
+                                    className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-purple-500 bg-white"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const newSizes = form.sizes.filter((_, i) => i !== idx);
+                                        setForm({ ...form, sizes: newSizes });
+                                    }}
+                                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Souffles Toggle */}
+                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-2">
+                            <Scissors className="h-5 w-5 text-indigo-600" />
+                            <span className="text-sm font-bold text-slate-700">تفعيل السوفليهات؟</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setForm({ ...form, bottomEnabled: !form.bottomEnabled })}
+                            className={`w-12 h-6 rounded-full transition-all relative ${form.bottomEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${form.bottomEnabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                    </div>
+
+                    {/* Souffles Input */}
+                    {form.bottomEnabled && (
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">حجم السوفليهات</label>
+                            <input
+                                type="text"
+                                placeholder="مثال: 5 سم"
+                                value={form.bottomSize}
+                                onChange={e => setForm({ ...form, bottomSize: e.target.value })}
+                                className="w-full px-4 py-2.5 text-right border border-indigo-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-indigo-50 focus:bg-white"
+                            />
+                        </div>
+                    )}
 
                     {/* Quantity + Price */}
                     <div className="grid grid-cols-2 gap-3">
@@ -387,6 +509,10 @@ const CustomerOrders = () => {
     const [showClicheModal, setShowClicheModal] = useState(false);
     const [clicheForm, setClicheForm] = useState({ name: '', length: '', width: '' });
 
+    // Size Management
+    const [showSizeModal, setShowSizeModal] = useState(false);
+    const [sizeForm, setSizeForm] = useState({ name: '', width: '', height: '' });
+
     // Payment Management
     const [payments, setPayments] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -499,7 +625,7 @@ const CustomerOrders = () => {
         const subtotal = (qty * price) + (qty * printing) + (qty * cutting) + cliche;
         const margin = parseFloat(order.profitMargin) || 0;
         const grandTotal = subtotal + (subtotal * (margin / 100));
-        
+
         let logoHtml = '';
         if (storeLogo) {
             logoHtml = `<div style="text-align: center; margin-bottom: 20px;">
@@ -507,7 +633,7 @@ const CustomerOrders = () => {
             </div>`;
         } else {
             // If no logo, we print immediately
-            setTimeout(() => { if(printWindow.print) printWindow.print(); }, 500);
+            setTimeout(() => { if (printWindow.print) printWindow.print(); }, 500);
         }
 
         const html = `
@@ -557,8 +683,10 @@ const CustomerOrders = () => {
                 <div class="section">
                     <div class="section-title">تفاصيل التصنيع</div>
                     <div class="row"><span class="label">نوع المنتج:</span><span class="value">${order.productType || '-'}</span></div>
-                    <div class="row"><span class="label">اللون / المقاس:</span><span class="value">${order.color || '-'} / ${order.size || '-'}</span></div>
-                    <div class="row"><span class="label">سفليات:</span><span class="value">${order.bottomSize || '-'}</span></div>
+                    <div class="row"><span class="label">اللون:</span><span class="value">${order.color || '-'}</span></div>
+                    <div class="row"><span class="label">المقاس الأساسي (سم):</span><span class="value">${order.sizeWidth && order.sizeHeight ? order.sizeWidth + ' (عرض) × ' + order.sizeHeight + ' (طول)' : '-'}</span></div>
+                    ${Array.isArray(order.sizes) && order.sizes.length > 0 ? order.sizes.map((s, i) => `<div class="row"><span class="label">مقاس ${i + 2}:</span><span class="value">${s.width} (عرض) × ${s.height} (طول) سم</span></div>`).join('') : ''}
+                    ${order.bottomEnabled ? `<div class="row"><span class="label">سوفليهات:</span><span class="value">${order.bottomSize || '-'}</span></div>` : `<div class="row"><span class="label">سوفليهات:</span><span class="value">بدون سوفليهات</span></div>`}
                     <div class="row"><span class="label">السمك:</span><span class="value">${order.thickness || '-'}</span></div>
                     <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${qty} كجم</span></div>
                     ${order.clicheEnabled ? `
@@ -597,6 +725,8 @@ const CustomerOrders = () => {
         // Validation for required fields
         const requiredFields = [
             { key: 'productType', label: 'نوع المنتج' },
+            { key: 'sizeWidth', label: 'عرض المقاس الأساسي' },
+            { key: 'sizeHeight', label: 'طول المقاس الأساسي' },
             { key: 'quantity', label: 'الكمية' },
             { key: 'pricePerKg', label: 'سعر الكيلو' },
             { key: 'printingCostPerKg', label: 'تكلفة المطبعه' },
@@ -612,7 +742,7 @@ const CustomerOrders = () => {
         }
 
         const missing = requiredFields.filter(f => !formToSave[f.key] && formToSave[f.key] !== 0);
-        
+
         if (missing.length > 0) {
             const labels = missing.map(f => f.label).join('، ');
             toast.error(`يرجى إدخال الحقول المطلوبة: ${labels}`);
@@ -772,7 +902,7 @@ const CustomerOrders = () => {
         // عرض تنبيه طباعة الفاتورة عند الانتهاء من الطلب (مغلق)
         if (newStatus === 'CLOSED') {
             setTimeout(() => {
-                if(window.confirm('ممتاز! تم إغلاق الأوردر، هل ترغب في طباعة فاتورة الحساب النهائية الآن للعميل؟')) {
+                if (window.confirm('ممتاز! تم إغلاق الأوردر، هل ترغب في طباعة فاتورة الحساب النهائية الآن للعميل؟')) {
                     handlePrintOrder(updatedOrd);
                 }
             }, 600);
@@ -839,6 +969,66 @@ const CustomerOrders = () => {
         }
     };
 
+    const handleAddCustomerSize = () => {
+        if (!sizeForm.name || !sizeForm.width || !sizeForm.height) {
+            toast.error('يرجى إدخال اسم ومقاس المنتج');
+            return;
+        }
+
+        const dimensions = `${sizeForm.width} × ${sizeForm.height}`;
+        const sizeToSave = { name: sizeForm.name, width: sizeForm.width, height: sizeForm.height, dimensions };
+
+        const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+        let updatedCustomer = null;
+        const updatedCustomers = customers.map(c => {
+            if (c.id?.toString() === id) {
+                const currentSizes = Array.isArray(c.profileSizes) ? c.profileSizes : [];
+                updatedCustomer = {
+                    ...c,
+                    profileSizes: [...currentSizes, { id: Date.now(), ...sizeToSave }]
+                };
+                return updatedCustomer;
+            }
+            return c;
+        });
+
+        if (updatedCustomer) {
+            localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+            supabaseService.updateCustomer(updatedCustomer.id, updatedCustomer).catch(console.error);
+            toast.success('تم إضافة المقاس للملف الشخصي');
+            soundManager.play('save');
+            setSizeForm({ name: '', width: '', height: '' });
+            setShowSizeModal(false);
+            loadData();
+            publish(EVENTS.CUSTOMERS_CHANGED);
+        }
+    };
+
+    const handleDeleteCustomerSize = (sizeId) => {
+        const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+        let updatedCustomer = null;
+        const updatedCustomers = customers.map(c => {
+            if (c.id?.toString() === id) {
+                const currentSizes = Array.isArray(c.profileSizes) ? c.profileSizes : [];
+                updatedCustomer = {
+                    ...c,
+                    profileSizes: currentSizes.filter(item => item.id !== sizeId)
+                };
+                return updatedCustomer;
+            }
+            return c;
+        });
+
+        if (updatedCustomer) {
+            localStorage.setItem('customers', JSON.stringify(updatedCustomers));
+            supabaseService.updateCustomer(updatedCustomer.id, updatedCustomer).catch(console.error);
+            toast.success('تم حذف المقاس');
+            soundManager.play('delete');
+            loadData();
+            publish(EVENTS.CUSTOMERS_CHANGED);
+        }
+    };
+
     // ─── Stats ───────────────────────────────────────────────
     const totalOrders = orders.length;
     const openOrders = orders.filter(o => o.status === 'OPEN').length;
@@ -853,10 +1043,10 @@ const CustomerOrders = () => {
         const printingTotal = qty * (parseFloat(o.printingCostPerKg) || 0);
         const cuttingTotal = qty * (parseFloat(o.cuttingCostPerKg) || 0);
         const clicheTotal = parseFloat(o.clicheCost) || 0;
-        
+
         const subtotal = productTotal + printingTotal + cuttingTotal + clicheTotal;
         const profit = subtotal * ((parseFloat(o.profitMargin) || 0) / 100);
-        
+
         return sum + subtotal + profit;
     }, 0);
     const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
@@ -981,7 +1171,7 @@ const CustomerOrders = () => {
                     </div>
 
                     {/* Expanded Profile Details - Matching the Stat Cards style */}
-                    <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-4">
                         <div className="bg-amber-100 border border-amber-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-amber-200/50 shadow-sm">
                             <div className="bg-amber-500/20 p-2 rounded-lg">
                                 <Briefcase className="h-4 w-4 text-amber-700 flex-shrink-0" />
@@ -1002,6 +1192,20 @@ const CustomerOrders = () => {
                             </div>
                         </div>
 
+                        <div className="bg-blue-100 border border-blue-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-blue-200/50 shadow-sm">
+                            <div className="bg-blue-500/20 p-2 rounded-lg">
+                                <Hash className="h-4 w-4 text-blue-700 flex-shrink-0" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] text-blue-700 uppercase tracking-wider mb-0.5 font-bold">المقاس</p>
+                                <p className="text-sm font-black text-slate-900 truncate">
+                                    {customer.sizeWidth && customer.sizeHeight
+                                        ? `${customer.sizeWidth} × ${customer.sizeHeight}`
+                                        : 'غير محدد'}
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="bg-pink-100 border border-pink-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-pink-200/50 shadow-sm">
                             <div className="bg-pink-500/20 p-2 rounded-lg">
                                 <Palette className="h-4 w-4 text-pink-700 flex-shrink-0" />
@@ -1017,17 +1221,17 @@ const CustomerOrders = () => {
                                 <Layers className="h-4 w-4 text-cyan-700 flex-shrink-0" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] text-cyan-700 uppercase tracking-wider mb-0.5 font-bold">الأكلشية</p>
+                                <p className="text-[10px] text-cyan-700 uppercase tracking-wider mb-0.5 font-bold">الأكلشية الأساسي</p>
                                 <p className="text-sm font-black text-slate-900 truncate">
-                                    {customer.clicheHeight && customer.clicheWidth 
-                                        ? `${customer.clicheHeight} × ${customer.clicheWidth}` 
+                                    {customer.clicheHeight && customer.clicheWidth
+                                        ? `${customer.clicheHeight} × ${customer.clicheWidth}`
                                         : customer.cliche || 'غير محدد'}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Profile Cliches (Additional) */}
+                    {/* Profile Cliches & Sizes (Additional) */}
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                         {Array.isArray(customer.profileCliches) && customer.profileCliches.map(pc => (
                             <div key={pc.id} className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
@@ -1048,13 +1252,39 @@ const CustomerOrders = () => {
                                 </button>
                             </div>
                         ))}
-                        {/* Add More Cliche Button Card */}
+                        {Array.isArray(customer.profileSizes) && customer.profileSizes.map(ps => (
+                            <div key={ps.id} className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-blue-100 p-2 rounded-lg">
+                                        <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">{ps.name}</p>
+                                        <p className="text-sm font-bold text-slate-700">{ps.dimensions} سم</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleDeleteCustomerSize(ps.id)}
+                                    className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-600 transition-all"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </button>
+                            </div>
+                        ))}
+                        {/* Add More Buttons */}
                         <div
                             onClick={() => setShowClicheModal(true)}
                             className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-all group min-h-[60px]"
                         >
-                            <Plus className="h-4 w-4 text-slate-400 group-hover:text-[#5235E8]" />
-                            <span className="text-sm font-bold text-slate-500 group-hover:text-[#5235E8]">أضف أكلشية جديد</span>
+                            <Plus className="h-4 w-4 text-slate-400 group-hover:text-purple-600" />
+                            <span className="text-sm font-bold text-slate-500 group-hover:text-purple-600">أضف أكلشية جديد</span>
+                        </div>
+                        <div
+                            onClick={() => setShowSizeModal(true)}
+                            className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-all group min-h-[60px]"
+                        >
+                            <Plus className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
+                            <span className="text-sm font-bold text-slate-500 group-hover:text-blue-600">أضف مقاس جديد</span>
                         </div>
                     </div>
                 </div>
@@ -1110,6 +1340,66 @@ const CustomerOrders = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowClicheModal(false)}
+                                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition-all"
+                                >
+                                    إلغاء
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* --- CUSTOMER SIZE MODAL --- */}
+                {showSizeModal && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Tag className="h-5 w-5 text-blue-600" />
+                                إضافة مقاس لملف العميل
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">اسم/وصف المقاس</label>
+                                    <input
+                                        type="text"
+                                        placeholder="مثال: شنطة كارفور"
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={sizeForm.name}
+                                        onChange={e => setSizeForm({ ...sizeForm, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">العرض (سم)</label>
+                                        <input
+                                            type="number"
+                                            placeholder="مثال: 30"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                                            value={sizeForm.width}
+                                            onChange={e => setSizeForm({ ...sizeForm, width: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">الطول (سم)</label>
+                                        <input
+                                            type="number"
+                                            placeholder="مثال: 40"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                                            value={sizeForm.height}
+                                            onChange={e => setSizeForm({ ...sizeForm, height: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-6">
+                                <button
+                                    onClick={handleAddCustomerSize}
+                                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all"
+                                >
+                                    حفظ المقاس
+                                </button>
+                                <button
+                                    onClick={() => setShowSizeModal(false)}
                                     className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition-all"
                                 >
                                     إلغاء
@@ -1245,7 +1535,7 @@ const CustomerOrders = () => {
                                         {/* Cost Calculation Breakdown */}
                                         <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
                                             <h4 className="text-xs font-bold text-[#006af8] border-b border-slate-200 pb-2 mb-2">تفصيل الحساب الربحي والإنتاج:</h4>
-                                            
+
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {/* Production Costs */}
                                                 <div className="space-y-2">
@@ -1253,21 +1543,21 @@ const CustomerOrders = () => {
                                                         <span className="text-slate-500 font-medium flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> تكلفة الخامة ({order.quantity} كجم):</span>
                                                         <span className="font-bold text-slate-800">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
                                                     </div>
-                                                    
+
                                                     {order.printingCostPerKg > 0 && (
                                                         <div className="flex justify-between items-center text-sm">
                                                             <span className="text-slate-500 font-medium flex items-center gap-1.5"><Printer className="h-3.5 w-3.5" /> تكلفة المطبعه:</span>
                                                             <span className="font-bold text-slate-800">${(order.quantity * order.printingCostPerKg).toLocaleString()}</span>
                                                         </div>
                                                     )}
-                                                    
+
                                                     {order.cuttingCostPerKg > 0 && (
                                                         <div className="flex justify-between items-center text-sm">
                                                             <span className="text-slate-500 font-medium flex items-center gap-1.5"><Scissors className="h-3.5 w-3.5" /> تكلفة المقص:</span>
                                                             <span className="font-bold text-slate-800">${(order.quantity * order.cuttingCostPerKg).toLocaleString()}</span>
                                                         </div>
                                                     )}
-                                                    
+
                                                     {order.clicheEnabled && order.clicheCost > 0 && (
                                                         <div className="flex justify-between items-center text-sm">
                                                             <span className="text-slate-500 font-medium flex items-center gap-1.5"><Layers className="h-3.5 w-3.5" /> تكلفة الأكلشية:</span>

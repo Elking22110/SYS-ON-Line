@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, Trash2, Edit, X, Filter, FileText, Check, DollarSign } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, X, Filter, FileText, Check, DollarSign, User } from 'lucide-react';
 import soundManager from '../utils/soundManager';
 import { getCurrentDate } from '../utils/dateUtils';
 import safeMath from '../utils/safeMath';
@@ -142,8 +142,8 @@ const Expenses = () => {
             } else {
                 // إضافة جديدة
                 const savedOnline = await supabaseService.addExpense(newExpense);
-                const finalExpense = savedOnline 
-                    ? { ...savedOnline, type: savedOnline.category || savedOnline.type, date: String(savedOnline.date).split('T')[0] } 
+                const finalExpense = savedOnline
+                    ? { ...savedOnline, type: savedOnline.category || savedOnline.type, date: String(savedOnline.date).split('T')[0] }
                     : newExpense;
                 updatedExpenses = [finalExpense, ...expenses];
                 notifySuccess('نجاح', 'تم تسجيل المصروف بنجاح');
@@ -279,7 +279,8 @@ const Expenses = () => {
                                 <th className="px-6 py-4 font-semibold">تاريخ المصروف</th>
                                 <th className="px-6 py-4 font-semibold">بند المصروف</th>
                                 <th className="px-6 py-4 font-semibold">المبلغ (ج.م)</th>
-                                <th className="px-6 py-4 font-semibold w-2/5">البيان / الملاحظات</th>
+                                <th className="px-6 py-4 font-semibold">العامل المستفيد</th>
+                                <th className="px-6 py-4 font-semibold w-1/3">البيان / الملاحظات</th>
                                 <th className="px-6 py-4 font-semibold text-center">الإجراءات</th>
                             </tr>
                         </thead>
@@ -298,6 +299,9 @@ const Expenses = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="font-bold text-slate-900 text-base">{Number(expense.amount).toLocaleString('ar-EG')}</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-slate-500 font-medium">{expense.type === 'labor' && expense.workerName ? expense.workerName : '-'}</span>
                                         </td>
                                         <td className="px-6 py-4 font-medium text-slate-700">{expense.description}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -322,7 +326,7 @@ const Expenses = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center justify-center">
                                             <FileText className="w-12 h-12 mb-3 text-gray-600" />
                                             <p>لا توجد مصروفات مسجلة بهذا التصنيف.</p>
@@ -370,6 +374,26 @@ const Expenses = () => {
                                     <option value="other">أخرى</option>
                                 </select>
                             </div>
+
+                            {formData.type === 'labor' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">اسم العامل المستفيد <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <User className="w-5 h-5 text-slate-400" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="workerName"
+                                            value={formData.workerName || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full bg-slate-50 text-slate-800 rounded-xl pl-3 pr-10 py-3 border border-slate-300 focus:border-purple-500 outline-none transition-all placeholder-slate-400"
+                                            placeholder="أدخل اسم العامل..."
+                                            required={formData.type === 'labor'}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">المبلغ (ج.م) <span className="text-red-500">*</span></label>
