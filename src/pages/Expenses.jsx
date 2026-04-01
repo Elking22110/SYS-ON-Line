@@ -60,9 +60,15 @@ const Expenses = () => {
     useEffect(() => {
         loadExpensesFromSupabase();
 
-        const unsubscribe = typeof subscribe === 'function' ? subscribe(EVENTS.EXPENSES_CHANGED, loadExpensesFromSupabase) : null;
+        const onDataUpdate = () => loadExpensesFromSupabase();
+        const unsubscribe = typeof subscribe === 'function' ? subscribe(EVENTS.EXPENSES_CHANGED, onDataUpdate) : null;
+        window.addEventListener('dataUpdated', onDataUpdate);
+        window.addEventListener('storage', onDataUpdate);
+
         return () => {
             if (typeof unsubscribe === 'function') unsubscribe();
+            window.removeEventListener('dataUpdated', onDataUpdate);
+            window.removeEventListener('storage', onDataUpdate);
         };
     }, []);
 

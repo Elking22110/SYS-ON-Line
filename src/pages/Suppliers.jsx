@@ -70,9 +70,15 @@ const Suppliers = () => {
   useEffect(() => {
     loadSuppliersFromSupabase();
 
-    const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, loadSuppliersFromSupabase);
+    const onDataUpdate = () => loadSuppliersFromSupabase();
+    const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, onDataUpdate);
+    window.addEventListener('dataUpdated', onDataUpdate);
+    window.addEventListener('storage', onDataUpdate);
+
     return () => {
       if (unsubSuppliers) unsubSuppliers();
+      window.removeEventListener('dataUpdated', onDataUpdate);
+      window.removeEventListener('storage', onDataUpdate);
     };
   }, []);
 

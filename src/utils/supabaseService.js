@@ -384,7 +384,9 @@ class SupabaseService {
             { name: 'Expense', event: EVENTS.EXPENSES_CHANGED, storageKey: 'expenses' },
             { name: 'Supplier', event: EVENTS.SUPPLIERS_CHANGED, storageKey: 'suppliers' },
             { name: 'CustomerOrder', event: EVENTS.CUSTOMER_ORDERS_CHANGED, storageKey: 'customer_orders' },
-            { name: 'CustomerPayment', event: EVENTS.CUSTOMER_PAYMENTS_CHANGED, storageKey: 'customer_payments' }
+            { name: 'CustomerPayment', event: EVENTS.CUSTOMER_PAYMENTS_CHANGED, storageKey: 'customer_payments' },
+            { name: 'Setting', event: 'settings_changed', storageKey: null }, // Handle specially
+            { name: 'User', event: 'users_changed', storageKey: 'users' }
         ];
 
         tables.forEach(table => {
@@ -410,7 +412,17 @@ class SupabaseService {
 
     async handleRealtimeUpdate(tableInfo, payload) {
         try {
-            // Update local storage instantly to ensure offline/online syncing works magically across devices
+            // Special handling for Settings table (JSON values)
+            if (tableInfo.name === 'Setting') {
+                const setting = payload.new;
+                if (setting && setting.key) {
+                    localStorage.setItem(setting.key, setting.value);
+                    window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'setting', key: setting.key } }));
+                }
+                return;
+            }
+
+            // Update local storage instantly for regular tables
             const storageKey = tableInfo.storageKey;
             if (storageKey) {
                 const currentData = JSON.parse(localStorage.getItem(storageKey) || '[]');
@@ -423,7 +435,6 @@ class SupabaseService {
                 } else if (payload.eventType === 'UPDATE') {
                     updatedData = updatedData.map(item => {
                         if (item.id == payload.new.id) {
-                            // Merge: keep local fields that aren't in Supabase, and prevent cloud nulls from erasing local data
                             const mergedItem = { ...item };
                             Object.keys(payload.new).forEach(k => {
                                 if (payload.new[k] !== null && payload.new[k] !== '') {
@@ -439,19 +450,87 @@ class SupabaseService {
                 }
 
                 localStorage.setItem(storageKey, JSON.stringify(updatedData));
+
+                // Special: Update activeShift if a shift is marked as active
+                if (tableInfo.name === 'Shift') {
+                    const active = updatedData.find(s => s.status === 'active');
+                    if (active) {
+                        localStorage.setItem('activeShift', JSON.stringify(active));
+                    } else if (payload.eventType === 'UPDATE' && payload.new.status === 'ended') {
+                         // Clear active shift if this update was ending it
+                         localStorage.removeItem('activeShift');
+                    }
+                }
             }
 
-            // Trigger UI update event via observerManager
             publish(tableInfo.event, {
                 type: 'remote_sync',
                 action: payload.eventType,
                 data: payload.new || payload.old
             });
-
-            // Components will fetch fresh data from localStorage because they listen to the publish event
+            window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: storageKey } }));
         } catch (error) {
             console.error(`Error handling realtime update for ${tableInfo.name}:`, error);
         }
+    }
+
+    /**
+     * Comprehensive Initial Sync (Bootstrap)
+     * Fetches all critical system data once to populate local storage
+     */
+    async bootstrapAllData(onProgress) {
+        if (!navigator.onLine) return;
+        
+        const tasks = [
+            { name: 'المنتجات', key: 'products', fetch: () => this.getProducts() },
+            { name: 'العملاء', key: 'customers', fetch: () => this.getCustomers() },
+            { name: 'الطلبات', key: 'customer_orders', fetch: () => this.getAllCustomerOrders() },
+            { name: 'المبيعات', key: 'sales', fetch: () => this.getSales() },
+            { name: 'الفئات', key: 'productCategories', fetch: () => this.getCategories() },
+            { name: 'الموردين', key: 'suppliers', fetch: () => this.getSuppliers() },
+            { name: 'المصروفات', key: 'expenses', fetch: () => this.getExpenses() },
+            { name: 'الورديات', key: 'shifts', fetch: () => this.getShifts() },
+            { name: 'المستخدمين', key: 'users', fetch: () => this.getUsers() },
+            { name: 'الإعدادات', key: 'settings', fetch: () => this.getSettings() }
+        ];
+
+        console.log('🚀 Starting Parallel Bootstrap Sync...');
+        let completed = 0;
+
+        await Promise.all(tasks.map(async (task) => {
+            try {
+                const data = await task.fetch();
+                completed++;
+                if (onProgress) onProgress(task.name, Math.round((completed / tasks.length) * 100));
+                
+                if (data) {
+                    if (task.key === 'settings') {
+                        data.forEach(s => {
+                            if (s.key && s.value) localStorage.setItem(s.key, s.value);
+                        });
+                    } else if (task.key === 'shifts') {
+                        localStorage.setItem('shifts', JSON.stringify(data));
+                        const active = data.find(s => s.status === 'active');
+                        if (active) localStorage.setItem('activeShift', JSON.stringify(active));
+                    } else if (task.key === 'products') {
+                        const mapped = data.map(p => ({
+                            id: p.id, name: p.name, category: p.category, price: p.price,
+                            stock: p.quantity, minStock: p.minQuantity, barcode: p.barcode,
+                            image: p.image, supplyId: p.supplyId, isSupplyProduct: !!p.supplyId,
+                            costPrice: p.costPrice
+                        }));
+                        localStorage.setItem('products', JSON.stringify(mapped));
+                    } else {
+                        localStorage.setItem(task.key, JSON.stringify(data));
+                    }
+                }
+            } catch (err) {
+                console.error(`Bootstrap failed for ${task.name}:`, err);
+            }
+        }));
+        
+        console.log('✅ Global Bootstrap Sync Completed');
+        window.dispatchEvent(new Event('dataUpdated'));
     }
 
     stopRealtime() {

@@ -598,7 +598,10 @@ const CustomerOrders = () => {
         const unsubInvoices = subscribe(EVENTS.INVOICES_CHANGED, loadData);
         const unsubSuppliers = subscribe(EVENTS.SUPPLIERS_CHANGED, loadData);
         const unsubOrders = subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, loadData);
+        const onDataUpdate = () => loadData();
         const unsubPayments = subscribe(EVENTS.CUSTOMER_PAYMENTS_CHANGED, loadData);
+        window.addEventListener('dataUpdated', onDataUpdate);
+        window.addEventListener('storage', onDataUpdate);
 
         return () => {
             if (unsubCustomers) unsubCustomers();
@@ -606,6 +609,8 @@ const CustomerOrders = () => {
             if (unsubSuppliers) unsubSuppliers();
             if (unsubOrders) unsubOrders();
             if (unsubPayments) unsubPayments();
+            window.removeEventListener('dataUpdated', onDataUpdate);
+            window.removeEventListener('storage', onDataUpdate);
         };
     }, [id]);
 

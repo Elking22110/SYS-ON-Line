@@ -65,14 +65,18 @@ const ClichesInventory = () => {
 
     useEffect(() => {
         loadData();
-        const unsubCustomers = subscribe(EVENTS.CUSTOMERS_CHANGED, loadData);
-        const unsubOrders = subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, loadData);
-        const onStorageChange = (e) => { if (e.key === 'customers') loadData(); };
-        window.addEventListener('storage', onStorageChange);
+        const onDataUpdate = () => loadData();
+        const unsubCustomers = subscribe(EVENTS.CUSTOMERS_CHANGED, onDataUpdate);
+        const unsubOrders = subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, onDataUpdate);
+        
+        window.addEventListener('dataUpdated', onDataUpdate);
+        window.addEventListener('storage', onDataUpdate);
+        
         return () => {
             unsubCustomers();
             unsubOrders();
-            window.removeEventListener('storage', onStorageChange);
+            window.removeEventListener('dataUpdated', onDataUpdate);
+            window.removeEventListener('storage', onDataUpdate);
         };
     }, []);
 
