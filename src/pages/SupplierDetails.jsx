@@ -818,6 +818,8 @@ const SupplierDetails = () => {
                                         const order = openOrders.find(o => o.id.toString() === e.target.value);
                                         setNewSupply({
                                             ...newSupply,
+                                            productName: order?.productType || newSupply.productName,
+                                            quantity: order?.quantity ? order.quantity.toString() : newSupply.quantity,
                                             linkedOrderId: e.target.value,
                                             linkedOrderNumber: order?.orderNumber || '',
                                             linkedCustomerName: order?.customerName || '',
