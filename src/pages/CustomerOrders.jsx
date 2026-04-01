@@ -380,51 +380,6 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">لون المنتج</label>
-                            <input
-                                type="text"
-                                placeholder="أحمر، أزرق..."
-                                value={form.color}
-                                onChange={e => setForm({ ...form, color: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">المقاس</label>
-                            <input
-                                type="text"
-                                placeholder="وسط..."
-                                value={form.size}
-                                onChange={e => setForm({ ...form, size: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">سفليات المنتج</label>
-                            <input
-                                type="text"
-                                placeholder="مثال: 5 سم"
-                                value={form.bottomSize}
-                                onChange={e => setForm({ ...form, bottomSize: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">سمك المنتج</label>
-                            <input
-                                type="text"
-                                placeholder="مثال: 50 ميكرون"
-                                value={form.thickness}
-                                onChange={e => setForm({ ...form, thickness: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
-                            />
-                        </div>
-                    </div>
 
                     {/* Status */}
                     <div>
