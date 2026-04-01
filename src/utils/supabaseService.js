@@ -108,7 +108,7 @@ const dbApi = {
             'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
             'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent',
             'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
-            'colorCount', 'notes', 'profileCliches'
+            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
@@ -123,7 +123,7 @@ const dbApi = {
             'name', 'phone', 'email', 'address', 'points', 'totalPurchases', 'orders',
             'lastVisit', 'joinDate', 'status', 'totalSpent',
             'businessActivity', 'usualProduct', 'cliche', 'clicheWidth', 'clicheHeight',
-            'colorCount', 'notes', 'profileCliches'
+            'colorCount', 'notes', 'profileCliches', 'sizeWidth', 'sizeHeight', 'profileSizes'
         ];
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
@@ -1014,6 +1014,8 @@ class SupabaseService {
                 clicheCost: parseFloat(orderData.clicheCost) || 0,
                 color: orderData.color || '',
                 size: orderData.size || '',
+                sizes: orderData.sizes || [],
+                bottomEnabled: !!orderData.bottomEnabled,
                 bottomSize: orderData.bottomSize || '',
                 thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
@@ -1025,9 +1027,11 @@ class SupabaseService {
             let result = await supabase.from('CustomerOrder').upsert(payload).select().single();
             if (result.error) {
                 // If column does not exist yet in DB, retry without the new columns
-                if (result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.code === 'PGRST204') {
+                if (result.error.code === 'PGRST204' || result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.message?.includes('sizes') || result.error.message?.includes('bottomEnabled')) {
                     delete payload.bottomSize;
                     delete payload.thickness;
+                    delete payload.sizes;
+                    delete payload.bottomEnabled;
                     result = await supabase.from('CustomerOrder').upsert(payload).select().single();
                 }
                 if (result.error) throw result.error;
@@ -1058,6 +1062,8 @@ class SupabaseService {
                 clicheCost: parseFloat(orderData.clicheCost) || 0,
                 color: orderData.color || '',
                 size: orderData.size || '',
+                sizes: orderData.sizes || [],
+                bottomEnabled: !!orderData.bottomEnabled,
                 bottomSize: orderData.bottomSize || '',
                 thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
@@ -1070,9 +1076,11 @@ class SupabaseService {
             
             if (result.error) {
                 // Fallback for missing columns
-                if (result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.code === 'PGRST204') {
+                if (result.error.code === 'PGRST204' || result.error.message?.includes('bottomSize') || result.error.message?.includes('thickness') || result.error.message?.includes('sizes') || result.error.message?.includes('bottomEnabled')) {
                     delete payload.bottomSize;
                     delete payload.thickness;
+                    delete payload.sizes;
+                    delete payload.bottomEnabled;
                     result = await supabase.from('CustomerOrder').update(payload).eq('id', id.toString()).select().single();
                 }
                 if (result.error) throw result.error;
