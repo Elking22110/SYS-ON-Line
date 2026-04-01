@@ -523,7 +523,13 @@ class SupabaseService {
                         }));
                         localStorage.setItem('products', JSON.stringify(mapped));
                     } else {
-                        localStorage.setItem(task.key, JSON.stringify(data));
+                        const local = JSON.parse(localStorage.getItem(task.key) || '[]');
+                        const cloud = data || [];
+                        const cloudIds = new Set(cloud.map(item => item.id?.toString()));
+                        // Keep local items that are NOT in the cloud yet
+                        const localOnly = local.filter(item => item && item.id && !cloudIds.has(item.id.toString()));
+                        const merged = [...cloud, ...localOnly];
+                        localStorage.setItem(task.key, JSON.stringify(merged));
                     }
                 }
             } catch (err) {

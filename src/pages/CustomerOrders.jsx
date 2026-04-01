@@ -695,7 +695,7 @@ const CustomerOrders = () => {
     };
 
     // ─── CRUD ────────────────────────────────────────────────
-    const handleSaveOrder = (formToSave) => {
+    const handleSaveOrder = async (formToSave) => {
         // Validation for required fields
         const requiredFields = [
             { key: 'productType', label: 'نوع المنتج' },
@@ -748,11 +748,11 @@ const CustomerOrders = () => {
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
             // Sync to Supabase
-            supabaseService.updateCustomerOrder(editingOrder.id, {
+            await supabaseService.updateCustomerOrder(editingOrder.id, {
                 ...formToSave,
                 profitMargin: parseFloat(formToSave.profitMargin) || 0,
                 clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0
-            }).catch(console.error);
+            });
             toast.success('تم تحديث الطلب بنجاح');
         } else {
             // Create
@@ -775,10 +775,9 @@ const CustomerOrders = () => {
                 clicheCost: clicheCost,
                 profitMargin: parseFloat(formToSave.profitMargin) || 0,
             };
-            allOrders.push(newOrder);
             localStorage.setItem('customer_orders', JSON.stringify(allOrders));
             // Sync to Supabase
-            supabaseService.addCustomerOrder(newOrder).catch(console.error);
+            await supabaseService.addCustomerOrder(newOrder);
             toast.success(`تم إنشاء الطلب ${newOrder.orderNumber} بنجاح`);
 
             // عرض تنبيه لطباعة الفاتورة بعد إنشاء الطلب مباشرة
@@ -802,7 +801,7 @@ const CustomerOrders = () => {
         soundManager.play('openWindow');
     };
 
-    const handleDeleteOrder = (orderId) => {
+    const handleDeleteOrder = async (orderId) => {
         if (!window.confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
         const linked = getOrderLinkedSupplies(orderId);
         if (linked.length > 0) {
@@ -819,13 +818,13 @@ const CustomerOrders = () => {
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         localStorage.setItem('customer_orders', JSON.stringify(allOrders.filter(o => o.id !== orderId)));
         // Sync deletion to Supabase
-        supabaseService.deleteCustomerOrder(orderId).catch(console.error);
+        await supabaseService.deleteCustomerOrder(orderId);
         soundManager.play('delete');
         toast.success('تم حذف الطلب');
         loadData();
     };
 
-    const handleSavePayment = (paymentData) => {
+    const handleSavePayment = async (paymentData) => {
         const amount = parseFloat(paymentData.amount);
         if (!amount || amount <= 0) {
             toast.error('يرجى إدخال مبلغ صحيح');
@@ -855,7 +854,7 @@ const CustomerOrders = () => {
         allPayments.push(newPayment);
         localStorage.setItem('customer_payments', JSON.stringify(allPayments));
         // Sync to Supabase
-        supabaseService.addCustomerPayment(newPayment).catch(console.error);
+        await supabaseService.addCustomerPayment(newPayment);
 
         toast.success('تم تسجيل الدفعة بنجاح');
         soundManager.play('save');
@@ -863,13 +862,13 @@ const CustomerOrders = () => {
         loadData();
     };
 
-    const handleChangeStatus = (order, newStatus) => {
+    const handleChangeStatus = async (order, newStatus) => {
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         const updatedOrd = { ...order, status: newStatus };
         const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);
         localStorage.setItem('customer_orders', JSON.stringify(updated));
         // Sync to Supabase
-        supabaseService.updateCustomerOrder(order.id, updatedOrd).catch(console.error);
+        await supabaseService.updateCustomerOrder(order.id, updatedOrd);
         soundManager.play('save');
         loadData();
 
@@ -883,7 +882,7 @@ const CustomerOrders = () => {
         }
     };
 
-    const handleAddCustomerCliche = () => {
+    const handleAddCustomerCliche = async () => {
         if (!clicheForm.name || !clicheForm.length || !clicheForm.width) {
             toast.error('يرجى إدخال اسم ومقاس الأكلشية');
             return;
@@ -918,7 +917,7 @@ const CustomerOrders = () => {
         }
     };
 
-    const handleDeleteCustomerCliche = (clicheId) => {
+    const handleDeleteCustomerCliche = async (clicheId) => {
         const customers = JSON.parse(localStorage.getItem('customers') || '[]');
         let updatedCustomer = null;
         const updatedCustomers = customers.map(c => {
@@ -943,7 +942,7 @@ const CustomerOrders = () => {
         }
     };
 
-    const handleAddCustomerSize = () => {
+    const handleAddCustomerSize = async () => {
         if (!sizeForm.name || !sizeForm.width || !sizeForm.height) {
             toast.error('يرجى إدخال اسم ومقاس المنتج');
             return;
@@ -978,7 +977,7 @@ const CustomerOrders = () => {
         }
     };
 
-    const handleDeleteCustomerSize = (sizeId) => {
+    const handleDeleteCustomerSize = async (sizeId) => {
         const customers = JSON.parse(localStorage.getItem('customers') || '[]');
         let updatedCustomer = null;
         const updatedCustomers = customers.map(c => {
