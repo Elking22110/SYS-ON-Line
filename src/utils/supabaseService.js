@@ -114,6 +114,7 @@ const dbApi = {
         if (!payload.id) payload.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
         // Allowed schema for Customer (Full Sync Enabled)
+        // NOTE: bagSizes, profileCliches, profileSizes must be JSONB columns in Supabase
         const allowed = [
             'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
             'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent',
@@ -123,11 +124,27 @@ const dbApi = {
         const cleanPayload = {};
         allowed.forEach(key => { if (payload[key] !== undefined) cleanPayload[key] = payload[key]; });
 
+        // Convert arrays to null if empty to avoid Supabase JSONB type mismatch
+        ['bagSizes', 'profileCliches', 'profileSizes'].forEach(key => {
+            if (Array.isArray(cleanPayload[key])) {
+                cleanPayload[key] = cleanPayload[key].length > 0 ? cleanPayload[key] : null;
+            }
+        });
+
+        // Convert empty strings to null for optional fields
+        ['email', 'phone', 'address', 'sizeWidth', 'sizeHeight', 'clicheWidth', 'clicheHeight',
+         'businessActivity', 'usualProduct', 'cliche', 'colorCount', 'notes'].forEach(key => {
+            if (cleanPayload[key] === '') cleanPayload[key] = null;
+        });
+
         let result = cleanPayload.id
             ? await supabase.from('Customer').upsert(cleanPayload).select().single()
             : await supabase.from('Customer').insert(cleanPayload).select().single();
             
-        if (result.error) throw result.error;
+        if (result.error) {
+            console.error('Supabase addCustomer raw error:', JSON.stringify(result.error));
+            throw result.error;
+        }
         return result.data;
     },
     updateCustomer: async (id, data) => {
@@ -140,8 +157,24 @@ const dbApi = {
         const cleanPayload = {};
         allowed.forEach(key => { if (data[key] !== undefined) cleanPayload[key] = data[key]; });
 
+        // Convert arrays to null if empty to avoid Supabase JSONB type mismatch
+        ['bagSizes', 'profileCliches', 'profileSizes'].forEach(key => {
+            if (Array.isArray(cleanPayload[key])) {
+                cleanPayload[key] = cleanPayload[key].length > 0 ? cleanPayload[key] : null;
+            }
+        });
+
+        // Convert empty strings to null for optional fields
+        ['email', 'phone', 'address', 'sizeWidth', 'sizeHeight', 'clicheWidth', 'clicheHeight',
+         'businessActivity', 'usualProduct', 'cliche', 'colorCount', 'notes'].forEach(key => {
+            if (cleanPayload[key] === '') cleanPayload[key] = null;
+        });
+
         let result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
-        if (result.error) throw result.error;
+        if (result.error) {
+            console.error('Supabase updateCustomer raw error:', JSON.stringify(result.error));
+            throw result.error;
+        }
         publish(EVENTS.CUSTOMERS_CHANGED, { type: 'UPDATE', data: result.data });
         return result.data;
     },
@@ -714,13 +747,12 @@ class SupabaseService {
             // Pass all data through — dbApi.addCustomer handles allowed-column filtering
             const data = { ...customerData };
             if (data.id) data.id = data.id.toString();
-            // Ensure empty strings become null for optional fields
-            if (data.email === '') data.email = null;
-            if (data.phone === '') data.phone = null;
-            if (data.address === '') data.address = null;
             return await dbApi.addCustomer(data);
         } catch (error) {
             console.error('Supabase addCustomer Error:', error);
+            // Log the full details to help diagnose 400 errors
+            if (error?.details) console.error('Error details:', error.details);
+            if (error?.hint) console.error('Error hint:', error.hint);
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addCustomer', [customerData]);
             throw error;
         }

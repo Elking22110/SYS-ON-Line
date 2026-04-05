@@ -789,7 +789,7 @@ const CustomerOrders = () => {
                 clicheCost: clicheCost,
                 profitMargin: parseFloat(formToSave.profitMargin) || 0,
             };
-            localStorage.setItem('customer_orders', JSON.stringify(allOrders));
+            localStorage.setItem('customer_orders', JSON.stringify([...allOrders, newOrder]));
             // Sync to Supabase
             await supabaseService.addCustomerOrder(newOrder);
             toast.success(`تم إنشاء الطلب ${newOrder.orderNumber} بنجاح`);
