@@ -467,9 +467,7 @@ const Products = () => {
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'الكل' || product.category === selectedCategory;
-    // المنتج يختفي من القائمة إذا كانت كميته صفر بناء على طلب العميل
-    const isAvailable = Number(product.stock) > 0;
-    return matchesSearch && matchesCategory && isAvailable;
+    return matchesSearch && matchesCategory;
   });
 
   // الحصول على قائمة أسماء الفئات للفلترة
@@ -1029,14 +1027,15 @@ const Products = () => {
                             soundManager.play('update');
                             handleEditProduct(product);
                           }}
-                          className="p-1.5 md:p-2 bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[32px] min-h-[32px] md:min-w-[40px] md:min-h-[40px] flex items-center justify-center cursor-pointer"
+                          className="p-2 md:p-3 bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] flex items-center justify-center cursor-pointer group"
                           style={{
                             pointerEvents: 'auto',
                             zIndex: 10,
                             position: 'relative'
                           }}
+                          title="تعديل"
                         >
-                          <Edit className="h-3.5 w-3.5 md:h-5 md:w-5" />
+                          <Edit className="h-5 w-5 md:h-6 md:w-6 pointer-events-none" />
                         </button>
                         <button
                           onClick={(e) => {
@@ -1045,14 +1044,15 @@ const Products = () => {
                             soundManager.play('delete');
                             handleDeleteProduct(product.id);
                           }}
-                          className="p-1.5 md:p-2 bg-red-600 hover:bg-red-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[32px] min-h-[32px] md:min-w-[40px] md:min-h-[40px] flex items-center justify-center cursor-pointer"
+                          className="p-2 md:p-3 bg-red-600 hover:bg-red-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] flex items-center justify-center cursor-pointer group"
                           style={{
                             pointerEvents: 'auto',
                             zIndex: 10,
                             position: 'relative'
                           }}
+                          title="حذف"
                         >
-                          <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
+                          <Trash2 className="h-5 w-5 md:h-6 md:w-6 pointer-events-none" />
                         </button>
                       </div>
                     </td>

@@ -98,7 +98,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
             } else {
                 // Fetch default profit margin from settings
                 const savedSettings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
-                const defaultMargin = savedSettings.orderProfitMargin !== undefined ? savedSettings.orderProfitMargin : '';
+                const defaultMargin = savedSettings.orderProfitMargin !== undefined && savedSettings.orderProfitMargin !== '' ? savedSettings.orderProfitMargin : 10;
 
                 const today = new Date().toISOString().split('T')[0];
                 const delivery = addDays(today, 10).split('T')[0];
@@ -183,14 +183,14 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <input
-                                    type="number" step="0.1" placeholder="العرض الأساسي (سم)"
+                                    type="number" step="any" placeholder="العرض الأساسي (سم)"
                                     value={form.sizeWidth} onChange={e => setForm({ ...form, sizeWidth: e.target.value })}
                                     className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                                 />
                             </div>
                             <div>
                                 <input
-                                    type="number" step="0.1" placeholder="الطول الأساسي (سم)"
+                                    type="number" step="any" placeholder="الطول الأساسي (سم)"
                                     value={form.sizeHeight} onChange={e => setForm({ ...form, sizeHeight: e.target.value })}
                                     className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                                 />
@@ -199,7 +199,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                         {(form.sizes || []).map((s, idx) => (
                             <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-center mt-2 relative">
                                 <input
-                                    type="number" step="0.1" placeholder={`عرض مقاس ${idx + 2} (سم)`}
+                                    type="number" step="any" placeholder={`عرض مقاس ${idx + 2} (سم)`}
                                     value={s.width}
                                     onChange={e => {
                                         const newSizes = [...form.sizes];
@@ -209,7 +209,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-purple-500 bg-white"
                                 />
                                 <input
-                                    type="number" step="0.1" placeholder={`طول مقاس ${idx + 2} (سم)`}
+                                    type="number" step="any" placeholder={`طول مقاس ${idx + 2} (سم)`}
                                     value={s.height}
                                     onChange={e => {
                                         const newSizes = [...form.sizes];
@@ -268,7 +268,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <input
                                 type="number"
                                 min="0"
-                                step="0.01"
+                                step="any"
                                 placeholder="500"
                                 value={form.quantity}
                                 onChange={e => setForm({ ...form, quantity: e.target.value })}
@@ -280,7 +280,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <input
                                 type="number"
                                 min="0"
-                                step="0.1"
+                                step="any"
                                 placeholder="150"
                                 value={form.pricePerKg}
                                 onChange={e => setForm({ ...form, pricePerKg: e.target.value })}
@@ -313,7 +313,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     <input
                                         type="number"
                                         min="0"
-                                        step="0.1"
+                                        step="any"
                                         placeholder="طول"
                                         value={form.clicheHeight}
                                         onChange={e => setForm({ ...form, clicheHeight: e.target.value })}
@@ -325,7 +325,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     <input
                                         type="number"
                                         min="0"
-                                        step="0.1"
+                                        step="any"
                                         placeholder="عرض"
                                         value={form.clicheWidth}
                                         onChange={e => setForm({ ...form, clicheWidth: e.target.value })}
@@ -360,7 +360,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <input
                                 type="number"
                                 min="0"
-                                step="0.1"
+                                step="any"
                                 placeholder="0.00"
                                 value={form.printingCostPerKg}
                                 onChange={e => setForm({ ...form, printingCostPerKg: e.target.value })}
@@ -372,7 +372,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <input
                                 type="number"
                                 min="0"
-                                step="0.1"
+                                step="any"
                                 placeholder="0.00"
                                 value={form.cuttingCostPerKg}
                                 onChange={e => setForm({ ...form, cuttingCostPerKg: e.target.value })}
@@ -472,6 +472,10 @@ const CustomerOrders = () => {
     // Payment Management
     const [payments, setPayments] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+    // Order Completion
+    const [completionModalOrder, setCompletionModalOrder] = useState(null);
+    const [netDeliveredQuantity, setNetDeliveredQuantity] = useState('');
 
     // ─── Load ────────────────────────────────────────────────
     const loadData = React.useCallback(async () => {
@@ -599,7 +603,9 @@ const CustomerOrders = () => {
         const cliche = parseFloat(order.clicheCost) || 0;
         const subtotal = (qty * price) + (qty * printing) + (qty * cutting) + cliche;
         const margin = parseFloat(order.profitMargin) || 0;
-        const grandTotal = subtotal + (subtotal * (margin / 100));
+        const grandTotal = subtotal + (qty * margin);
+
+        const orderSupplies = getOrderLinkedSupplies(order.id);
 
         let logoHtml = '';
         if (storeLogo) {
@@ -877,6 +883,13 @@ const CustomerOrders = () => {
     };
 
     const handleChangeStatus = async (order, newStatus) => {
+        if (newStatus === 'DONE') {
+            soundManager.play('openWindow');
+            setCompletionModalOrder(order);
+            setNetDeliveredQuantity('');
+            return;
+        }
+
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         const updatedOrd = { ...order, status: newStatus };
         const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);
@@ -894,6 +907,63 @@ const CustomerOrders = () => {
                 }
             }, 600);
         }
+    };
+
+    const handleConfirmCompletion = async () => {
+        const netQty = parseFloat(netDeliveredQuantity);
+        if (isNaN(netQty) || netQty <= 0) {
+            toast.error('يرجى إدخال كمية صحيحة أكبر من الصفر');
+            soundManager.play('error');
+            return;
+        }
+
+        const order = completionModalOrder;
+        const linked = getOrderLinkedSupplies(order.id);
+        const originalQty = parseFloat(order.quantity);
+        let updatedSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+        
+        if (linked.length > 0) {
+            const supply = linked[0];
+            const totalSuppliedQty = parseFloat(supply.quantity) || 0;
+            const waste = Math.max(0, totalSuppliedQty - netQty);
+            
+            updatedSupplies = updatedSupplies.map(s => 
+                s.id === supply.id 
+                ? { ...s, wasteQuantity: waste, netDeliveredQuantity: netQty } 
+                : s
+            );
+            localStorage.setItem('supplier_supplies', JSON.stringify(updatedSupplies));
+            
+            // Sync to supabase
+            try {
+                const supplyToUpdate = updatedSupplies.find(s => s.id === supply.id);
+                if (supplyToUpdate) await supabaseService.updateSupplierSupply(supplyToUpdate.id, supplyToUpdate);
+            } catch(e) { console.error('Error updating supply waste', e)}
+        }
+
+        const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+        const updatedOrd = { 
+            ...order, 
+            status: 'CLOSED', // يتم الإغلاق فوراً
+            orderedQuantity: originalQty,
+            quantity: netQty, 
+        };
+        const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);
+        localStorage.setItem('customer_orders', JSON.stringify(updated));
+        
+        await supabaseService.updateCustomerOrder(order.id, updatedOrd);
+        
+        setCompletionModalOrder(null);
+        setNetDeliveredQuantity('');
+        soundManager.play('save');
+        toast.success('تم إنهاء وإغلاق الطلب بنجاح وتحديد الهالك.');
+        loadData();
+
+        setTimeout(() => {
+            if (window.confirm('تمت العملية وتسجيل الفاتورة بناء على الصافي. هل ترغب في طباعة الفاتورة النهائية الآن؟')) {
+                handlePrintOrder(updatedOrd);
+            }
+        }, 600);
     };
 
     const handleAddCustomerCliche = async () => {
@@ -1032,7 +1102,7 @@ const CustomerOrders = () => {
         const clicheTotal = parseFloat(o.clicheCost) || 0;
 
         const subtotal = productTotal + printingTotal + cuttingTotal + clicheTotal;
-        const profit = subtotal * ((parseFloat(o.profitMargin) || 0) / 100);
+        const profit = qty * (parseFloat(o.profitMargin) || 0);
 
         return sum + subtotal + profit;
     }, 0);
@@ -1574,7 +1644,7 @@ const CustomerOrders = () => {
                                                         const cl = parseFloat(order.clicheCost) || 0;
                                                         const sub = raw + pr + cu + cl;
                                                         const margin = parseFloat(order.profitMargin) || 0;
-                                                        const profit = sub * (margin / 100);
+                                                        const profit = order.quantity * margin;
                                                         const grandTotal = sub + profit;
 
                                                         return (
@@ -1584,7 +1654,7 @@ const CustomerOrders = () => {
                                                                     <span className="font-bold text-slate-700">${sub.toLocaleString()}</span>
                                                                 </div>
                                                                 <div className="flex justify-between items-center text-xs text-emerald-600">
-                                                                    <span className="font-bold">نسبة الربح ({margin}%):</span>
+                                                                    <span className="font-bold">قيمة الربح ({margin} ج/كجم):</span>
                                                                     <span className="font-bold">${profit.toLocaleString()}</span>
                                                                 </div>
                                                                 <div className="flex justify-between items-center pt-2 border-t border-slate-100">
@@ -1701,6 +1771,67 @@ const CustomerOrders = () => {
                         }
                     }}
                 />
+            {/* Order Completion Modal */}
+            {completionModalOrder && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999] backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto">
+                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <CheckCircle className="h-6 w-6 text-emerald-600" />
+                            إنهاء الطلب: الصافي والهالك
+                        </h2>
+                        
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5 space-y-3 font-bold text-right direction-rtl">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-500">الكمية المطلوبة للعميل:</span>
+                                <span className="text-blue-600 font-bold">{completionModalOrder.quantity} كجم</span>
+                            </div>
+                            
+                            {getOrderLinkedSupplies(completionModalOrder.id).length > 0 && (
+                                <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
+                                    <span className="text-slate-500">الخام المُرسل من المورد:</span>
+                                    <span className="text-orange-600 font-bold">
+                                        {getOrderLinkedSupplies(completionModalOrder.id)[0].quantity} كجم
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mb-6 text-right direction-rtl">
+                            <label className="block text-sm font-bold text-emerald-700 mb-2">الصافي المُسلم للعميل (كجم)</label>
+                            <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                placeholder="مثال: 45"
+                                value={netDeliveredQuantity}
+                                onChange={(e) => setNetDeliveredQuantity(e.target.value)}
+                                className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white direction-ltr"
+                                autoFocus
+                            />
+                            <p className="text-xs text-slate-500 mt-2">
+                                * هذا هو الرقم الذي سيبنى عليه الحساب النهائي وصافي الفاتورة للعميل. 
+                                سيتم حساب الفرق المتبقي كـ "هالك" على التوريدة.
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3 mt-8">
+                            <button
+                                onClick={() => { setCompletionModalOrder(null); soundManager.play('closeWindow'); }}
+                                className="flex-1 px-4 py-3 text-slate-700 bg-slate-100 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleConfirmCompletion}
+                                className="flex-1 px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                                <CheckCircle className="h-5 w-5" />
+                                تأكيد الصافي وإنهاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             </div>
         </div>
     );

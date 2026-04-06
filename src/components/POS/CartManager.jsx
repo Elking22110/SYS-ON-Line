@@ -521,7 +521,7 @@ const CartManager = ({
                   placeholder="0-100"
                   min="0"
                   max="100"
-                  step="0.1"
+                  step="any"
                 />
               </div>
             </div>

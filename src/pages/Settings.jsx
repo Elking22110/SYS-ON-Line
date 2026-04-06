@@ -209,7 +209,7 @@ const Settings = () => {
       // المخزون
       inventoryEnabled: savedStoreInfo.inventoryEnabled !== undefined ? savedStoreInfo.inventoryEnabled : (savedSettings.inventoryEnabled !== undefined ? savedSettings.inventoryEnabled : true),
       // نسبة الربح الافتراضية للطلبات
-      orderProfitMargin: savedSettings.orderProfitMargin !== undefined ? savedSettings.orderProfitMargin : ''
+      orderProfitMargin: savedSettings.orderProfitMargin !== undefined && savedSettings.orderProfitMargin !== '' ? savedSettings.orderProfitMargin : 10
     };
   });
 
@@ -841,7 +841,7 @@ const Settings = () => {
         maintenanceMode: false,
         debugMode: false,
         analyticsEnabled: true,
-        orderProfitMargin: ''
+        orderProfitMargin: 10
       };
       setSettings(defaultSettings);
       toast.error('تم إعادة تعيين الإعدادات!');
@@ -911,11 +911,11 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">نسبة الربح الافتراضية للطلبات (%)</label>
+          <label className="block text-sm font-medium text-slate-600 mb-2">ربح الطلب الافتراضي بالجنيه (للكيلو)</label>
           <input
             type="number"
             min="0"
-            step="0.1"
+            step="any"
             value={settings.orderProfitMargin}
             onChange={(e) => handleSettingChange('orderProfitMargin', parseFloat(e.target.value) || 0)}
             className="input-modern w-full px-3 py-2 text-right"
@@ -1497,7 +1497,7 @@ const Settings = () => {
               type="range"
               min="0"
               max="1"
-              step="0.1"
+              step="any"
               value={settings.soundVolume}
               onChange={(e) => { soundManager.play('click'); handleSettingChange('soundVolume', parseFloat(e.target.value)); }}
               className="w-full h-2 bg-white bg-opacity-20 rounded-lg appearance-none cursor-pointer slider"
@@ -1653,7 +1653,7 @@ const Settings = () => {
             <input
               type="number"
               min="0"
-              step="0.1"
+              step="any"
               placeholder="مثال: 10"
               value={settings.orderProfitMargin}
               onChange={(e) => handleSettingChange('orderProfitMargin', e.target.value)}

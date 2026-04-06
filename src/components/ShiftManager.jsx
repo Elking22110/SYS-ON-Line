@@ -1199,7 +1199,7 @@ const ShiftManager = () => {
                 onChange={(e) => updateCashDrawer(e.target.value)}
                 className="input-modern w-full"
                 placeholder="0.00"
-                step="0.01"
+                step="any"
               />
             </div>
 

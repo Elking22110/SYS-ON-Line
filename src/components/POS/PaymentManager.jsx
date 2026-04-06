@@ -243,7 +243,7 @@ const PaymentManager = ({
                   }`}
                 placeholder="0"
                 min="0"
-                step="0.01"
+                step="any"
                 style={{
                   WebkitAppearance: 'none',
                   MozAppearance: 'textfield'

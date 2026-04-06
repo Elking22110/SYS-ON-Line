@@ -89,12 +89,21 @@ const Customers = () => {
         const ordersCount = customerOrders.length;
 
         const totalSpentAmount = customerOrders.reduce((sum, o) => {
-          const productTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.pricePerKg) || 0);
-          const printingTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.printingCostPerKg) || 0);
-          const cuttingTotal = (parseFloat(o.quantity) || 0) * (parseFloat(o.cuttingCostPerKg) || 0);
+          const qty = parseFloat(o.quantity) || 0;
+          const productTotal = qty * (parseFloat(o.pricePerKg) || 0);
+          const printingTotal = qty * (parseFloat(o.printingCostPerKg) || 0);
+          const cuttingTotal = qty * (parseFloat(o.cuttingCostPerKg) || 0);
           const clicheTotal = parseFloat(o.clicheCost) || 0;
-          return sum + productTotal + printingTotal + cuttingTotal + clicheTotal;
+          
+          const subtotal = productTotal + printingTotal + cuttingTotal + clicheTotal;
+          const margin = parseFloat(o.profitMargin) || 0;
+          const profit = qty * margin;
+          
+          return sum + subtotal + profit;
         }, 0);
+
+        const totalQuantity = customerOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
+        const totalWaste = customerOrders.reduce((sum, o) => sum + (parseFloat(o.wasteQuantity) || 0), 0);
 
         let status = customer.status || 'جديد';
         if (totalSpentAmount >= 5000) status = 'VIP';
@@ -107,6 +116,8 @@ const Customers = () => {
           status,
           totalSpent: totalSpentAmount,
           orders: ordersCount,
+          totalQuantity,
+          totalWaste,
           joinDate: customer.createdAt ? customer.createdAt.split('T')[0] : (customer.joinDate || getCurrentDate().split('T')[0])
         };
       });
