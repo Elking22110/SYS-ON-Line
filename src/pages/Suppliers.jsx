@@ -47,18 +47,39 @@ const Suppliers = () => {
     try {
       setLoading(true);
       const onlineSuppliers = await supabaseService.getSuppliers();
+      const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+
       if (onlineSuppliers && onlineSuppliers.length > 0) {
-        const mapped = onlineSuppliers.map(s => ({
-          ...s,
-          lastVisit: s.lastVisit ? String(s.lastVisit).split('T')[0] : null,
-          joinDate: s.joinDate ? String(s.joinDate).split('T')[0] : null
-        }));
+        const mapped = onlineSuppliers.map(s => {
+          // Calculate dynamic stats from supplies
+          const supplierSupplies = allSupplies.filter(sup => sup.supplierId?.toString() === s.id?.toString());
+          const sortedSupplies = [...supplierSupplies].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          
+          return {
+            ...s,
+            lastVisit: sortedSupplies.length > 0 ? sortedSupplies[0].date : (s.lastVisit ? String(s.lastVisit).split('T')[0] : null),
+            totalSpent: supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.totalPrice || 0), 0),
+            orders: supplierSupplies.length,
+            joinDate: s.joinDate ? String(s.joinDate).split('T')[0] : null
+          };
+        });
         setSuppliers(mapped);
         localStorage.setItem('suppliers', JSON.stringify(mapped));
         return;
       }
       // Fallback
-      setSuppliers(JSON.parse(localStorage.getItem('suppliers') || '[]'));
+      const localSuppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
+      const enrichedLocal = localSuppliers.map(s => {
+          const supplierSupplies = allSupplies.filter(sup => sup.supplierId?.toString() === s.id?.toString());
+          const sortedSupplies = [...supplierSupplies].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          return {
+              ...s,
+              lastVisit: sortedSupplies.length > 0 ? sortedSupplies[0].date : s.lastVisit,
+              totalSpent: supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.totalPrice || 0), 0),
+              orders: supplierSupplies.length
+          };
+      });
+      setSuppliers(enrichedLocal);
     } catch (error) {
       console.error('Error loading suppliers from Supabase:', error);
       setSuppliers(JSON.parse(localStorage.getItem('suppliers') || '[]'));

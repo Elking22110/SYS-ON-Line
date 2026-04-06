@@ -89,6 +89,8 @@ const Customers = () => {
         const ordersCount = customerOrders.length;
 
         const totalSpentAmount = customerOrders.reduce((sum, o) => {
+          if (o.totalPrice) return sum + (parseFloat(o.totalPrice) || 0);
+
           const qty = parseFloat(o.quantity) || 0;
           const productTotal = qty * (parseFloat(o.pricePerKg) || 0);
           const printingTotal = qty * (parseFloat(o.printingCostPerKg) || 0);
@@ -102,6 +104,9 @@ const Customers = () => {
           return sum + subtotal + profit;
         }, 0);
 
+        const lastOrder = [...customerOrders].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0];
+        const lastVisitDate = lastOrder ? lastOrder.date : (customer.lastVisit || null);
+
         const totalQuantity = customerOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
         const totalWaste = customerOrders.reduce((sum, o) => sum + (parseFloat(o.wasteQuantity) || 0), 0);
 
@@ -110,7 +115,6 @@ const Customers = () => {
         else if (totalSpentAmount >= 2000) status = 'نشط';
         else if (ordersCount > 0) status = 'نشط';
         else status = 'جديد';
-
         return {
           ...customer,
           status,
@@ -118,6 +122,7 @@ const Customers = () => {
           orders: ordersCount,
           totalQuantity,
           totalWaste,
+          lastVisit: lastVisitDate,
           joinDate: customer.createdAt ? customer.createdAt.split('T')[0] : (customer.joinDate || getCurrentDate().split('T')[0])
         };
       });

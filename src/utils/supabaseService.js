@@ -450,12 +450,7 @@ class SupabaseService {
                 } else if (payload.eventType === 'UPDATE') {
                     updatedData = updatedData.map(item => {
                         if (item.id == payload.new.id) {
-                            const mergedItem = { ...item };
-                            Object.keys(payload.new).forEach(k => {
-                                if (payload.new[k] !== null && payload.new[k] !== '') {
-                                    mergedItem[k] = payload.new[k];
-                                }
-                            });
+                            const mergedItem = { ...item, ...payload.new };
                             return mergedItem;
                         }
                         return item;

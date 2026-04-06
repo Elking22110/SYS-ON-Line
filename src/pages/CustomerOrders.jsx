@@ -714,6 +714,19 @@ const CustomerOrders = () => {
         printWindow.document.close();
     };
 
+    // ─── Helpers ────────────────────────────────────────────
+    const calculateOrderTotal = (order) => {
+        const qty = parseFloat(order.quantity) || 0;
+        const pricePerKg = parseFloat(order.pricePerKg) || 0;
+        const printingCostPerKg = parseFloat(order.printingCostPerKg) || 0;
+        const cuttingCostPerKg = parseFloat(order.cuttingCostPerKg) || 0;
+        const profitMargin = parseFloat(order.profitMargin) || 0;
+        const clicheCost = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
+
+        const subtotal = qty * (pricePerKg + printingCostPerKg + cuttingCostPerKg + profitMargin);
+        return subtotal + clicheCost;
+    };
+
     // ─── CRUD ────────────────────────────────────────────────
     const handleSaveOrder = async (formToSave) => {
         // Validation for required fields
@@ -762,16 +775,22 @@ const CustomerOrders = () => {
                         cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0,
                         clicheEnabled: formToSave.clicheEnabled || false,
                         clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0,
-                        profitMargin: parseFloat(formToSave.profitMargin) || 0
+                        profitMargin: parseFloat(formToSave.profitMargin) || 0,
+                        totalPrice: calculateOrderTotal({
+                            ...formToSave,
+                            clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0
+                        })
                     }
                     : o
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
             // Sync to Supabase
+            const finalClicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0;
             await supabaseService.updateCustomerOrder(editingOrder.id, {
                 ...formToSave,
                 profitMargin: parseFloat(formToSave.profitMargin) || 0,
-                clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0
+                clicheCost: finalClicheCost,
+                totalPrice: calculateOrderTotal({ ...formToSave, clicheCost: finalClicheCost, clicheEnabled: formToSave.clicheEnabled })
             });
             toast.success('تم تحديث الطلب بنجاح');
         } else {
@@ -794,6 +813,7 @@ const CustomerOrders = () => {
                 clicheEnabled: formToSave.clicheEnabled || false,
                 clicheCost: clicheCost,
                 profitMargin: parseFloat(formToSave.profitMargin) || 0,
+                totalPrice: calculateOrderTotal({ ...formToSave, clicheCost, clicheEnabled: formToSave.clicheEnabled })
             };
             localStorage.setItem('customer_orders', JSON.stringify([...allOrders, newOrder]));
             // Sync to Supabase
@@ -947,7 +967,9 @@ const CustomerOrders = () => {
             status: 'CLOSED', // يتم الإغلاق فوراً
             orderedQuantity: originalQty,
             quantity: netQty,
-            wasteQuantity: wasteAmountForOrder
+            wasteQuantity: wasteAmountForOrder,
+            closedAt: new Date().toISOString(),
+            totalPrice: calculateOrderTotal({ ...order, quantity: netQty })
         };
         const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);
         localStorage.setItem('customer_orders', JSON.stringify(updated));
@@ -1558,10 +1580,27 @@ const CustomerOrders = () => {
                                                 <p className="text-[12px] font-black text-blue-800 uppercase tracking-wider mb-1">نوع المنتج</p>
                                                 <p className="text-[15px] font-black text-slate-800">{order.productType || '-'}</p>
                                             </div>
-                                            <div className="bg-orange-50 border border-orange-100 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-xs font-black text-orange-800 uppercase tracking-wider mb-1">الكمية</p>
-                                                <p className="text-[15px] font-black text-orange-600">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
-                                            </div>
+                                            {order.status === 'CLOSED' ? (
+                                                <>
+                                                    <div className="bg-emerald-100/50 border-2 border-emerald-500 rounded-2xl p-3 shadow-md flex-1 transform scale-105 transition-all">
+                                                        <p className="text-[11px] font-black text-emerald-800 uppercase mb-0.5 tracking-tighter">الصافي المسلم (الأساسي)</p>
+                                                        <p className="text-[17px] font-black text-emerald-600">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
+                                                    </div>
+                                                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-2.5 shadow-sm opacity-80">
+                                                        <p className="text-[10px] font-bold text-orange-800 uppercase mb-0.5">المطلوب</p>
+                                                        <p className="text-[13px] font-bold text-orange-600">{(parseFloat(order.orderedQuantity) || parseFloat(order.quantity))?.toLocaleString()} <small className="text-[10px]">كجم</small></p>
+                                                    </div>
+                                                    <div className="bg-red-50 border border-red-100 rounded-xl p-2.5 shadow-sm opacity-80">
+                                                        <p className="text-[10px] font-bold text-red-800 uppercase mb-0.5">الهالك</p>
+                                                        <p className="text-[13px] font-bold text-red-600">{order.wasteQuantity?.toLocaleString() || '0'} <small className="text-[10px]">كجم</small></p>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="bg-orange-50 border border-orange-100 rounded-lg p-2.5 shadow-sm">
+                                                    <p className="text-xs font-black text-orange-800 uppercase tracking-wider mb-1">الكمية</p>
+                                                    <p className="text-[15px] font-black text-orange-600">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
+                                                </div>
+                                            )}
                                             <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 shadow-sm">
                                                 <p className="text-xs font-black text-indigo-800 uppercase tracking-wider mb-1">اللون / المقاس</p>
                                                 <p className="text-[15px] font-black text-slate-800">
@@ -1609,10 +1648,11 @@ const CustomerOrders = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {/* Production Costs */}
                                                 <div className="space-y-3">
-                                                    <div className="flex justify-between items-center text-[15px]">
-                                                        <span className="text-slate-600 font-bold flex items-center gap-2"><Package className="h-4 w-4 text-slate-400" /> تكلفة الخامة ({order.quantity} كجم):</span>
+                                                        <span className="text-slate-600 font-bold flex items-center gap-2">
+                                                            <Package className="h-4 w-4 text-slate-400" />
+                                                            تكلفة الخامة ({order.status === 'CLOSED' ? `الصافي ${order.quantity}` : `${order.quantity}`} كجم):
+                                                        </span>
                                                         <span className="font-black text-slate-900">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
-                                                    </div>
 
                                                     {order.printingCostPerKg > 0 && (
                                                         <div className="flex justify-between items-center text-[15px]">

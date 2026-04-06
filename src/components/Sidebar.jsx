@@ -3,8 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 import {
   LayoutDashboard,
-  ShoppingCart,
-  Package,
   BarChart3,
   Users,
   Truck,
@@ -28,8 +26,6 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: "/", icon: LayoutDashboard, label: "لوحة التحكم", permission: null },
-    { path: "/pos", icon: ShoppingCart, label: "نقطة البيع", permission: "pos_access" },
-    { path: "/products", icon: Package, label: "المنتجات", permission: "manage_products" },
     { path: "/reports", icon: BarChart3, label: "التقارير", permission: "view_reports" },
     { path: "/customers", icon: Users, label: "العملاء", permission: "customer_access" },
     { path: "/suppliers", icon: Truck, label: "الموردين", permission: "customer_access" },

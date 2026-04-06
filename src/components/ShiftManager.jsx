@@ -412,6 +412,73 @@ const ShiftManager = () => {
         return Array.from(map.values());
       })();
 
+      // --- New Comprehensive Calculations for Factory System ---
+      const shiftStart = new Date(shift.startTime).getTime();
+      const shiftEnd = new Date(shift.endTime || Date.now()).getTime();
+
+      // 1. Production Orders (Filter by closure date if status is CLOSED)
+      const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+      const closedOrdersInShift = allOrders.filter(order => {
+        if (order.status !== 'CLOSED') return false;
+        const closedAt = new Date(order.closedAt || order.date || 0).getTime();
+        return closedAt >= shiftStart && closedAt <= shiftEnd;
+      }).map(o => {
+        if (o.totalPrice) return o;
+        // Fallback calculation for old orders within the shift report
+        const qty = parseFloat(o.quantity) || 0;
+        const price = parseFloat(o.pricePerKg) || 0;
+        const print = parseFloat(o.printingCostPerKg) || 0;
+        const cut = parseFloat(o.cuttingCostPerKg) || 0;
+        const margin = parseFloat(o.profitMargin) || 0;
+        const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+        const subtotal = qty * (price + print + cut + margin);
+        return { ...o, totalPrice: subtotal + cliche };
+      });
+
+      const productionTotals = {
+        count: closedOrdersInShift.length,
+        totalRevenue: closedOrdersInShift.reduce((s, o) => s + (Number(o.totalPrice) || 0), 0),
+        totalWeight: closedOrdersInShift.reduce((s, o) => s + (Number(o.orderedQuantity) || 0), 0),
+        totalWaste: closedOrdersInShift.reduce((s, o) => s + (Number(o.wasteQuantity) || 0), 0),
+        netWeight: closedOrdersInShift.reduce((s, o) => s + (Number(o.orderedQuantity || 0) - Number(o.wasteQuantity || 0)), 0)
+      };
+
+      // 2. Supplier Supplies (Recorded during shift)
+      const allSuppliesRaw = localStorage.getItem('supplier_supplies');
+      let allSupplies = [];
+      try { allSupplies = JSON.parse(allSuppliesRaw || '[]'); } catch(e) { console.error('Error parsing supplies', e); }
+      
+      const suppliesInShift = allSupplies.filter(sup => {
+        const ts = new Date(sup.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+
+      const supplierTotals = {
+        totalCost: suppliesInShift.reduce((s, sup) => s + (Number(sup.totalPrice) || 0), 0),
+        totalPaid: suppliesInShift.reduce((s, sup) => s + (Number(sup.paidAmount) || 0), 0),
+        totalWaste: suppliesInShift.reduce((s, sup) => s + (Number(sup.wasteQuantity) || 0), 0)
+      };
+
+      // 3. Expenses (Recorded during shift)
+      const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+      const expensesInShift = allExpenses.filter(exp => {
+        const ts = new Date(exp.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+
+      const expenseTotals = {
+        total: expensesInShift.reduce((s, exp) => s + (Number(exp.amount) || 0), 0),
+        byCategory: expensesInShift.reduce((acc, exp) => {
+          const cat = exp.category || 'أخرى';
+          acc[cat] = (acc[cat] || 0) + (Number(exp.amount) || 0);
+          return acc;
+        }, {})
+      };
+
+      // 4. Net Profit Calculation
+      // Profit = (Production Orders Revenue) - (Supplier Costs) - (Expenses)
+      const netProfit = productionTotals.totalRevenue - supplierTotals.totalCost - expenseTotals.total;
+
       const reportWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
 
       if (!reportWindow) {
@@ -531,6 +598,9 @@ const ShiftManager = () => {
               .summary-card.refunds::before { background: linear-gradient(90deg, #e53e3e, #c53030); }
               .summary-card.discounts::before { background: linear-gradient(90deg, #805ad5, #6b46c1); }
               .summary-card.invoices::before { background: linear-gradient(90deg, #319795, #2c7a7b); }
+              .summary-card.production::before { background: linear-gradient(90deg, #ed64a6, #d53f8c); }
+              .summary-card.expenses::before { background: linear-gradient(90deg, #718096, #4a5568); }
+              .summary-card.profit::before { background: linear-gradient(90deg, #10b981, #059669); }
               .summary-card h3 {
                 margin: 0 0 15px 0;
                 color: #2d3748;
@@ -721,9 +791,88 @@ const ShiftManager = () => {
                 <div class="currency">جنيه مصري</div>
               </div>
               <div class="summary-card invoices">
-                <h3>📄 عدد الفواتير</h3>
+                <h3>📄 عدد فواتير الـ POS</h3>
                 <div class="value">${salesDetails.totalInvoices}</div>
                 <div class="currency">فاتورة</div>
+              </div>
+            </div>
+
+            <div class="details-section">
+              <h2>🏭 ملخص طلبات الإنتاج</h2>
+              <div class="summary-grid">
+                <div class="summary-card production">
+                   <h3>إجمالي إيراد الطلبات</h3>
+                   <div class="value">${productionTotals.totalRevenue.toFixed(2)}</div>
+                   <div class="currency">جنيه مصري</div>
+                </div>
+                <div class="summary-card production">
+                   <h3>عدد الطلبات المغلقة</h3>
+                   <div class="value">${productionTotals.count}</div>
+                   <div class="currency">أوردر</div>
+                </div>
+                <div class="summary-card production">
+                   <h3>إجمالي الوزن (صافي)</h3>
+                   <div class="value">${productionTotals.netWeight.toFixed(2)}</div>
+                   <div class="currency">كجم</div>
+                </div>
+                <div class="summary-card refunds negative">
+                   <h3>إجمالي الهالك</h3>
+                   <div class="value">${productionTotals.totalWaste.toFixed(2)}</div>
+                   <div class="currency">كجم</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="details-section">
+              <h2>🚚 تكاليف التوريدات والموردين</h2>
+              <div class="summary-grid">
+                <div class="summary-card refunds negative">
+                   <h3>إجمالي تكلفة الخامات</h3>
+                   <div class="value">-${supplierTotals.totalCost.toFixed(2)}</div>
+                   <div class="currency">جنيه مصري</div>
+                </div>
+                <div class="summary-card received">
+                   <h3>المبلغ المسدد للموردين</h3>
+                   <div class="value">${supplierTotals.totalPaid.toFixed(2)}</div>
+                   <div class="currency">جنيه مصري</div>
+                </div>
+                <div class="summary-card remaining">
+                   <h3>المتبقي (ديون جديدة)</h3>
+                   <div class="value">${(supplierTotals.totalCost - supplierTotals.totalPaid).toFixed(2)}</div>
+                   <div class="currency">جنيه مصري</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="details-section">
+              <h2>💸 المصروفات والنثريات</h2>
+              <div class="summary-grid">
+                <div class="summary-card expenses negative">
+                   <h3>إجمالي المصروفات</h3>
+                   <div class="value">-${expenseTotals.total.toFixed(2)}</div>
+                   <div class="currency">جنيه مصري</div>
+                </div>
+                ${Object.entries(expenseTotals.byCategory).map(([cat, val]) => `
+                  <div class="summary-card expenses">
+                     <h3>${cat}</h3>
+                     <div class="value">${val.toFixed(2)}</div>
+                     <div class="currency">جنيه مصري</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="details-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #10b981;">
+              <h2>💰 التقرير المالي النهائي (صافي الربح)</h2>
+              <div class="summary-grid">
+                <div class="summary-card profit">
+                   <h3>صافي الربح للوردية</h3>
+                   <div class="value" style="color: ${netProfit >= 0 ? '#10b981' : '#ef4444'}">${netProfit.toFixed(2)}</div>
+                   <div class="currency">جنيه مصري</div>
+                </div>
+                <div class="info-item" style="grid-column: span 2; text-align: center; color: #374151; font-size: 14px; padding: 15px;">
+                   معادلة الحساب: (إيراد الإنتاج: ${productionTotals.totalRevenue.toFixed(2)}) - (تكاليف الخامات: ${supplierTotals.totalCost.toFixed(2)}) - (المصروفات: ${expenseTotals.total.toFixed(2)})
+                </div>
               </div>
             </div>
 

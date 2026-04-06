@@ -131,6 +131,10 @@ const Reports = () => {
       if (onlineExpenses && onlineExpenses.length) {
         localStorage.setItem('expenses', JSON.stringify(onlineExpenses));
       }
+      const onlineOrders = await supabaseService.getAllCustomerOrders();
+      if (onlineOrders && onlineOrders.length) {
+        localStorage.setItem('customer_orders', JSON.stringify(onlineOrders));
+      }
     } catch (error) {
       console.error('Error fetching data from Supabase for reports:', error);
     }
@@ -142,46 +146,69 @@ const Reports = () => {
         await fetchAllFromSupabase();
 
         // تحميل البيانات من مصادر متعددة
+        // 1. Get POS Sales
         const activeSales = storageOptimizer.get('sales', []);
-
-        // تحميل المبيعات من تاريخ الورديات المنتهية
         const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
         const historicalSales = shifts.flatMap(shift => shift.sales || []);
-
+        
         const salesMap = new Map();
         [...historicalSales, ...activeSales].forEach(sale => {
-          if (sale && sale.id) {
-            salesMap.set(sale.id, sale);
-          }
+          if (sale && sale.id) salesMap.set(sale.id, sale);
         });
         const sales = Array.from(salesMap.values());
 
+        // 2. Get Production Revenue
+        const productionOrdersRaw = storageOptimizer.get('customer_orders', []);
+        const productionOrdersMapped = productionOrdersRaw
+          .filter(o => o.status === 'CLOSED')
+          .map(o => {
+            const qty = parseFloat(o.quantity) || 0;
+            const price = (parseFloat(o.pricePerKg) || 0) + (parseFloat(o.printingCostPerKg) || 0) + (parseFloat(o.cuttingCostPerKg) || 0) + (parseFloat(o.profitMargin) || 0);
+            const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+            const total = (qty * price) + cliche;
+            
+            return {
+              ...o,
+              id: o.id || `PROD-${Date.now()}`,
+              total: total,
+              timestamp: o.closedAt || o.date || o.createdAt,
+              items: [{
+                id: `PROD-${o.productType || 'item'}`,
+                name: `إنتاج: ${o.productType || 'طلب'}`,
+                quantity: qty,
+                total: total
+              }],
+              isProduction: true
+            };
+          });
+
+        const allRevenueSources = [...sales, ...productionOrdersMapped];
         const products = storageOptimizer.get('products', []);
         const activeShift = storageOptimizer.get('activeShift', null);
 
-        const dailySales = analyzeDailySales(sales);
-        const monthlySales = analyzeMonthlySales(sales);
-        const topProducts = analyzeTopProducts(sales, products);
-        const categorySales = analyzeCategorySales(sales);
-        const customerData = analyzeCustomerData(sales);
+        // 3. Run Analytics
+        const dailySales = analyzeDailySales(allRevenueSources);
+        const monthlySales = analyzeMonthlySales(allRevenueSources);
+        const topProducts = analyzeTopProducts(allRevenueSources, products);
+        const categorySales = analyzeCategorySales(allRevenueSources);
+        const customerData = analyzeCustomerData(allRevenueSources);
         const shiftSales = activeShift && activeShift.status === 'active' ? activeShift.sales || [] : [];
 
-        const sortedSales = [...sales].sort((a, b) => {
+        // 4. Update Stats State
+        const sortedHistory = [...allRevenueSources].sort((a, b) => {
           const ta = new Date(a.timestamp || a.date || 0).getTime();
           const tb = new Date(b.timestamp || b.date || 0).getTime();
-          if (ta && tb && ta !== tb) return tb - ta;
-          const ida = Number(a.id) || 0;
-          const idb = Number(b.id) || 0;
-          return idb - ida;
+          return (tb || 0) - (ta || 0);
         });
-        setAllSales(sortedSales);
-
+        
+        setAllSales(sortedHistory);
         setRealTimeData({
           dailySales,
           monthlySales,
           topProducts,
           categorySales,
-          customerData
+          customerData,
+          productionOrders: productionOrdersRaw
         });
 
         setActiveShiftSales(shiftSales);
@@ -207,6 +234,7 @@ const Reports = () => {
     const unsubShifts = typeof subscribe === 'function' ? subscribe(EVENTS.SHIFTS_CHANGED, onExternalUpdate) : null;
     const unsubExpenses = typeof subscribe === 'function' ? subscribe(EVENTS.EXPENSES_CHANGED, onExternalUpdate) : null;
     const unsubSuppliers = typeof subscribe === 'function' ? subscribe(EVENTS.SUPPLIERS_CHANGED, onExternalUpdate) : null;
+    const unsubOrders = typeof subscribe === 'function' ? subscribe(EVENTS.CUSTOMER_ORDERS_CHANGED, onExternalUpdate) : null;
 
     return () => {
       clearInterval(interval);
@@ -219,6 +247,7 @@ const Reports = () => {
       if (typeof unsubShifts === 'function') unsubShifts();
       if (typeof unsubExpenses === 'function') unsubExpenses();
       if (typeof unsubSuppliers === 'function') unsubSuppliers();
+      if (typeof unsubOrders === 'function') unsubOrders();
     };
   }, []);
 
@@ -992,6 +1021,7 @@ const Reports = () => {
     { id: 'products', name: 'المنتجات الأكثر مبيعاً', icon: Package },
     { id: 'customers', name: 'تقرير العملاء', icon: Users },
     { id: 'inventory', name: 'تقرير المخزون', icon: BarChart3 },
+    { id: 'production', name: 'طلبات الإنتاج', icon: Package },
     { id: 'invoices', name: 'فواتير الوردية النشطة', icon: Receipt },
     { id: 'partial-invoices', name: 'الفواتير غير المكتملة', icon: DollarSign },
     { id: 'returns', name: 'المرتجعات', icon: Trash2 },
@@ -1298,6 +1328,59 @@ const Reports = () => {
         const list = getPartialInvoices();
         const today = new Date();
         return list.filter(inv => isSameDay(inv.timestamp || inv.date, today));
+      }
+      case 'production': {
+        const list = realTimeData?.productionOrders || [];
+        return list
+          .filter(order => order.status === 'CLOSED')
+          .map(o => {
+            const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+            const customer = customers.find(c => c.id?.toString() === (o.customerId || o.customer?.id)?.toString());
+            const customerName = o.customerName || customer?.name || 'غير معروف';
+
+            const qty = parseFloat(o.quantity) || 0;
+            const waste = parseFloat(o.wasteQuantity) || 0;
+            const orderedQty = parseFloat(o.orderedQuantity) || (qty + waste);
+            
+            const price = parseFloat(o.pricePerKg) || 0;
+            const print = parseFloat(o.printingCostPerKg) || 0;
+            const cut = parseFloat(o.cuttingCostPerKg) || 0;
+            const margin = parseFloat(o.profitMargin) || 0;
+            const unitPrice = price + print + cut + margin;
+            
+            const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+            const subtotal = qty * unitPrice;
+
+            const details = [
+              o.color && `لون: ${o.color}`,
+              o.size && `مقاس: ${o.size}`,
+              o.thickness && `سمك: ${o.thickness}`,
+              o.bottomSize && `سفل: ${o.bottomSize}`
+            ].filter(Boolean).join(' | ');
+            
+            return { 
+              ...o, 
+              customerName,
+              orderedQuantity: orderedQty,
+              totalPrice: o.totalPrice || (subtotal + cliche),
+              unitPrice: unitPrice,
+              orderNumber: o.orderNumber || (o.id?.toString().length > 10 ? `ORD-${o.id?.toString().slice(-4)}` : o.id),
+              productDetails: details || '-'
+            };
+          })
+          .filter(order => {
+             if (selectedPeriod === 'all') return true;
+             const now = new Date();
+             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+             const orderDate = new Date(order.date || order.createdAt);
+             switch (selectedPeriod) {
+               case 'day': return orderDate >= today;
+               case 'week': { const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7); return orderDate >= weekAgo; }
+               case 'month': { const monthAgo = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1); return orderDate >= monthAgo; }
+               case 'year': { const yearAgo = new Date(today); yearAgo.setFullYear(yearAgo.getFullYear() - 1); return orderDate >= yearAgo; }
+               default: return true;
+             }
+          });
       }
       default:
         return realTimeData.dailySales;
@@ -1773,6 +1856,7 @@ const Reports = () => {
                 {selectedReport === 'invoices' && 'فواتير الوردية النشطة'}
                 {selectedReport === 'returns' && 'المرتجعات'}
                 {selectedReport === 'partial-invoices' && 'الفواتير غير المكتملة'}
+                {selectedReport === 'production' && 'طلبات الإنتاج المغلقة'}
               </h3>
 
 
@@ -1922,6 +2006,20 @@ const Reports = () => {
                         <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">المبلغ</th>
                       </>
                     )}
+                    {selectedReport === 'production' && (
+                      <>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-indigo-700 bg-indigo-50/30 uppercase tracking-wider">رقم الطلب</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-slate-700 uppercase tracking-wider">العميل</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-indigo-700 uppercase tracking-wider">نوع المنتج</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-slate-600 uppercase tracking-wider">التفاصيل</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-orange-700 bg-orange-50/30 uppercase tracking-wider">المطلوب</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-red-700 bg-red-50/30 uppercase tracking-wider">الهالك</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-bold text-emerald-800 bg-emerald-100/50 uppercase tracking-wider border-x border-emerald-100">الصافي (المسلم)</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-slate-700 uppercase tracking-wider">السعر</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-green-700 bg-green-50/30 uppercase tracking-wider">الإجمالي</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-black text-slate-500 uppercase tracking-wider text-center">التاريخ</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white divide-opacity-20">
@@ -1931,7 +2029,7 @@ const Reports = () => {
                       if (!data || data.length === 0) {
                         return (
                           <tr>
-                            <td colSpan="6" className="px-4 md:px-6 py-12 text-center text-slate-600">لا توجد بيانات متاحة</td>
+                            <td colSpan="10" className="px-4 md:px-6 py-12 text-center text-slate-600">لا توجد بيانات متاحة</td>
                           </tr>
                         );
                       }
@@ -2025,6 +2123,28 @@ const Reports = () => {
                           <td colSpan="6" className="px-4 md:px-6 py-12 text-center text-slate-600">لا توجد بيانات متاحة</td>
                         </tr>
                       );
+                    }
+                    if (selectedReport === 'production') {
+                      return data.map((order, idx) => (
+                        <tr key={idx} className="hover:bg-slate-200 hover:bg-opacity-20 text-right transition-colors min-h-[50px]">
+                          <td className="px-4 md:px-6 py-4 text-indigo-700 font-black text-sm bg-indigo-50/5">{order.orderNumber || order.id}</td>
+                          <td className="px-4 md:px-6 py-4 text-slate-800 font-bold text-sm">{order.customerName}</td>
+                          <td className="px-4 md:px-6 py-4 text-indigo-600 font-black text-sm">{order.productType || '-'}</td>
+                          <td className="px-4 md:px-6 py-4 text-slate-500 text-[11px] leading-tight max-w-[150px] truncate" title={order.productDetails}>{order.productDetails}</td>
+                          <td className="px-4 md:px-6 py-4 text-orange-600 font-bold bg-orange-50/5 text-sm">{order.orderedQuantity || 0} <small className="text-[10px]">كجم</small></td>
+                          <td className="px-4 md:px-6 py-4 text-red-500 font-bold bg-red-50/5 text-sm">{order.wasteQuantity || 0} <small className="text-[10px]">كجم</small></td>
+                          <td className="px-4 md:px-6 py-4 text-emerald-700 font-black bg-emerald-100/30 text-base shadow-sm border-x border-emerald-100/50">
+                            {order.quantity || 0} <small className="text-[11px]">كجم</small>
+                          </td>
+                          <td className="px-4 md:px-6 py-4 text-slate-700 font-bold text-sm">{order.unitPrice || 0} <small className="text-[10px]">ج.م</small></td>
+                          <td className="px-4 md:px-6 py-4 text-green-700 font-black bg-green-50/10 text-sm">
+                            {Number(order.totalPrice || 0).toLocaleString()} <small className="text-[10px]">ج.م</small>
+                          </td>
+                          <td className="px-4 md:px-6 py-4 text-slate-500 text-[10px] whitespace-nowrap text-center opacity-70">
+                             {formatDateTime(order.closedAt || order.date || order.createdAt)}
+                          </td>
+                        </tr>
+                      ));
                     }
                     if (selectedReport === 'sales') {
                       return data.map((row, idx) => (

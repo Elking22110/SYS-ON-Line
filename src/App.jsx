@@ -5,8 +5,6 @@ import { NotificationProvider } from "./components/NotificationSystem";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
-import POS from "./pages/POS";
-import Products from "./pages/Products";
 import Reports from "./pages/Reports";
 import Customers from "./pages/Customers";
 import CustomerOrders from "./pages/CustomerOrders";
@@ -157,29 +155,21 @@ function App() {
             break;
           case '2':
             event.preventDefault();
-            navigate('/pos');
+            navigate('/reports');
             break;
           case '3':
             event.preventDefault();
-            navigate('/products');
+            navigate('/customers');
             break;
           case '4':
             event.preventDefault();
-            navigate('/reports');
+            navigate('/suppliers');
             break;
           case '5':
             event.preventDefault();
-            navigate('/customers');
-            break;
-          case '6':
-            event.preventDefault();
-            navigate('/suppliers');
-            break;
-          case '7':
-            event.preventDefault();
             navigate('/settings');
             break;
-          case '8':
+          case '6':
             event.preventDefault();
             navigate('/shifts');
             break;
@@ -191,7 +181,7 @@ function App() {
       // اختصارات إضافية
       if (event.key === 'F1') {
         event.preventDefault();
-        alert('اختصارات لوحة المفاتيح:\n\nCtrl+1: لوحة التحكم\nCtrl+2: نقطة البيع\nCtrl+3: المنتجات\nCtrl+4: التقارير\nCtrl+5: العملاء\nCtrl+6: الموردين\nCtrl+7: الإعدادات\n\nF1: عرض هذه المساعدة');
+        alert('اختصارات لوحة المفاتيح:\n\nCtrl+1: لوحة التحكم\nCtrl+2: التقارير\nCtrl+3: العملاء\nCtrl+4: الموردين\nCtrl+5: الإعدادات\n\nF1: عرض هذه المساعدة');
       }
     };
 
@@ -281,16 +271,6 @@ function App() {
                   <Route path="/" element={
                     <ProtectedRoute>
                       <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/pos" element={
-                    <ProtectedRoute requiredPermission="pos_access">
-                      <POS />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/products" element={
-                    <ProtectedRoute requiredPermission="manage_products">
-                      <Products />
                     </ProtectedRoute>
                   } />
                   <Route path="/reports" element={
