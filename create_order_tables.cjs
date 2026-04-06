@@ -137,7 +137,9 @@ async function createTables() {
               ADD COLUMN IF NOT EXISTS "reminderDate" text,
               ADD COLUMN IF NOT EXISTS "profitMargin" double precision DEFAULT 0,
               ADD COLUMN IF NOT EXISTS "sizeWidth" text,
-              ADD COLUMN IF NOT EXISTS "sizeHeight" text;`
+              ADD COLUMN IF NOT EXISTS "sizeHeight" text,
+              ADD COLUMN IF NOT EXISTS "wasteQuantity" double precision DEFAULT 0,
+              ADD COLUMN IF NOT EXISTS "orderedQuantity" double precision DEFAULT 0;`
         ];
 
         for (const query of queries) {

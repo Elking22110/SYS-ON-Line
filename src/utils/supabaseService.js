@@ -1151,6 +1151,8 @@ class SupabaseService {
                 reminderDate: orderData.reminderDate || '',
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
                 status: orderData.status || 'OPEN',
+                wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
+                orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
                 createdAt: new Date().toISOString()
             };
             let result = await supabase.from('CustomerOrder').upsert(payload).select().single();
@@ -1188,6 +1190,8 @@ class SupabaseService {
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
+                wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
+                orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
                 status: orderData.status
             };
 

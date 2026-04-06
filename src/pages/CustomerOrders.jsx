@@ -922,22 +922,22 @@ const CustomerOrders = () => {
         const originalQty = parseFloat(order.quantity);
         let updatedSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
         
+        let wasteAmountForOrder = 0;
         if (linked.length > 0) {
             const supply = linked[0];
             const totalSuppliedQty = parseFloat(supply.quantity) || 0;
-            const waste = Math.max(0, totalSuppliedQty - netQty);
+            wasteAmountForOrder = Math.max(0, totalSuppliedQty - netQty);
             
             updatedSupplies = updatedSupplies.map(s => 
                 s.id === supply.id 
-                ? { ...s, wasteQuantity: waste, netDeliveredQuantity: netQty } 
+                ? { ...s, wasteQuantity: wasteAmountForOrder, netDeliveredQuantity: netQty } 
                 : s
             );
             localStorage.setItem('supplier_supplies', JSON.stringify(updatedSupplies));
             
             // Sync to supabase
             try {
-                const supplyToUpdate = updatedSupplies.find(s => s.id === supply.id);
-                if (supplyToUpdate) await supabaseService.updateSupplierSupply(supplyToUpdate.id, supplyToUpdate);
+                await supabaseService.updateSetting('supplier_supplies', JSON.stringify(updatedSupplies));
             } catch(e) { console.error('Error updating supply waste', e)}
         }
 
@@ -946,7 +946,8 @@ const CustomerOrders = () => {
             ...order, 
             status: 'CLOSED', // يتم الإغلاق فوراً
             orderedQuantity: originalQty,
-            quantity: netQty, 
+            quantity: netQty,
+            wasteQuantity: wasteAmountForOrder
         };
         const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);
         localStorage.setItem('customer_orders', JSON.stringify(updated));
