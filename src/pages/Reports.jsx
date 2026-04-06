@@ -969,13 +969,18 @@ const Reports = () => {
   };
 
   const getPaymentMethodText = (method) => {
+    if (!method) return 'غير محدد';
+    const m = String(method).toLowerCase();
     const methods = {
       'cash': 'نقداً',
       'wallet': 'محفظة إلكترونية',
       'instapay': 'انستا باي',
-      'bank': 'تحويل بنكي'
+      'bank': 'تحويل بنكي',
+      'bank_transfer': 'تحويل بنكي',
+      'vodafone_cash': 'فودافون كاش',
+      'check': 'شيك'
     };
-    return methods[method] || (method || 'غير محدد');
+    return methods[m] || (method || 'غير محدد');
   };
 
   // تجميع الفواتير حسب التاريخ (يوم/شهر/سنة)

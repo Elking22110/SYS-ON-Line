@@ -402,8 +402,20 @@ const Dashboard = () => {
                   {order.time}
                 </div>
 
-                <div className={`font-bold text-sm px-4 py-1.5 rounded-full text-center whitespace-nowrap ${order.paymentMethod === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {order.customer !== 'نقدي' ? order.customer : (order.paymentMethod === 'cash' ? 'نقدي' : 'بطاقة')}
+                <div className={`font-bold text-sm px-4 py-1.5 rounded-full text-center whitespace-nowrap ${
+                  (order.paymentMethod || '').toLowerCase() === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                  (order.paymentMethod || '').toLowerCase() === 'vodafone_cash' || (order.paymentMethod || '').toLowerCase() === 'wallet' ? 'bg-purple-100 text-purple-700' :
+                  'bg-blue-100 text-blue-700'
+                }`}>
+                  {(() => {
+                    const m = String(order.paymentMethod || '').toLowerCase();
+                    if (m === 'cash' || m === 'نقدي') return 'نقدي';
+                    if (m === 'wallet' || m === 'محفظة إلكترونية' || m === 'vodafone_cash') return 'فودافون كاش';
+                    if (m === 'instapay' || m === 'انستا باي') return 'انستا باي';
+                    if (m === 'bank' || m === 'bank_transfer' || m === 'تحويل بنكي') return 'تحويل بنكي';
+                    if (m === 'check' || m === 'شيك') return 'شيك';
+                    return m || 'غير محدد';
+                  })()}
                 </div>
               </div>
             </div>

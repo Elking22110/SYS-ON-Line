@@ -633,13 +633,15 @@ const POSMain = () => {
               customerName: invoiceData.customer?.name || '',
               customerPhone: invoiceData.customer?.phone || '',
               deliveryDate: invoiceData.downPayment?.deliveryDate || '',
-              paymentMethod: (invoiceData.paymentMethod === 'cash'
-                ? 'نقدي'
-                : invoiceData.paymentMethod === 'wallet'
-                  ? 'محفظة إلكترونية'
-                  : invoiceData.paymentMethod === 'instapay'
-                    ? 'انستا باي'
-                    : 'غير محدد')
+              paymentMethod: (() => {
+                const m = String(invoiceData.paymentMethod || '').toLowerCase();
+                if (m === 'cash' || m === 'نقدي') return 'نقدي';
+                if (m === 'wallet' || m === 'محفظة إلكترونية' || m === 'vodafone_cash') return 'محفظة إلكترونية';
+                if (m === 'instapay' || m === 'انستا باي') return 'انستا باي';
+                if (m === 'bank' || m === 'bank_transfer' || m === 'تحويل بنكي') return 'تحويل بنكي';
+                if (m === 'check' || m === 'شيك') return 'شيك';
+                return m || 'غير محدد';
+              })()
             };
             const { default: thermalPrinterManager } = await import('../../utils/thermalPrinter.js');
             const ok = await thermalPrinterManager.printReceipt(receiptData);
@@ -810,7 +812,15 @@ const POSMain = () => {
           <div><strong>العميل:</strong> ${(invoiceData?.customer?.name || invoiceData?.customerInfo?.name || invoiceData?.customerName || customerInfo?.name || 'عميل نقدي')}</div>
           <div><strong>الهاتف:</strong> ${(invoiceData?.customer?.phone || invoiceData?.customerInfo?.phone || invoiceData?.customerPhone || customerInfo?.phone || 'غير محدد')}</div>
           <div><strong>الكاشير:</strong> ${invoiceData?.cashier || user?.username || 'غير محدد'}</div>
-          <div><strong>طريقة الدفع:</strong> ${(invoiceData?.paymentMethod || paymentMethod) === 'cash' ? 'نقدي' : (invoiceData?.paymentMethod || paymentMethod) === 'wallet' ? 'محفظة إلكترونية' : (invoiceData?.paymentMethod || paymentMethod) === 'instapay' ? 'انستا باي' : 'غير محدد'}</div>
+          <div><strong>طريقة الدفع:</strong> ${(() => {
+            const m = String(invoiceData?.paymentMethod || paymentMethod || '').toLowerCase();
+            if (m === 'cash' || m === 'نقدي') return 'نقدي';
+            if (m === 'wallet' || m === 'محفظة إلكترونية' || m === 'vodafone_cash') return 'فودافون كاش';
+            if (m === 'instapay' || m === 'انستا باي') return 'انستا باي';
+            if (m === 'bank' || m === 'bank_transfer' || m === 'تحويل بنكي') return 'تحويل بنكي';
+            if (m === 'check' || m === 'شيك') return 'شيك';
+            return m || 'غير محدد';
+          })()}</div>
         </div>
         
         <table class="products-table">
@@ -1560,7 +1570,15 @@ const POSMain = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">طريقة الدفع:</span>
-                  <span className="text-slate-800">{(invoiceData?.paymentMethod || paymentMethod) === 'cash' ? 'نقدي' : (invoiceData?.paymentMethod || paymentMethod) === 'wallet' ? 'محفظة إلكترونية' : (invoiceData?.paymentMethod || paymentMethod) === 'instapay' ? 'انستا باي' : 'غير محدد'}</span>
+                  <span className="text-slate-800">${(() => {
+                    const m = String(invoiceData?.paymentMethod || paymentMethod || '').toLowerCase();
+                    if (m === 'cash' || m === 'نقدي') return 'نقدي';
+                    if (m === 'wallet' || m === 'محفظة إلكترونية' || m === 'vodafone_cash') return 'فودافون كاش';
+                    if (m === 'instapay' || m === 'انستا باي') return 'انستا باي';
+                    if (m === 'bank' || m === 'bank_transfer' || m === 'تحويل بنكي') return 'تحويل بنكي';
+                    if (m === 'check' || m === 'شيك') return 'شيك';
+                    return m || 'غير محدد';
+                  })()}</span>
                 </div>
               </div>
 

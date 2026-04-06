@@ -1991,7 +1991,10 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
                                                 <td className="px-4 py-3 font-bold text-emerald-600">{payment.amount?.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-3">
                                                     <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">
-                                                        {payment.method === 'VODAFONE_CASH' ? 'فودافون' : payment.method === 'CASH' ? 'نقدي' : 'بنكي'}
+                                                        {payment.method === 'VODAFONE_CASH' ? 'فودافون كاش' : 
+                                                         payment.method === 'CASH' ? 'نقدي' : 
+                                                         payment.method === 'BANK_TRANSFER' ? 'تحويل بنكي' : 
+                                                         payment.method === 'CHECK' ? 'شيك' : 'أخرى'}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3">
