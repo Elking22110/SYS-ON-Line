@@ -36,8 +36,71 @@ const Dashboard = () => {
   const [allTimeSales, setAllTimeSales] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0 });
+  const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0, supplierDebts: 0, customerDebts: 0 });
   const [yesterdayStats, setYesterdayStats] = useState({ sales: 0, orders: 0, customers: 0 });
+  const [lastSync, setLastSync] = useState(new Date().toLocaleTimeString('ar-EG'));
+  const [auditModal, setAuditModal] = useState({ isOpen: false, title: '', type: '', data: [] });
+
+  const openAuditModal = (type) => {
+    soundManager.play('openWindow');
+    if (type === 'supplier_debts') {
+      const suppliers = storageOptimizer.get('suppliers', []) || [];
+      const allSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+      const allPayments = storageOptimizer.get('supplier_payments', []) || [];
+      
+      const supplierDebtMap = {};
+      suppliers.forEach(s => supplierDebtMap[s.id] = { id: s.id, name: s.name, totalSupplies: 0, totalPayments: 0, netDebt: 0 });
+      
+      allSupplies.forEach(s => {
+        if (supplierDebtMap[s.supplierId]) {
+          supplierDebtMap[s.supplierId].totalSupplies += parseFloat(s.totalPrice) || 0;
+        }
+      });
+      allPayments.forEach(p => {
+        if (supplierDebtMap[p.supplierId]) {
+          supplierDebtMap[p.supplierId].totalPayments += parseFloat(p.amount) || 0;
+        }
+      });
+      
+      const details = Object.values(supplierDebtMap).map(s => {
+        s.netDebt = Math.max(0, s.totalSupplies - s.totalPayments);
+        return s;
+      }).filter(s => s.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
+
+      setAuditModal({ isOpen: true, title: 'تفاصيل ديون الموردين', type: 'supplier', data: details });
+    } else if (type === 'customer_debts') {
+      const customers = storageOptimizer.get('customers', []) || [];
+      const allOrders = storageOptimizer.get('customer_orders', []) || [];
+      const allPayments = storageOptimizer.get('customer_payments', []) || [];
+      
+      const customerDebtMap = {};
+      customers.forEach(c => customerDebtMap[c.id] = { id: c.id, name: c.name, totalOrders: 0, totalPayments: 0, netDebt: 0 });
+      
+      allOrders.forEach(o => {
+        if (customerDebtMap[o.customerId]) {
+          const q = (parseFloat(o.quantity) || 0);
+          const raw = q * (parseFloat(o.pricePerKg) || 0);
+          const pt = q * (parseFloat(o.printingCostPerKg) || 0);
+          const ct = q * (parseFloat(o.cuttingCostPerKg) || 0);
+          const cl = parseFloat(o.clicheCost) || 0;
+          const profit = q * (parseFloat(o.profitMargin) || 0);
+          customerDebtMap[o.customerId].totalOrders += (raw + pt + ct + cl + profit);
+        }
+      });
+      allPayments.forEach(p => {
+        if (customerDebtMap[p.customerId]) {
+          customerDebtMap[p.customerId].totalPayments += parseFloat(p.amount) || 0;
+        }
+      });
+      
+      const details = Object.values(customerDebtMap).map(c => {
+        c.netDebt = Math.max(0, c.totalOrders - c.totalPayments);
+        return c;
+      }).filter(c => c.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
+
+      setAuditModal({ isOpen: true, title: 'تفاصيل مستحقات العملاء', type: 'customer', data: details });
+    }
+  };
 
   // Build chart data from real sales — group by last 7 days
   const chartData = useMemo(() => {
@@ -72,31 +135,88 @@ const Dashboard = () => {
   const ordersChange = calcChange(todayStats.orders, yesterdayStats.orders);
   const customersChange = calcChange(todayStats.customers, yesterdayStats.customers);
 
-  // Business Logic from existing Dashboard — uses all sales, not just shift
   const analyzeRealData = () => {
     try {
-      // Only clear cache when absolutely necessary or if we want to ensure freshness
-      // but doing it every time causes flickering
+      // 1. Core Data
       const allSales = storageOptimizer.get('sales', []) || [];
       const products = storageOptimizer.get('products', []) || [];
       const customers = storageOptimizer.get('customers', []) || [];
+      const suppliers = storageOptimizer.get('suppliers', []) || [];
+      
+      const customerOrders = storageOptimizer.get('customer_orders', []) || [];
+      const customerPayments = storageOptimizer.get('customer_payments', []) || [];
+      const allSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+      const allSupplierPayments = storageOptimizer.get('supplier_payments', []) || [];
 
       setAllTimeSales(allSales);
 
-      // Today's stats
+      // Map IDs for strict filtering to avoid "Ghost Data" (Orphan records)
+      const validCustomerIds = new Set(customers.map(c => String(c.id)));
+      const validSupplierIds = new Set(suppliers.map(s => String(s.id)));
+
+      // 2. Dates
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-      const todaySales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === today);
-      const yesterdaySales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === yesterday);
+      // 3. Today's POS Sales
+      const todayPOSSales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === today);
+      const yesterdayPOSSales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === yesterday);
 
-      const todayRevenue = todaySales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
-      const yesterdayRevenue = yesterdaySales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
+      // 4. Today's Customer Orders (Advanced)
+      const todayCustomerOrders = customerOrders.filter(o => 
+        (o.date || o.createdAt || '').split('T')[0] === today && validCustomerIds.has(String(o.customerId))
+      );
 
-      setTodayStats({ sales: todayRevenue, orders: todaySales.length, customers: customers.length });
-      setYesterdayStats({ sales: yesterdayRevenue, orders: yesterdaySales.length, customers: Math.max(customers.length - 1, 0) });
+      // 5. Revenue Calculation
+      const todayPOSRevenue = todayPOSSales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
+      const yesterdayPOSRevenue = yesterdayPOSSales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
 
-      // Active shift specific stats
+      // 6. Supplier Debt Calculation (Filter by valid supplier IDs only)
+      const totalSuppliesValue = allSupplies
+        .filter(s => validSupplierIds.has(String(s.supplierId)))
+        .reduce((sum, s) => sum + (parseFloat(s.totalPrice) || 0), 0);
+      
+      const totalSupplierPaymentsValue = allSupplierPayments
+        .filter(p => validSupplierIds.has(String(p.supplierId)))
+        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+      
+      const totalSupplierDebt = Math.max(0, totalSuppliesValue - totalSupplierPaymentsValue);
+
+      // 7. Customer Debt Calculation (Filter by valid customer IDs only)
+      const totalOrdersValue = customerOrders
+        .filter(o => validCustomerIds.has(String(o.customerId)))
+        .reduce((sum, o) => {
+          const q = (parseFloat(o.quantity) || 0);
+          const raw = q * (parseFloat(o.pricePerKg) || 0);
+          const pt = q * (parseFloat(o.printingCostPerKg) || 0);
+          const ct = q * (parseFloat(o.cuttingCostPerKg) || 0);
+          const cl = parseFloat(o.clicheCost) || 0;
+          const profit = q * (parseFloat(o.profitMargin) || 0);
+          return sum + raw + pt + ct + cl + profit;
+        }, 0);
+      
+      const totalCustomerPaymentsValue = customerPayments
+        .filter(p => validCustomerIds.has(String(p.customerId)))
+        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+      
+      const totalCustomerDebt = Math.max(0, totalOrdersValue - totalCustomerPaymentsValue);
+
+      // 8. Update Today's Summary (POS + Advanced Orders)
+      setTodayStats({
+        sales: todayPOSRevenue,
+        orders: todayPOSSales.length + todayCustomerOrders.length,
+        customers: customers.length,
+        supplierDebts: totalSupplierDebt,
+        customerDebts: totalCustomerDebt
+      });
+
+      setYesterdayStats({ 
+        sales: yesterdayPOSRevenue, 
+        orders: yesterdayPOSSales.length, 
+        customers: Math.max(customers.length - 1, 0) 
+      });
+
+      // 9. Active Shift Stats
       const activeShift = storageOptimizer.get('activeShift', null);
       let shiftSales = allSales;
       if (activeShift && activeShift.id) {
@@ -118,8 +238,7 @@ const Dashboard = () => {
           paymentMethod: sale.paymentMethod || 'cash'
         }));
 
-      // Calculate Daily Supply Quantity
-      const allSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+      // Distribution Calculation
       const dailySupplyQty = allSupplies
         .filter(s => (s.date || '').split('T')[0] === today)
         .reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0);
@@ -136,10 +255,13 @@ const Dashboard = () => {
         totalCustomers: customers.length,
         totalProducts: products.length,
         dailySupplyQty: dailySupplyQty,
-        totalStockValue: totalStockValue
+        totalStockValue: totalStockValue,
+        totalSupplierDebt,
+        totalCustomerDebt
       });
 
       setRecentOrders(recent);
+      setLastSync(new Date().toLocaleTimeString('ar-EG'));
     } catch (error) {
       console.error('Data analysis error:', error);
     }
@@ -260,7 +382,13 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 w-full ">
         <div>
           <h1 className="text-3xl font-bold text-[#1e1b4b] tracking-tight">لوحة التحكم</h1>
-          <p className="text-gray-500 text-sm mt-1">مرحباً {userName} 👋</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-gray-500 text-sm">مرحباً {userName} 👋</p>
+            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+            <p className="text-slate-400 text-[10px] font-bold flex items-center gap-1">
+              <Clock className="w-3 h-3" /> تم التحديث: {lastSync}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center space-x-4 mt-4 md:mt-0">
@@ -366,6 +494,54 @@ const Dashboard = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* --- FINANCIAL SUMMARY ROW --- */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Customer Debts */}
+        <div className="bg-white border border-slate-200 rounded-[28px] p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150"></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+              <DollarSign className="w-7 h-7" />
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">مستحقات عند العملاء</p>
+              <h4 className="text-2xl font-black text-slate-800">{(stats.totalCustomerDebt || 0).toLocaleString()} <small className="text-xs opacity-60">ج.م</small></h4>
+            </div>
+          </div>
+          <div className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1.5 rounded-full relative z-10">تحصيل</div>
+        </div>
+
+        {/* Supplier Debts */}
+        <div className="bg-white border border-slate-200 rounded-[28px] p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+           <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150"></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-all duration-300">
+              <TrendingDown className="w-7 h-7" />
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">مديونية للموردين</p>
+              <h4 className="text-2xl font-black text-slate-800">{(stats.totalSupplierDebt || 0).toLocaleString()} <small className="text-xs opacity-60">ج.م</small></h4>
+            </div>
+          </div>
+          <div className="bg-rose-100 text-rose-700 text-[10px] font-black px-3 py-1.5 rounded-full relative z-10">سداد</div>
+        </div>
+
+        {/* Stock Value */}
+        <div className="bg-white border border-slate-200 rounded-[28px] p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150"></div>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+              <Package className="w-7 h-7" />
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">قيمة المخزون المقدرة</p>
+              <h4 className="text-2xl font-black text-slate-800">{(stats.totalStockValue || 0).toLocaleString()} <small className="text-xs opacity-60">ج.م</small></h4>
+            </div>
+          </div>
+          <div className="bg-blue-100 text-blue-700 text-[10px] font-black px-3 py-1.5 rounded-full relative z-10">أصول</div>
+        </div>
       </div>
 
       {/* --- RECENT ORDERS LIST --- */}
@@ -542,7 +718,7 @@ const Dashboard = () => {
           <div className="relative z-10 mt-10 mb-6 space-y-3 p-1">
             <div className="flex justify-between items-center bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:bg-slate-100 transition-colors cursor-default">
               <span className="text-slate-600 text-sm font-bold flex items-center">
-                <ShoppingCart className="w-4 h-4 mr-2 text-purple-500" /> عدد الفواتير
+                <ShoppingCart className="w-4 h-4 mr-2 text-purple-500" /> عدد الفواتير والطلبات
               </span>
               <span className="text-2xl font-black text-black">{todayStats.orders}</span>
             </div>
@@ -552,17 +728,21 @@ const Dashboard = () => {
               </span>
               <span className="text-2xl font-black text-black">{stats.totalCustomers}</span>
             </div>
-            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:bg-slate-100 transition-colors cursor-default">
-              <span className="text-slate-600 text-sm font-bold flex items-center">
-                <Package className="w-4 h-4 mr-2 text-purple-500" /> إجمالي المنتجات
-              </span>
-              <span className="text-2xl font-black text-black">{stats.totalProducts || 0}</span>
+            <div className="grid grid-cols-2 gap-2">
+               <div onClick={() => openAuditModal('supplier_debts')} className="bg-rose-50 border border-rose-100 p-3 rounded-2xl cursor-pointer hover:bg-rose-100 transition-colors">
+                 <p className="text-rose-700 text-[10px] font-bold mb-1 flex justify-between items-center">ديون الموردين <Search className="w-3 h-3"/></p>
+                 <p className="text-lg font-black text-rose-900">{todayStats.supplierDebts.toLocaleString()}</p>
+               </div>
+               <div onClick={() => openAuditModal('customer_debts')} className="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl cursor-pointer hover:bg-emerald-100 transition-colors">
+                 <p className="text-emerald-700 text-[10px] font-bold mb-1 flex justify-between items-center">مستحقات العملاء <Search className="w-3 h-3"/></p>
+                 <p className="text-lg font-black text-emerald-900">{todayStats.customerDebts.toLocaleString()}</p>
+               </div>
             </div>
             <div className="flex justify-between items-center bg-purple-50 border border-purple-100 p-4 rounded-2xl hover:bg-purple-100 transition-colors cursor-default">
               <span className="text-purple-700 text-sm font-bold flex items-center">
                 <DollarSign className="w-4 h-4 mr-2" /> قيمة المخزون
               </span>
-              <span className="text-2xl font-black text-black">{(stats.totalStockValue || 0).toLocaleString()} <span className="text-xs">ج.م</span></span>
+              <span className="text-2xl font-black text-black">{(stats.totalStockValue || 0).toLocaleString()} <small className="text-xs">ج.م</small></span>
             </div>
           </div>
 
@@ -578,6 +758,52 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      {/* AUDIT MODAL */}
+      {auditModal.isOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50 direction-rtl">
+              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                {auditModal.type === 'supplier' ? <TrendingDown className="h-6 w-6 text-rose-600" /> : <TrendingUp className="h-6 w-6 text-emerald-600" />}
+                {auditModal.title}
+              </h3>
+              <button 
+                onClick={() => {
+                  soundManager.play('closeWindow');
+                  setAuditModal({ ...auditModal, isOpen: false });
+                }} 
+                className="p-2 hover:bg-slate-200 rounded-full transition-colors font-bold text-slate-500 text-sm"
+              >
+                إغلاق
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto p-6 direction-rtl">
+              {auditModal.data.length === 0 ? (
+                <div className="text-center text-slate-500 py-10 font-bold">لا توجد بيانات مسجلة</div>
+              ) : (
+                <div className="space-y-3">
+                  {auditModal.data.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                      <div className="font-bold text-slate-800 text-lg">{item.name}</div>
+                      <div className={`font-black text-xl ${auditModal.type === 'supplier' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {item.netDebt.toLocaleString()} <span className="text-sm font-normal text-slate-500">ج.م</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-xl mt-4">
+                      <div className="font-bold text-lg">الإجمالي الكلي:</div>
+                      <div className="font-black text-2xl">
+                        {auditModal.data.reduce((sum, item) => sum + item.netDebt, 0).toLocaleString()} <span className="text-sm font-normal text-slate-300">ج.م</span>
+                      </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

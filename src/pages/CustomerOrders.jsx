@@ -476,6 +476,8 @@ const CustomerOrders = () => {
     // Order Completion
     const [completionModalOrder, setCompletionModalOrder] = useState(null);
     const [netDeliveredQuantity, setNetDeliveredQuantity] = useState('');
+    const [completionPaymentAmount, setCompletionPaymentAmount] = useState('');
+    const [completionPaymentMethod, setCompletionPaymentMethod] = useState('CASH');
 
     // ─── Load ────────────────────────────────────────────────
     const loadData = React.useCallback(async () => {
@@ -907,6 +909,8 @@ const CustomerOrders = () => {
             soundManager.play('openWindow');
             setCompletionModalOrder(order);
             setNetDeliveredQuantity('');
+            setCompletionPaymentAmount('');
+            setCompletionPaymentMethod('CASH');
             return;
         }
 
@@ -975,11 +979,32 @@ const CustomerOrders = () => {
         localStorage.setItem('customer_orders', JSON.stringify(updated));
         
         await supabaseService.updateCustomerOrder(order.id, updatedOrd);
+
+        // --- NEW PAYMENT LOGIC ---
+        const amountToPay = parseFloat(completionPaymentAmount);
+        if (amountToPay > 0) {
+            const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+            const newPayment = {
+                id: Date.now() + 1,
+                customerId: id,
+                customerName: customer?.name || '',
+                date: getCurrentDate().split('T')[0],
+                amount: amountToPay,
+                method: completionPaymentMethod,
+                note: `دفعة عند إغلاق الأوردر ${updatedOrd.orderNumber}`
+            };
+            allPayments.push(newPayment);
+            localStorage.setItem('customer_payments', JSON.stringify(allPayments));
+            await supabaseService.addCustomerPayment(newPayment);
+            setPayments(prev => [...prev, newPayment]);
+        }
         
         setCompletionModalOrder(null);
         setNetDeliveredQuantity('');
+        setCompletionPaymentAmount('');
+        setCompletionPaymentMethod('CASH');
         soundManager.play('save');
-        toast.success('تم إنهاء وإغلاق الطلب بنجاح وتحديد الهالك.');
+        toast.success(amountToPay > 0 ? 'تم إنهاء الطلب وتسجيل الدفعة بنجاح' : 'تم إنهاء وإغلاق الطلب بنجاح وتحديد الهالك.');
         loadData();
 
         setTimeout(() => {
@@ -1837,22 +1862,51 @@ const CustomerOrders = () => {
                             )}
                         </div>
 
-                        <div className="mb-6 text-right direction-rtl">
-                            <label className="block text-sm font-bold text-emerald-700 mb-2">الصافي المُسلم للعميل (كجم)</label>
-                            <input
-                                type="number"
-                                step="any"
-                                min="0"
-                                placeholder="مثال: 45"
-                                value={netDeliveredQuantity}
-                                onChange={(e) => setNetDeliveredQuantity(e.target.value)}
-                                className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white direction-ltr"
-                                autoFocus
-                            />
-                            <p className="text-xs text-slate-500 mt-2">
-                                * هذا هو الرقم الذي سيبنى عليه الحساب النهائي وصافي الفاتورة للعميل. 
-                                سيتم حساب الفرق المتبقي كـ "هالك" على التوريدة.
-                            </p>
+                        <div className="mb-6 text-right direction-rtl space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-emerald-700 mb-2">الصافي المُسلم للعميل (كجم)</label>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    min="0"
+                                    placeholder="مثال: 45"
+                                    value={netDeliveredQuantity}
+                                    onChange={(e) => setNetDeliveredQuantity(e.target.value)}
+                                    className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white direction-ltr"
+                                    autoFocus
+                                />
+                                <p className="text-xs text-slate-500 mt-2">
+                                    * هذا هو الرقم الذي سيبنى عليه حساب الفاتورة. الجزء المتبقي سيُحسب كـ "هالك".
+                                </p>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-200">
+                                <label className="block text-sm font-bold text-blue-700 mb-2">المبلغ المسدد الآن (اختياري)</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            min="0"
+                                            placeholder="المبلغ (ج.م)"
+                                            value={completionPaymentAmount}
+                                            onChange={(e) => setCompletionPaymentAmount(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2.5 text-center text-lg font-bold border-2 border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50 direction-ltr"
+                                        />
+                                    </div>
+                                    <select
+                                        value={completionPaymentMethod}
+                                        onChange={(e) => setCompletionPaymentMethod(e.target.value)}
+                                        className="w-full px-4 py-2.5 text-center text-sm font-bold border-2 border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50 appearance-none"
+                                    >
+                                        <option value="CASH">نقدي</option>
+                                        <option value="VODAFONE_CASH">فودافون كاش</option>
+                                        <option value="BANK_TRANSFER">تحويل بنكي</option>
+                                        <option value="CHECK">شيك</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex gap-3 mt-8">
