@@ -167,9 +167,20 @@ const Dashboard = () => {
         (o.date || o.createdAt || '').split('T')[0] === today && validCustomerIds.has(String(o.customerId))
       );
 
-      // 5. Revenue Calculation
+      // 5. Revenue Calculation (POS Sales + Customer Payments)
       const todayPOSRevenue = todayPOSSales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
       const yesterdayPOSRevenue = yesterdayPOSSales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
+      
+      const todayCustomerPaymentsTotal = customerPayments
+         .filter(p => (p.date || '').split('T')[0] === today && validCustomerIds.has(String(p.customerId)))
+         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+         
+      const yesterdayCustomerPaymentsTotal = customerPayments
+         .filter(p => (p.date || '').split('T')[0] === yesterday && validCustomerIds.has(String(p.customerId)))
+         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+      const totalTodayRevenue = todayPOSRevenue + todayCustomerPaymentsTotal;
+      const totalYesterdayRevenue = yesterdayPOSRevenue + yesterdayCustomerPaymentsTotal;
 
       // 6. Supplier Debt Calculation (Filter by valid supplier IDs only)
       const totalSuppliesValue = allSupplies
@@ -201,26 +212,35 @@ const Dashboard = () => {
       
       const totalCustomerDebt = Math.max(0, totalOrdersValue - totalCustomerPaymentsValue);
 
-      // 8. Daily and Monthly Expenses Calculation
+      // 8. Daily, Monthly and Shift Expenses Calculation
+      const activeShiftForExpenses = storageOptimizer.get('activeShift', null);
       const allExpenses = storageOptimizer.get('expenses', []) || [];
       const currentMonth = today.slice(0, 7); // e.g. "2023-10"
 
       const todayExpenses = allExpenses.filter(e => String(e.date).split('T')[0] === today).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
       const monthlyExpenses = allExpenses.filter(e => String(e.date).startsWith(currentMonth)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      
+      let shiftExpenses = 0;
+      if (activeShiftForExpenses && activeShiftForExpenses.id) {
+          shiftExpenses = allExpenses.filter(e => 
+             e.shiftId === activeShiftForExpenses.id || (!e.shiftId && String(e.date).split('T')[0] === today)
+          ).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      }
 
       // 9. Update Today's Summary (POS + Advanced Orders)
       setTodayStats({
-        sales: todayPOSRevenue,
+        sales: totalTodayRevenue,
         orders: todayPOSSales.length + todayCustomerOrders.length,
         customers: customers.length,
         supplierDebts: totalSupplierDebt,
         customerDebts: totalCustomerDebt,
         expenses: todayExpenses,
-        monthlyExpenses: monthlyExpenses
+        monthlyExpenses: monthlyExpenses,
+        shiftExpenses: shiftExpenses
       });
 
       setYesterdayStats({ 
-        sales: yesterdayPOSRevenue, 
+        sales: totalYesterdayRevenue, 
         orders: yesterdayPOSSales.length, 
         customers: Math.max(customers.length - 1, 0) 
       });
@@ -753,8 +773,8 @@ const Dashboard = () => {
                  <p className="text-lg font-black text-orange-900">{todayStats.expenses.toLocaleString()}</p>
                </div>
                <div className="bg-blue-50 border border-blue-100 p-3 rounded-2xl">
-                 <p className="text-blue-700 text-[10px] font-bold mb-1 flex justify-between items-center">مصروفات الشهر <Clock className="w-3 h-3"/></p>
-                 <p className="text-lg font-black text-blue-900">{todayStats.monthlyExpenses.toLocaleString()}</p>
+                 <p className="text-blue-700 text-[10px] font-bold mb-1 flex justify-between items-center">مصروفات الوردية <Clock className="w-3 h-3"/></p>
+                 <p className="text-lg font-black text-blue-900">{todayStats.shiftExpenses ? todayStats.shiftExpenses.toLocaleString() : '0'}</p>
                </div>
             </div>
             <div className="flex justify-between items-center bg-purple-50 border border-purple-100 p-4 rounded-2xl hover:bg-purple-100 transition-colors cursor-default mt-2">

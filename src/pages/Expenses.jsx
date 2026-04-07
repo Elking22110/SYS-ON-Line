@@ -128,9 +128,11 @@ const Expenses = () => {
             return;
         }
 
+        const activeShiftForExpense = JSON.parse(localStorage.getItem('activeShift') || 'null');
         const newExpense = {
             ...formData,
             amount: Number(formData.amount),
+            shiftId: activeShiftForExpense?.id || null
         };
 
         if (!formData.id) {

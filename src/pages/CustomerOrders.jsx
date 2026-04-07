@@ -655,8 +655,9 @@ const CustomerOrders = () => {
             <body>
                 ${logoHtml}
                 <div class="header">
-                    <h1>${storeName}</h1>
-                    <p>${storePhone ? 'ت: ' + storePhone : ''} ${storeAddress ? ' | ' + storeAddress : ''}</p>
+                    <h1>MS-GROUP</h1>
+                    <p style="font-size:13px; color:#5235E8; font-weight:700; margin-top:2px;">نظام إدارة الفاتورة &mdash; elking</p>
+                    <p style="font-size:12px; color:#555; margin-top:2px;">ت: 01553448631</p>
                     <span class="badge">فاتورة طلب تشغيل</span>
                     <p style="margin-top: 8px; color: #333; font-weight: bold;">رقم الطلب: ${order.orderNumber}</p>
                 </div>
@@ -695,15 +696,6 @@ const CustomerOrders = () => {
                             </div>
                         </div>
                     ` : ''}
-                </div>
-
-                <div class="section">
-                    <div class="section-title">التكاليف المبدئية للإنتاج</div>
-                    <div class="row"><span class="label">سعر الكيلو (خام):</span><span class="value">${price.toLocaleString()} ج.م</span></div>
-                    <div class="row"><span class="label">إجمالي تكلفة المادة الخام:</span><span class="value">${(qty * price).toLocaleString()} ج.م</span></div>
-                    ${printing > 0 ? `<div class="row"><span class="label">تكلفة الطباعة:</span><span class="value">${(qty * printing).toLocaleString()} ج.م</span></div>` : ''}
-                    ${cutting > 0 ? `<div class="row"><span class="label">تكلفة المقص:</span><span class="value">${(qty * cutting).toLocaleString()} ج.م</span></div>` : ''}
-                    ${cliche > 0 ? `<div class="row"><span class="label">تكلفة الأكلشية:</span><span class="value">${cliche.toLocaleString()} ج.م</span></div>` : ''}
                 </div>
 
                 <div class="totals">
