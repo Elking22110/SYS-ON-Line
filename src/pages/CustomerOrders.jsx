@@ -885,12 +885,15 @@ const CustomerOrders = () => {
         }
 
         const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+        const activeShiftForPayment = JSON.parse(localStorage.getItem('activeShift') || 'null');
+        
         const newPayment = {
             id: Date.now(),
             customerId: id,
             customerName: customer?.name || '',
             date: getCurrentDate().split('T')[0],
             amount: amount,
+            shiftId: activeShiftForPayment?.id || null,
             note: paymentData.notes || ''
         };
 
@@ -995,6 +998,7 @@ const CustomerOrders = () => {
                 date: getCurrentDate().split('T')[0],
                 amount: amountToPay,
                 method: completionPaymentMethod,
+                shiftId: activeShiftForOrder?.id || null,
                 note: `دفعة عند إغلاق الأوردر ${updatedOrd.orderNumber}`
             };
             allPayments.push(newPayment);

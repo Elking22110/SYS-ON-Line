@@ -1148,6 +1148,8 @@ class SupabaseService {
                 status: orderData.status || 'OPEN',
                 wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
                 orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
+                totalPrice: parseFloat(orderData.totalPrice) || 0,
+                shiftId: orderData.shiftId || null,
                 createdAt: new Date().toISOString()
             };
             let result = await supabase.from('CustomerOrder').upsert(payload).select().single();
@@ -1187,6 +1189,8 @@ class SupabaseService {
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
                 wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
                 orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
+                totalPrice: parseFloat(orderData.totalPrice) || 0,
+                shiftId: orderData.shiftId || null,
                 status: orderData.status
             };
 
@@ -1234,6 +1238,7 @@ class SupabaseService {
                 amount: parseFloat(paymentData.amount) || 0,
                 date: paymentData.date || new Date().toISOString().split('T')[0],
                 note: paymentData.note || '',
+                shiftId: paymentData.shiftId || null,
                 createdAt: new Date().toISOString()
             };
             const { data: res, error } = await supabase.from('CustomerPayment').upsert(payload).select().single();

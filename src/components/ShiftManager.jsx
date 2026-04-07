@@ -420,6 +420,11 @@ const ShiftManager = () => {
       const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
       const closedOrdersInShift = allOrders.filter(order => {
         if (order.status !== 'CLOSED') return false;
+        
+        // Prioritize Shift ID
+        if (order.shiftId && order.shiftId === shift.id) return true;
+        
+        // Fallback to Date Range (Double check for legacy data)
         const closedAt = new Date(order.closedAt || order.date || 0).getTime();
         return closedAt >= shiftStart && closedAt <= shiftEnd;
       }).map(o => {
@@ -449,6 +454,10 @@ const ShiftManager = () => {
       try { allSupplies = JSON.parse(allSuppliesRaw || '[]'); } catch(e) { console.error('Error parsing supplies', e); }
       
       const suppliesInShift = allSupplies.filter(sup => {
+        // Prioritize Shift ID
+        if (sup.shiftId && sup.shiftId === shift.id) return true;
+        
+        // Fallback to Date Range
         const ts = new Date(sup.date || 0).getTime();
         return ts >= shiftStart && ts <= shiftEnd;
       });
@@ -462,6 +471,10 @@ const ShiftManager = () => {
       // 3. Expenses (Recorded during shift)
       const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
       const expensesInShift = allExpenses.filter(exp => {
+        // Prioritize Shift ID
+        if (exp.shiftId && exp.shiftId === shift.id) return true;
+        
+        // Fallback to Date Range
         const ts = new Date(exp.date || 0).getTime();
         return ts >= shiftStart && ts <= shiftEnd;
       });
@@ -475,9 +488,34 @@ const ShiftManager = () => {
         }, {})
       };
 
-      // 4. Net Profit Calculation
-      // Profit = (Production Orders Revenue) - (Supplier Costs) - (Expenses)
+      // 4. Customer Payments (Debt Settlements / Independent Payments)
+      const allCustomerPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+      const customerPaymentsInShift = allCustomerPayments.filter(p => {
+        if (p.shiftId && p.shiftId === shift.id) return true;
+        const ts = new Date(p.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+      const totalCustomerPayments = customerPaymentsInShift.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+
+      // 5. Supplier Payments (Direct Cash Out to suppliers)
+      const allSupplierPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+      const supplierPaymentsInShift = allSupplierPayments.filter(p => {
+        if (p.shiftId && p.shiftId === shift.id) return true;
+        const ts = new Date(p.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+      const totalSupplierPayments = supplierPaymentsInShift.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+
+      // 6. Net Profit Calculation
+      // ACCRUAL Profit = (Value of Closed Production Orders) - (Cost of Raw Materials in this Shift) - (Expenses)
+      // Note: This is simplified. Real profit might differ.
       const netProfit = productionTotals.totalRevenue - supplierTotals.totalCost - expenseTotals.total;
+
+      // 7. Cash Drawer Expected Balance
+      // Opening balance + POS Cash Received + Customer Payments - Supplier Payments - Expenses
+      const openingBalance = parseFloat(shift.cashDrawer?.openingAmount) || 0;
+      const posCashReceived = salesDetails.paymentMethods['نقدي']?.received || 0;
+      const expectedCashDrawer = openingBalance + posCashReceived + totalCustomerPayments - totalSupplierPayments - expenseTotals.total;
 
       const reportWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
 
@@ -771,12 +809,17 @@ const ShiftManager = () => {
                 <div class="currency">جنيه مصري</div>
               </div>
               <div class="summary-card received">
-                <h3>💵 المبلغ المستلم</h3>
+                <h3>💵 المبالغ المستلمة (كاش/محافظ)</h3>
                 <div class="value">${(salesDetails.totalReceived || 0).toFixed(2)}</div>
                 <div class="currency">جنيه مصري</div>
               </div>
+              <div class="summary-card received">
+                <h3>💰 تحصيل مديونيات</h3>
+                <div class="value">+${totalCustomerPayments.toFixed(2)}</div>
+                <div class="currency">جنيه مصري</div>
+              </div>
               <div class="summary-card remaining">
-                <h3>⏳ المبلغ المتبقي</h3>
+                <h3>⏳ مبيعات آجلة (جديدة)</h3>
                 <div class="value">${(salesDetails.totalRemaining || 0).toFixed(2)}</div>
                 <div class="currency">جنيه مصري</div>
               </div>
@@ -824,21 +867,21 @@ const ShiftManager = () => {
             </div>
 
             <div class="details-section">
-              <h2>🚚 تكاليف التوريدات والموردين</h2>
+              <h2>🚚 تكاليف التوريدات ومدفوعات الموردين</h2>
               <div class="summary-grid">
                 <div class="summary-card refunds negative">
                    <h3>إجمالي تكلفة الخامات</h3>
                    <div class="value">-${supplierTotals.totalCost.toFixed(2)}</div>
                    <div class="currency">جنيه مصري</div>
                 </div>
-                <div class="summary-card received">
-                   <h3>المبلغ المسدد للموردين</h3>
-                   <div class="value">${supplierTotals.totalPaid.toFixed(2)}</div>
+                <div class="summary-card expenses negative">
+                   <h3>مدفوعات للموردين (خارج من الدرج)</h3>
+                   <div class="value">-${totalSupplierPayments.toFixed(2)}</div>
                    <div class="currency">جنيه مصري</div>
                 </div>
                 <div class="summary-card remaining">
-                   <h3>المتبقي (ديون جديدة)</h3>
-                   <div class="value">${(supplierTotals.totalCost - supplierTotals.totalPaid).toFixed(2)}</div>
+                   <h3>المتبقي كمديونية للموردين</h3>
+                   <div class="value">${(supplierTotals.totalCost - totalSupplierPayments).toFixed(2)}</div>
                    <div class="currency">جنيه مصري</div>
                 </div>
               </div>
@@ -968,31 +1011,35 @@ const ShiftManager = () => {
             ` : ''}
 
             <div class="details-section">
-              <h2>🏦 ملخص الصندوق</h2>
+              <h2>🏦 ملخص حركة الصندوق (الخزينة)</h2>
               <table class="details-table">
                 <tr>
-                  <td><strong>💰 المبلغ الافتتاحي</strong></td>
-                  <td><span class="highlight">${(shift.cashDrawer?.openingAmount || 0).toFixed(2)} جنيه</span></td>
+                  <td><strong>💰 رصيد بداية الوردية (العهدة)</strong></td>
+                  <td><span class="highlight">${openingBalance.toFixed(2)} جنيه</span></td>
                 </tr>
                 <tr>
-                  <td><strong>💵 المبلغ المستلم</strong></td>
-                  <td><span class="highlight">${(salesDetails.totalReceived || 0).toFixed(2)} جنيه</span></td>
+                  <td><strong>💵 مبيعات نقدية (POS)</strong></td>
+                  <td><span class="highlight">+${posCashReceived.toFixed(2)} جنيه</span></td>
                 </tr>
                 <tr>
-                  <td><strong>🔄 إجمالي المرتجعات</strong></td>
+                  <td><strong>💰 تحصيل مديونيات عملاء</strong></td>
+                  <td><span class="highlight" style="color: #38a169;">+${totalCustomerPayments.toFixed(2)} جنيه</span></td>
+                </tr>
+                <tr>
+                  <td><strong>🔄 مرتجعات نقدية</strong></td>
                   <td><span class="highlight" style="color: #e53e3e;">-${(salesDetails.totalRefunds || 0).toFixed(2)} جنيه</span></td>
                 </tr>
                 <tr>
-                  <td><strong>🎯 إجمالي الخصومات</strong></td>
-                  <td><span class="highlight" style="color: #e53e3e;">-${(salesDetails.totalDiscounts || 0).toFixed(2)} جنيه</span></td>
+                  <td><strong>💸 إجمالي المصروفات</strong></td>
+                  <td><span class="highlight" style="color: #e53e3e;">-${expenseTotals.total.toFixed(2)} جنيه</span></td>
                 </tr>
                 <tr>
-                  <td><strong>📊 المبلغ المتوقع في الصندوق</strong></td>
-                  <td><span class="highlight" style="color: #38a169;">${(shift.cashDrawer?.expectedAmount || 0).toFixed(2)} جنيه</span></td>
+                  <td><strong>🚚 مدفوعات للموردين</strong></td>
+                  <td><span class="highlight" style="color: #e53e3e;">-${totalSupplierPayments.toFixed(2)} جنيه</span></td>
                 </tr>
-                <tr>
-                  <td><strong>⏳ المبلغ المتبقي للعملاء</strong></td>
-                  <td><span class="highlight" style="color: #d69e2e;">${(salesDetails.totalRemaining || 0).toFixed(2)} جنيه</span></td>
+                <tr style="background: #f0fdf4; border-top: 2px solid #22c55e;">
+                  <td><strong>📊 المبلغ المتوقع وجوده في الصندوق</strong></td>
+                  <td><span class="highlight" style="color: #22c55e; font-size: 18px; font-weight: 900;">${expectedCashDrawer.toFixed(2)} جنيه</span></td>
                 </tr>
               </table>
             </div>

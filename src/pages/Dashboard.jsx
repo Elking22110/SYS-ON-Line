@@ -13,7 +13,8 @@ import {
   ChevronDown,
   DollarSign,
   RefreshCw,
-  Clock
+  Clock,
+  CheckCircle2
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import soundManager from '../utils/soundManager.js';
@@ -249,14 +250,17 @@ const Dashboard = () => {
       const activeShift = storageOptimizer.get('activeShift', null);
       let shiftSales = allSales;
       let shiftClosedOrders = [];
+      let shiftCustomerPayments = [];
       if (activeShift && activeShift.id) {
         shiftSales = allSales.filter(s => s.shiftId === activeShift.id);
         shiftClosedOrders = customerOrders.filter(o => o.status === 'CLOSED' && o.shiftId === activeShift.id);
+        shiftCustomerPayments = customerPayments.filter(p => p.shiftId === activeShift.id);
       }
 
       const totalSales = shiftSales.reduce((sum, sale) => safeMath.add(sum, sale.total || sale.totalAmount || 0), 0)
-                       + shiftClosedOrders.reduce((sum, o) => safeMath.add(sum, o.totalPrice || 0), 0);
-      const totalOrdersCount = shiftSales.length + shiftClosedOrders.length;
+                       + shiftClosedOrders.reduce((sum, o) => safeMath.add(sum, o.totalPrice || 0), 0)
+                       + shiftCustomerPayments.reduce((sum, p) => safeMath.add(sum, p.amount || 0), 0);
+      const totalOrdersCount = shiftSales.length + shiftClosedOrders.length + shiftCustomerPayments.length;
 
       // Combine and format recent sales & custom orders
       const combinedRecent = [
@@ -279,6 +283,16 @@ const Dashboard = () => {
           items: 1, // factory order is technically 1 big item
           paymentMethod: 'invoice',
           date: new Date(o.closedAt || o.updatedAt || o.date || new Date())
+        })),
+        ...shiftCustomerPayments.map(p => ({
+          id: p.id,
+          type: 'payment',
+          customer: p.customerName || 'تحصيل مديونية',
+          amount: parseFloat(p.amount) || 0,
+          time: formatTimeOnly(p.date || new Date()),
+          items: 0,
+          paymentMethod: p.method || 'cash',
+          date: new Date(p.date || new Date())
         }))
       ];
 
@@ -603,8 +617,12 @@ const Dashboard = () => {
           {recentOrders.length > 0 ? recentOrders.map((order) => (
             <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 px-6 bg-slate-50/50 border border-slate-100/80 rounded-2xl hover:bg-indigo-50/50 hover:border-indigo-100 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md gap-4">
               <div className="flex items-center min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold ml-4 shadow-inner group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors flex-shrink-0">
-                  {order.customer.charAt(0)}
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold ml-4 shadow-inner transition-colors flex-shrink-0 ${
+                  order.type === 'payment' ? 'bg-emerald-100 text-emerald-600 group-hover:bg-emerald-200' :
+                  order.type === 'factory' ? 'bg-amber-100 text-amber-600 group-hover:bg-amber-200' :
+                  'bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200'
+                }`}>
+                  {order.type === 'payment' ? <DollarSign className="w-6 h-6" /> : order.type === 'factory' ? <Package className="w-6 h-6" /> : order.customer.charAt(0)}
                 </div>
                 <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors truncate">
                     {order.customer || 'نقدي'}
@@ -617,8 +635,13 @@ const Dashboard = () => {
                 </div>
 
                 <div className="text-slate-500 text-sm font-semibold flex items-center whitespace-nowrap">
-                  <Package className="w-4 h-4 ml-1 opacity-70" />
-                  {order.items} منتجات
+                  {order.type === 'payment' ? (
+                    <span className="text-emerald-600 flex items-center"><CheckCircle2 className="w-4 h-4 ml-1" /> تحصيل نقدي</span>
+                  ) : order.type === 'factory' ? (
+                    <span className="text-amber-600 flex items-center"><TrendingUp className="w-4 h-4 ml-1" /> طلب مصنع</span>
+                  ) : (
+                    <><Package className="w-4 h-4 ml-1 opacity-70" /> {order.items} منتجات</>
+                  )}
                 </div>
 
                 <div className="text-slate-500 text-sm font-semibold flex items-center whitespace-nowrap">

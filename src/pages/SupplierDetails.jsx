@@ -361,12 +361,14 @@ const SupplierDetails = () => {
             return;
         }
 
+        const activeShiftForSupplierPayment = JSON.parse(localStorage.getItem('activeShift') || 'null');
         const payment = {
             id: Date.now(),
             supplierId: id,
             date: getCurrentDate().split('T')[0],
             amount: amount,
             paymentMethod: newPayment.paymentMethod,
+            shiftId: activeShiftForSupplierPayment?.id || null,
             notes: newPayment.notes
         };
 
