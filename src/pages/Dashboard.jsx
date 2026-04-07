@@ -36,7 +36,7 @@ const Dashboard = () => {
   const [allTimeSales, setAllTimeSales] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0, supplierDebts: 0, customerDebts: 0 });
+  const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0, supplierDebts: 0, customerDebts: 0, expenses: 0, monthlyExpenses: 0 });
   const [yesterdayStats, setYesterdayStats] = useState({ sales: 0, orders: 0, customers: 0 });
   const [lastSync, setLastSync] = useState(new Date().toLocaleTimeString('ar-EG'));
   const [auditModal, setAuditModal] = useState({ isOpen: false, title: '', type: '', data: [] });
@@ -201,13 +201,22 @@ const Dashboard = () => {
       
       const totalCustomerDebt = Math.max(0, totalOrdersValue - totalCustomerPaymentsValue);
 
-      // 8. Update Today's Summary (POS + Advanced Orders)
+      // 8. Daily and Monthly Expenses Calculation
+      const allExpenses = storageOptimizer.get('expenses', []) || [];
+      const currentMonth = today.slice(0, 7); // e.g. "2023-10"
+
+      const todayExpenses = allExpenses.filter(e => String(e.date).split('T')[0] === today).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const monthlyExpenses = allExpenses.filter(e => String(e.date).startsWith(currentMonth)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+      // 9. Update Today's Summary (POS + Advanced Orders)
       setTodayStats({
         sales: todayPOSRevenue,
         orders: todayPOSSales.length + todayCustomerOrders.length,
         customers: customers.length,
         supplierDebts: totalSupplierDebt,
-        customerDebts: totalCustomerDebt
+        customerDebts: totalCustomerDebt,
+        expenses: todayExpenses,
+        monthlyExpenses: monthlyExpenses
       });
 
       setYesterdayStats({ 
@@ -738,7 +747,17 @@ const Dashboard = () => {
                  <p className="text-lg font-black text-emerald-900">{todayStats.customerDebts.toLocaleString()}</p>
                </div>
             </div>
-            <div className="flex justify-between items-center bg-purple-50 border border-purple-100 p-4 rounded-2xl hover:bg-purple-100 transition-colors cursor-default">
+            <div className="grid grid-cols-2 gap-2 mt-2">
+               <div className="bg-orange-50 border border-orange-100 p-3 rounded-2xl">
+                 <p className="text-orange-700 text-[10px] font-bold mb-1">مصروفات اليوم</p>
+                 <p className="text-lg font-black text-orange-900">{todayStats.expenses.toLocaleString()}</p>
+               </div>
+               <div className="bg-blue-50 border border-blue-100 p-3 rounded-2xl">
+                 <p className="text-blue-700 text-[10px] font-bold mb-1 flex justify-between items-center">مصروفات الشهر <Clock className="w-3 h-3"/></p>
+                 <p className="text-lg font-black text-blue-900">{todayStats.monthlyExpenses.toLocaleString()}</p>
+               </div>
+            </div>
+            <div className="flex justify-between items-center bg-purple-50 border border-purple-100 p-4 rounded-2xl hover:bg-purple-100 transition-colors cursor-default mt-2">
               <span className="text-purple-700 text-sm font-bold flex items-center">
                 <DollarSign className="w-4 h-4 mr-2" /> قيمة المخزون
               </span>

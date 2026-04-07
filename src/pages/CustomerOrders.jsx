@@ -626,23 +626,29 @@ const CustomerOrders = () => {
                 <meta charset="UTF-8">
                 <title>فاتورة طلب تشغيل - ${order.orderNumber}</title>
                 <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
-                    .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-                    .header h1 { margin: 0; color: #5235E8; font-size: 24px; }
-                    .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
-                    .section { margin-bottom: 20px; }
-                    .section-title { font-weight: bold; background: #f8f9fa; padding: 5px 10px; border-right: 4px solid #5235E8; margin-bottom: 10px; }
-                    .row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 5px 0; }
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 24px; color: #111; line-height: 1.7; background: #fff; }
+                    .header { text-align: center; border-bottom: 3px solid #5235E8; padding-bottom: 16px; margin-bottom: 24px; }
+                    .header h1 { color: #5235E8; font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+                    .header p { color: #555; font-size: 14px; }
+                    .badge { display: inline-block; background: #5235E8; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 8px; }
+                    .section { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
+                    .section-title { font-weight: bold; background: #5235E8; color: #fff; padding: 8px 14px; font-size: 14px; letter-spacing: 0.5px; }
+                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 7px 14px; align-items: center; }
                     .row:last-child { border-bottom: none; }
-                    .label { color: #666; font-size: 14px; }
-                    .value { font-weight: bold; font-size: 14px; }
-                    .totals { margin-top: 30px; border-top: 2px solid #5235E8; padding-top: 15px; }
-                    .totals .row { padding: 8px 0; }
-                    .totals .grand-total { font-size: 18px; color: #5235E8; font-weight: 900; }
-                    .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    .label { color: #555; font-size: 13px; }
+                    .value { font-weight: bold; font-size: 13px; color: #111; }
+                    .totals { margin-top: 24px; background: #f0eeff; border: 2px solid #5235E8; border-radius: 10px; padding: 14px 16px; }
+                    .grand-total { display: flex; justify-content: space-between; align-items: center; }
+                    .grand-total .label { font-size: 16px; font-weight: 700; color: #5235E8; }
+                    .grand-total .value { font-size: 22px; font-weight: 900; color: #5235E8; }
+                    .supply-box { margin-top: 12px; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; background: #f0fdf4; }
+                    .supply-box-title { font-weight: bold; color: #166534; font-size: 13px; margin-bottom: 6px; border-bottom: 1px solid #86efac; padding-bottom: 4px; }
+                    .supply-row { display: flex; justify-content: space-between; font-size: 12px; color: #166534; padding: 2px 0; }
+                    .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 12px; }
                     @media print {
-                        body { padding: 0; }
-                        button { display: none; }
+                        body { padding: 10px; }
+                        button { display: none !important; }
                     }
                 </style>
             </head>
@@ -651,8 +657,8 @@ const CustomerOrders = () => {
                 <div class="header">
                     <h1>${storeName}</h1>
                     <p>${storePhone ? 'ت: ' + storePhone : ''} ${storeAddress ? ' | ' + storeAddress : ''}</p>
-                    <p style="margin-top: 10px; font-weight: bold; font-size: 18px;">فاتورة طلب تشغيل</p>
-                    <p>رقم الطلب: ${order.orderNumber}</p>
+                    <span class="badge">فاتورة طلب تشغيل</span>
+                    <p style="margin-top: 8px; color: #333; font-weight: bold;">رقم الطلب: ${order.orderNumber}</p>
                 </div>
 
                 <div class="section">
@@ -660,53 +666,55 @@ const CustomerOrders = () => {
                     <div class="row"><span class="label">اسم العميل:</span><span class="value">${customer.name}</span></div>
                     <div class="row"><span class="label">رقم الهاتف:</span><span class="value">${customer.phone || '-'}</span></div>
                     <div class="row"><span class="label">تاريخ الطلب:</span><span class="value">${order.date}</span></div>
-                    <div class="row"><span class="label">تاريخ الاستلام:</span><span class="value">${order.deliveryDate || '-'}</span></div>
+                    <div class="row"><span class="label">تاريخ التسليم:</span><span class="value">${order.deliveryDate || '-'}</span></div>
                 </div>
 
                 <div class="section">
                     <div class="section-title">تفاصيل التصنيع</div>
                     <div class="row"><span class="label">نوع المنتج:</span><span class="value">${order.productType || '-'}</span></div>
                     <div class="row"><span class="label">اللون:</span><span class="value">${order.color || '-'}</span></div>
-                    <div class="row"><span class="label">المقاس الأساسي (سم):</span><span class="value">${order.sizeWidth && order.sizeHeight ? order.sizeWidth + ' (عرض) × ' + order.sizeHeight + ' (طول)' : '-'}</span></div>
+                    <div class="row"><span class="label">المقاس الأساسي:</span><span class="value">${order.sizeWidth && order.sizeHeight ? order.sizeWidth + ' (عرض) × ' + order.sizeHeight + ' (طول) سم' : '-'}</span></div>
                     ${Array.isArray(order.sizes) && order.sizes.length > 0 ? order.sizes.map((s, i) => `<div class="row"><span class="label">مقاس ${i + 2}:</span><span class="value">${s.width} (عرض) × ${s.height} (طول) سم</span></div>`).join('') : ''}
-                    ${order.bottomEnabled ? `<div class="row"><span class="label">سوفليهات:</span><span class="value">${order.bottomSize || '-'}</span></div>` : `<div class="row"><span class="label">سوفليهات:</span><span class="value">بدون سوفليهات</span></div>`}
+                    <div class="row"><span class="label">سوفليهات:</span><span class="value">${order.bottomEnabled ? (order.bottomSize || '-') : 'بدون سوفليهات'}</span></div>
                     <div class="row"><span class="label">السمك:</span><span class="value">${order.thickness || '-'}</span></div>
                     <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${qty} كجم</span></div>
                     ${order.clicheEnabled ? `
                         <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
                         <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
                     ` : ''}
-                    
-                    {/* Supplier Info if available */}
                     ${orderSupplies.length > 0 ? `
-                        <div style="margin-top: 10px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #f0fdf4;">
-                            <div style="font-weight: bold; color: #166534; font-size: 14px; margin-bottom: 5px; border-bottom: 1px solid #bbf7d0;">بيانات توريد الخامات:</div>
-                            ${orderSupplies.map(s => `
-                                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
-                                    <span>المورد: <strong>${s.supplierName}</strong></span>
-                                    <span>رقم التوريدة: <strong>${s.supplyNumber || s.id}</strong></span>
-                                </div>
-                            `).join('')}
+                        <div style="padding: 10px 14px;">
+                            <div class="supply-box">
+                                <div class="supply-box-title">بيانات توريد الخامات:</div>
+                                ${orderSupplies.map(s => `
+                                    <div class="supply-row">
+                                        <span>المورد: <strong>${s.supplierName}</strong></span>
+                                        <span>رقم التوريدة: <strong>${s.supplyNumber || s.id}</strong></span>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     ` : ''}
                 </div>
 
                 <div class="section">
                     <div class="section-title">التكاليف المبدئية للإنتاج</div>
-                    <div class="row"><span class="label">سعر كيلو الشراء (خام):</span><span class="value">${price.toLocaleString()} ج.م</span></div>
-                    <div class="row"><span class="label">إجمالي التكلفة بالمادة الخام:</span><span class="value">${(qty * price).toLocaleString()} ج.م</span></div>
-                    
+                    <div class="row"><span class="label">سعر الكيلو (خام):</span><span class="value">${price.toLocaleString()} ج.م</span></div>
+                    <div class="row"><span class="label">إجمالي تكلفة المادة الخام:</span><span class="value">${(qty * price).toLocaleString()} ج.م</span></div>
                     ${printing > 0 ? `<div class="row"><span class="label">تكلفة الطباعة:</span><span class="value">${(qty * printing).toLocaleString()} ج.م</span></div>` : ''}
                     ${cutting > 0 ? `<div class="row"><span class="label">تكلفة المقص:</span><span class="value">${(qty * cutting).toLocaleString()} ج.م</span></div>` : ''}
                     ${cliche > 0 ? `<div class="row"><span class="label">تكلفة الأكلشية:</span><span class="value">${cliche.toLocaleString()} ج.م</span></div>` : ''}
                 </div>
 
                 <div class="totals">
-                    <div class="row grand-total"><span class="label">إجمالي قيمة الفاتورة:</span><span class="value">${grandTotal.toLocaleString()} ج.م</span></div>
+                    <div class="grand-total">
+                        <span class="label">إجمالي قيمة الفاتورة:</span>
+                        <span class="value">${grandTotal.toLocaleString()} ج.م</span>
+                    </div>
                 </div>
 
                 <div class="footer">
-                    تم إصدار هذه الفاتورة من النظام <br>
+                    تم إصدار هذه الفاتورة من نظام الإدارة<br>
                 </div>
             </body>
             </html>
@@ -715,6 +723,7 @@ const CustomerOrders = () => {
         printWindow.document.write(html);
         printWindow.document.close();
     };
+
 
     // ─── Helpers ────────────────────────────────────────────
     const calculateOrderTotal = (order) => {

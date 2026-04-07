@@ -258,32 +258,41 @@ const SupplierDetails = () => {
                 <meta charset="UTF-8">
                 <title>إيصال استلام توريدة - ${supply.supplyNumber}</title>
                 <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
-                    .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-                    .header h1 { margin: 0; color: #5235E8; font-size: 24px; }
-                    .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
-                    .section { margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 8px; }
-                    .section-title { font-weight: bold; background: #f8f9fa; padding: 5px 10px; border-right: 4px solid #5235E8; margin-bottom: 10px; margin-top: -15px; margin-right: -15px; width: fit-content; border-bottom-left-radius: 8px; }
-                    .row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 5px 0; }
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 24px; color: #111; line-height: 1.7; background: #fff; }
+                    .header { text-align: center; border-bottom: 3px solid #5235E8; padding-bottom: 16px; margin-bottom: 24px; }
+                    .header h1 { color: #5235E8; font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+                    .header p { color: #555; font-size: 14px; margin-top: 4px; }
+                    .badge { display: inline-block; background: #5235E8; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 8px; }
+                    .section { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
+                    .section-title { font-weight: bold; background: #5235E8; color: #fff; padding: 8px 14px; font-size: 14px; letter-spacing: 0.5px; }
+                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 7px 14px; align-items: center; }
                     .row:last-child { border-bottom: none; }
-                    .label { color: #666; font-size: 14px; }
-                    .value { font-weight: bold; font-size: 14px; }
-                    .totals { margin-top: 30px; border-top: 2px solid #5235E8; padding-top: 15px; }
-                    .totals .row { padding: 8px 0; }
-                    .totals .grand-total { font-size: 18px; color: #5235E8; font-weight: 900; }
-                    .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    .label { color: #555; font-size: 13px; }
+                    .value { font-weight: bold; font-size: 13px; color: #111; }
+                    .totals { margin-top: 24px; background: #f0eeff; border: 2px solid #5235E8; border-radius: 10px; padding: 14px 16px; }
+                    .grand-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #c4b5fd; }
+                    .grand-total .label { font-size: 15px; font-weight: 700; color: #5235E8; }
+                    .grand-total .value { font-size: 20px; font-weight: 900; color: #5235E8; }
+                    .paid-row { display: flex; justify-content: space-between; padding: 5px 0; }
+                    .paid-row .label { font-size: 13px; color: #15803d; font-weight: 600; }
+                    .paid-row .value { font-size: 14px; font-weight: 900; color: #15803d; }
+                    .remaining-row { display: flex; justify-content: space-between; padding: 5px 0; }
+                    .remaining-row .label { font-size: 13px; color: #dc2626; font-weight: 600; }
+                    .remaining-row .value { font-size: 14px; font-weight: 900; color: #dc2626; }
+                    .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 12px; }
                     @media print {
-                        body { padding: 0; }
-                        button { display: none; }
+                        body { padding: 10px; }
+                        button { display: none !important; }
                     }
                 </style>
             </head>
             <body>
-                ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px;" /></div>` : ''}
+                ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" /></div>` : ''}
                 <div class="header">
                     <h1>${storeName}</h1>
-                    <p style="margin-top: 10px; font-weight: bold; font-size: 18px;">إيصال استلام بضاعة (توريدة)</p>
-                    <p>رقم الإيصال: ${supply.supplyNumber}</p>
+                    <span class="badge">إيصال استلام بضاعة (توريدة)</span>
+                    <p style="margin-top: 8px; font-weight: bold; color: #333;">رقم الإيصال: ${supply.supplyNumber}</p>
                 </div>
 
                 <div class="section">
@@ -296,19 +305,27 @@ const SupplierDetails = () => {
                 <div class="section">
                     <div class="section-title">تفاصيل المنتج والمواد الخام</div>
                     <div class="row"><span class="label">اسم المنتج المورد:</span><span class="value">${supply.productName}</span></div>
-                    <div class="row"><span class="label">الكمية:</span><span class="value">${supply.quantity.toLocaleString()} كجم</span></div>
-                    <div class="row"><span class="label">سعر الوحدة (الكيلو):</span><span class="value">${supply.unitPrice.toLocaleString()} ج.م</span></div>
+                    <div class="row"><span class="label">الكمية:</span><span class="value">${Number(supply.quantity).toLocaleString()} كجم</span></div>
+                    <div class="row"><span class="label">سعر الكيلو:</span><span class="value">${Number(supply.unitPrice).toLocaleString()} ج.م</span></div>
                 </div>
 
-                <div class="section">
-                    <div class="section-title">الحساب المالي للإيصال</div>
-                    <div class="row"><span class="label">إجمالي قيمة التوريدة:</span><span class="value">${supply.totalPrice.toLocaleString()} ج.م</span></div>
-                    <div class="row"><span class="label" style="color: green;">ما تم سداده في هذه العملية:</span><span class="value" style="color: green;">${supply.paidAmount.toLocaleString()} ج.م</span></div>
-                    <div class="row"><span class="label" style="color: red;">المديونية المتبقية من هذه العملية:</span><span class="value" style="color: red;">${supply.remainingAmount.toLocaleString()} ج.م</span></div>
+                <div class="totals">
+                    <div class="grand-total">
+                        <span class="label">إجمالي قيمة التوريدة:</span>
+                        <span class="value">${Number(supply.totalPrice).toLocaleString()} ج.م</span>
+                    </div>
+                    <div class="paid-row">
+                        <span class="label">المبلغ المسدد في هذه العملية:</span>
+                        <span class="value">${Number(supply.paidAmount).toLocaleString()} ج.م</span>
+                    </div>
+                    <div class="remaining-row">
+                        <span class="label">المديونية المتبقية من هذه العملية:</span>
+                        <span class="value">${Number(supply.remainingAmount).toLocaleString()} ج.م</span>
+                    </div>
                 </div>
 
                 <div class="footer">
-                    تم إصدار هذا الإيصال من نظام الإدارة الآلي <br>
+                    تم إصدار هذا الإيصال من نظام الإدارة الآلي<br>
                 </div>
                 <script>window.onload = function() { setTimeout(function(){ window.print(); }, 500); }</script>
             </body>
