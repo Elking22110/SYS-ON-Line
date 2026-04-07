@@ -894,7 +894,7 @@ const ShiftManager = () => {
                   ${(shift.sales || []).map(sale => `
                     <tr>
                       <td><span class="highlight">#${sale.id}</span></td>
-                      <td>${sale.customer.name}</td>
+                      <td>${sale.customer?.name || sale.customerName || (typeof sale.customer === 'string' ? sale.customer : 'نقدي')}</td>
                       <td><strong>${(sale.total || 0).toFixed(2)} جنيه</strong></td>
                       <td><strong>${sale.downPayment && sale.downPayment.enabled ? (sale.downPayment.amount || 0).toFixed(2) : (sale.total || 0).toFixed(2)} جنيه</strong></td>
                       <td><strong>${sale.downPayment && sale.downPayment.enabled ? (sale.downPayment.remaining || ((sale.total || 0) - (sale.downPayment.amount || 0))).toFixed(2) : '0.00'} جنيه</strong></td>

@@ -248,24 +248,43 @@ const Dashboard = () => {
       // 9. Active Shift Stats
       const activeShift = storageOptimizer.get('activeShift', null);
       let shiftSales = allSales;
+      let shiftClosedOrders = [];
       if (activeShift && activeShift.id) {
         shiftSales = allSales.filter(s => s.shiftId === activeShift.id);
+        shiftClosedOrders = customerOrders.filter(o => o.status === 'CLOSED' && o.shiftId === activeShift.id);
       }
 
-      const totalSales = shiftSales.reduce((sum, sale) => safeMath.add(sum, sale.total || sale.totalAmount || 0), 0);
-      const totalOrders = shiftSales.length;
+      const totalSales = shiftSales.reduce((sum, sale) => safeMath.add(sum, sale.total || sale.totalAmount || 0), 0)
+                       + shiftClosedOrders.reduce((sum, o) => safeMath.add(sum, o.totalPrice || 0), 0);
+      const totalOrdersCount = shiftSales.length + shiftClosedOrders.length;
 
-      const recent = shiftSales
-        .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))
-        .slice(0, 5)
-        .map(sale => ({
+      // Combine and format recent sales & custom orders
+      const combinedRecent = [
+        ...shiftSales.map(sale => ({
           id: sale.id,
+          type: 'pos',
           customer: sale.customer?.name || sale.customerName || sale.customerInfo?.name || (typeof sale.customer === 'string' ? sale.customer : 'نقدي'),
           amount: parseFloat(sale.total || sale.totalAmount) || 0,
           time: formatTimeOnly(sale.date || sale.createdAt),
           items: sale.items?.length || (typeof sale.items === 'string' ? JSON.parse(sale.items || '[]').length : 0),
-          paymentMethod: sale.paymentMethod || 'cash'
-        }));
+          paymentMethod: sale.paymentMethod || 'cash',
+          date: new Date(sale.date || sale.createdAt)
+        })),
+        ...shiftClosedOrders.map(o => ({
+          id: o.id,
+          type: 'factory',
+          customer: o.customerName || 'عميل مصنع',
+          amount: parseFloat(o.totalPrice) || 0,
+          time: formatTimeOnly(o.closedAt || o.updatedAt || o.date || new Date()),
+          items: 1, // factory order is technically 1 big item
+          paymentMethod: 'invoice',
+          date: new Date(o.closedAt || o.updatedAt || o.date || new Date())
+        }))
+      ];
+
+      const recent = combinedRecent
+        .sort((a, b) => b.date - a.date)
+        .slice(0, 5);
 
       // Distribution Calculation
       const dailySupplyQty = allSupplies
@@ -280,7 +299,7 @@ const Dashboard = () => {
 
       setStats({
         totalSales,
-        totalOrders,
+        totalOrders: totalOrdersCount,
         totalCustomers: customers.length,
         totalProducts: products.length,
         dailySupplyQty: dailySupplyQty,

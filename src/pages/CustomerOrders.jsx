@@ -967,6 +967,8 @@ const CustomerOrders = () => {
         }
 
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+        const activeShiftForOrder = JSON.parse(localStorage.getItem('activeShift') || 'null');
+        
         const updatedOrd = { 
             ...order, 
             status: 'CLOSED', // يتم الإغلاق فوراً
@@ -974,6 +976,7 @@ const CustomerOrders = () => {
             quantity: netQty,
             wasteQuantity: wasteAmountForOrder,
             closedAt: new Date().toISOString(),
+            shiftId: activeShiftForOrder?.id || order.shiftId || null,
             totalPrice: calculateOrderTotal({ ...order, quantity: netQty })
         };
         const updated = allOrders.map(o => o.id === order.id ? updatedOrd : o);

@@ -22,7 +22,7 @@ import { DataValidator, StorageMonitor } from "./utils/dataValidation"; // إض�
 import DataLoader from "./components/DataLoader"; // إضافة محمل البيانات
 import databaseManager from "./utils/database"; // إضافة مدير قاعدة البيانات
 import { getCurrentDate, cleanExistingData } from './utils/dateUtils.js';
-import { subscribe, EVENTS } from "./utils/observerManager";
+import { publish, subscribe, EVENTS } from "./utils/observerManager";
 import { hashPassword } from './utils/security.js';
 import { initTheme } from "./utils/themeUtils";
 import supabaseService from "./utils/supabaseService";
