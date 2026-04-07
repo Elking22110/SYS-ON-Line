@@ -274,7 +274,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/reports" element={
-                    <ProtectedRoute requiredPermission="view_reports">
+                    <ProtectedRoute requiredPermission="view_reports" requireShift={false}>
                       <Reports />
                     </ProtectedRoute>
                   } />
@@ -304,7 +304,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/shifts" element={
-                    <ProtectedRoute requiredPermission="manage_shifts">
+                    <ProtectedRoute requiredPermission="manage_shifts" requireShift={false}>
                       <Shifts />
                     </ProtectedRoute>
                   } />
@@ -314,12 +314,12 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/settings" element={
-                    <ProtectedRoute requiredRole="admin">
+                    <ProtectedRoute requiredRole="admin" requireShift={false}>
                       <Settings />
                     </ProtectedRoute>
                   } />
                   <Route path="/profile" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requireShift={false}>
                       <UserProfile />
                     </ProtectedRoute>
                   } />
