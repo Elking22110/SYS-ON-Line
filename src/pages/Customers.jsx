@@ -800,10 +800,11 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center z-[9999] backdrop-blur-sm p-4"
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-0 sm:p-4"
+      onClick={(e) => { if(e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-2xl shadow-2xl flex flex-col">
+        <div className="p-6 pb-0 flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-slate-800 flex flex-row items-center gap-2">
             <User className="h-6 w-6 text-purple-600" />
             {editingCustomer ? 'تعديل بيانات العميل' : 'إضافة عميل جديد'}
@@ -813,7 +814,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
           </button>
         </div>
 
-        <div className="space-y-5">
+        <div className="flex-1 p-6 pt-2 space-y-5">
           {/* Row 1: Name + Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -1055,16 +1056,16 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 mt-8 pt-4 border-t border-slate-100">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 p-6 pt-4 border-t border-slate-100 bg-slate-50 mt-auto">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-slate-600 bg-slate-100 font-bold hover:bg-slate-200 hover:text-slate-800 rounded-xl transition-all"
+            className="w-full sm:w-auto px-6 py-3 text-slate-600 bg-white border border-slate-200 font-bold hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all order-2 sm:order-1"
           >
             إلغاء
           </button>
           <button
             onClick={() => onSave(formData)}
-            className="btn-primary px-8 py-2.5 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            className="w-full sm:w-auto btn-primary px-8 py-3 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all order-1 sm:order-2"
           >
             {editingCustomer ? 'تحديث البيانات' : 'إضافة العميل'}
           </button>
