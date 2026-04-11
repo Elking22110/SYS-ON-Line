@@ -1027,12 +1027,8 @@ const Products = () => {
                             soundManager.play('update');
                             handleEditProduct(product);
                           }}
-                          className="p-2 md:p-3 bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] flex items-center justify-center cursor-pointer group"
-                          style={{
-                            pointerEvents: 'auto',
-                            zIndex: 10,
-                            position: 'relative'
-                          }}
+                          className="p-2 md:p-3 bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] flex items-center justify-center cursor-pointer group action-button"
+                          type="button"
                           title="تعديل"
                         >
                           <Edit className="h-5 w-5 md:h-6 md:w-6 pointer-events-none" />
@@ -1044,12 +1040,8 @@ const Products = () => {
                             soundManager.play('delete');
                             handleDeleteProduct(product.id);
                           }}
-                          className="p-2 md:p-3 bg-red-600 hover:bg-red-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] flex items-center justify-center cursor-pointer group"
-                          style={{
-                            pointerEvents: 'auto',
-                            zIndex: 10,
-                            position: 'relative'
-                          }}
+                          className="p-2 md:p-3 bg-red-600 hover:bg-red-700 rounded-xl transition-all duration-300 text-white shadow-sm min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] flex items-center justify-center cursor-pointer group action-button"
+                          type="button"
                           title="حذف"
                         >
                           <Trash2 className="h-5 w-5 md:h-6 md:w-6 pointer-events-none" />

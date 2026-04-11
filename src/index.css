@@ -2977,3 +2977,10 @@ html {
   backdrop-filter: blur(8px) saturate(180%);
   background-color: rgba(0, 0, 0, 0.4);
 }
+/* --- Global Hitbox & Clickability Improvements --- */
+button svg, .btn svg, a svg, label svg { pointer-events: none !important; }
+.hitbox-expand, button.p-1, button.p-2, .action-button { position: relative !important; }
+.hitbox-expand::after, button.p-1::after, button.p-2::after, .action-button::after { content: ''; position: absolute; top: 50%; left: 50%; width: 48px; height: 48px; min-width: 100%; min-height: 100%; transform: translate(-50%, -50%); cursor: pointer !important; z-index: 10; }
+button:active, .btn:active, [role="button"]:active { transform: scale(0.95); transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+button, .btn, [role="button"], input[type="submit"], input[type="button"] { cursor: pointer !important; }
+td button { position: relative; z-index: 5; }

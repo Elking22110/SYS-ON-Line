@@ -527,21 +527,24 @@ const Suppliers = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => { soundManager.play('update'); handleEditSupplier(supplier); }}
-                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-blue-500 hover:bg-opacity-20 rounded-lg"
+                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-blue-500 hover:bg-opacity-20 rounded-lg action-button"
+                          type="button"
                           title="تعديل المورد"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('openWindow'); navigate(`/suppliers/${supplier.id}`); }}
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors p-2 hover:bg-emerald-500 hover:bg-opacity-20 rounded-lg"
+                          className="text-emerald-400 hover:text-emerald-300 transition-colors p-2 hover:bg-emerald-500 hover:bg-opacity-20 rounded-lg action-button"
+                          type="button"
                           title="عرض التفاصيل والتوريدات"
                         >
                           <FileText className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('delete'); handleDeleteSupplier(supplier.id); }}
-                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-red-500 hover:bg-opacity-20 rounded-lg"
+                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-red-500 hover:bg-opacity-20 rounded-lg action-button"
+                          type="button"
                           title="حذف المورد"
                         >
                           <Trash2 className="h-4 w-4" />
