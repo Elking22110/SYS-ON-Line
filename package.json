@@ -37,6 +37,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "electron:dev": "vite build && electron .",
+    "electron:pack": "set CSC_IDENTITY_AUTO_DISCOVERY=false && vite build && electron-builder --win --x64",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext js,jsx --fix",
     "format": "prettier --write src/**/*.{js,jsx,json,css,md}",
@@ -54,7 +56,38 @@
     "update": "npm update",
     "outdated": "npm outdated",
     "size": "npm run build && du -sh dist",
-    "serve": "npx serve dist -s -l 3000"
+    "serve": "npx serve dist -s -l 3000",
+    "generate:key": "node scripts/generate-license.cjs"
+  },
+  "build": {
+    "appId": "com.elking.store-manager",
+    "productName": "Elking - نظام إدارة المتجر",
+    "copyright": "Copyright © 2025 Elking",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Elking-System-Setup-${version}.exe"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Elking22110",
+      "repo": "SYS-ON-Line"
+    }
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
@@ -62,6 +95,8 @@
     "crypto-js": "^4.1.1",
     "date-fns": "^2.30.0",
     "dotenv": "^17.3.1",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3",
     "framer-motion": "^10.0.0",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
@@ -83,6 +118,8 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.0.0",
     "autoprefixer": "^10.4.0",
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1",
     "eslint": "^8.0.0",
     "eslint-plugin-react": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.6.0",

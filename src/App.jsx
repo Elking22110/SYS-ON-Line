@@ -1,5 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import Activation from "./pages/Activation";
+import { getSavedLicense, verifyLicense } from "./utils/licenseManager";
 import { AuthProvider } from "./components/AuthProvider";
 import { NotificationProvider } from "./components/NotificationSystem";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -30,6 +32,34 @@ import { Toaster } from 'react-hot-toast';
 
 function App() {
   const navigate = useNavigate();
+  const [isLicensed, setIsLicensed] = useState(false);
+  const [checkingLicense, setCheckingLicense] = useState(true);
+
+  // التحقق من الرخصة عند البدء
+  useEffect(() => {
+    const checkActivation = async () => {
+      try {
+        const savedKey = getSavedLicense();
+        if (window.electronAPI && window.electronAPI.getMachineId) {
+          const machineId = await window.electronAPI.getMachineId();
+          if (savedKey && verifyLicense(savedKey, machineId)) {
+            setIsLicensed(true);
+          }
+        } else {
+          // في بيئة التطوير
+          const mId = 'DEV-MACHINE-1234';
+          if (savedKey && verifyLicense(savedKey, mId)) {
+            setIsLicensed(true);
+          }
+        }
+      } catch (err) {
+        console.error('License check failed:', err);
+      } finally {
+        setCheckingLicense(false);
+      }
+    };
+    checkActivation();
+  }, []);
 
   // تهيئة نظام التحقق من البيانات
   useEffect(() => {
@@ -234,6 +264,18 @@ function App() {
       window.removeEventListener('storage', onStorage);
     };
   }, []);
+
+  if (checkingLicense) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isLicensed) {
+    return <Activation onActivated={() => setIsLicensed(true)} />;
+  }
 
   return (
     <>

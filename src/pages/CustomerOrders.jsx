@@ -73,6 +73,7 @@ const emptyFormTemplate = {
     colorCount: '',
     clicheWidth: '',
     clicheHeight: '',
+    clichePricePerCm: 0.85,
     printingCostPerKg: '',
     cuttingCostPerKg: '',
     notes: '',
@@ -93,7 +94,8 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     ...editingOrder,
                     clicheEnabled: !!(editingOrder.clicheHeight || editingOrder.clicheWidth || editingOrder.colorCount),
                     bottomEnabled: editingOrder.bottomEnabled !== undefined ? editingOrder.bottomEnabled : !!editingOrder.bottomSize,
-                    sizes: editingOrder.sizes || []
+                    sizes: editingOrder.sizes || [],
+                    clichePricePerCm: editingOrder.clichePricePerCm !== undefined ? parseFloat(editingOrder.clichePricePerCm) : 0.85
                 });
             } else {
                 // Fetch default profit margin from settings
@@ -333,21 +335,35 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">عدد الألوان <span className="text-red-500">*</span></label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    placeholder="عدد الألوان"
-                                    value={form.colorCount}
-                                    onChange={e => setForm({ ...form, colorCount: e.target.value })}
-                                    className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
-                                />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">عدد الألوان <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="عدد الألوان"
+                                        value={form.colorCount}
+                                        onChange={e => setForm({ ...form, colorCount: e.target.value })}
+                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">سعر السنتيمتر <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        placeholder="0.85"
+                                        value={form.clichePricePerCm}
+                                        onChange={e => setForm({ ...form, clichePricePerCm: e.target.value })}
+                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                    />
+                                </div>
                             </div>
                             <div className="text-xs text-purple-600 font-bold bg-white p-2 rounded-lg border border-purple-100 flex justify-between">
                                 <span>تكلفة الأكلشية التقريبية:</span>
                                 <span>
-                                    {((parseFloat(form.clicheHeight) || 0) * (parseFloat(form.clicheWidth) || 0) * (parseFloat(form.colorCount) || 0) * 0.85).toLocaleString()} ج.م
+                                    {((parseFloat(form.clicheHeight) || 0) * (parseFloat(form.clicheWidth) || 0) * (parseFloat(form.colorCount) || 0) * (parseFloat(form.clichePricePerCm) || 0.85)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م
                                 </span>
                             </div>
                         </div>
@@ -777,20 +793,22 @@ const CustomerOrders = () => {
                         printingCostPerKg: parseFloat(formToSave.printingCostPerKg) || 0,
                         cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0,
                         clicheEnabled: formToSave.clicheEnabled || false,
-                        clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0,
+                        clichePricePerCm: parseFloat(formToSave.clichePricePerCm) || 0.85,
+                        clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0,
                         profitMargin: parseFloat(formToSave.profitMargin) || 0,
                         totalPrice: calculateOrderTotal({
                             ...formToSave,
-                            clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0
+                            clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0
                         })
                     }
                     : o
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
             // Sync to Supabase
-            const finalClicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0;
+            const finalClicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0;
             await supabaseService.updateCustomerOrder(editingOrder.id, {
                 ...formToSave,
+                clichePricePerCm: parseFloat(formToSave.clichePricePerCm) || 0.85,
                 profitMargin: parseFloat(formToSave.profitMargin) || 0,
                 clicheCost: finalClicheCost,
                 totalPrice: calculateOrderTotal({ ...formToSave, clicheCost: finalClicheCost, clicheEnabled: formToSave.clicheEnabled })
@@ -798,7 +816,7 @@ const CustomerOrders = () => {
             toast.success('تم تحديث الطلب بنجاح');
         } else {
             // Create
-            const clicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * 0.85) : 0;
+            const clicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0;
             const newOrder = {
                 id: Date.now(),
                 customerId: id,
@@ -811,6 +829,7 @@ const CustomerOrders = () => {
                 colorCount: parseFloat(formToSave.colorCount) || 0,
                 clicheWidth: parseFloat(formToSave.clicheWidth) || 0,
                 clicheHeight: parseFloat(formToSave.clicheHeight) || 0,
+                clichePricePerCm: parseFloat(formToSave.clichePricePerCm) || 0.85,
                 printingCostPerKg: parseFloat(formToSave.printingCostPerKg) || 0,
                 cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0,
                 clicheEnabled: formToSave.clicheEnabled || false,

@@ -136,3 +136,7 @@ dist
 .pnp.*
 
 /src/generated/prisma
+
+# Electron build outputs
+/release/
+/dist/
