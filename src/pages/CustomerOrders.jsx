@@ -1565,31 +1565,31 @@ const CustomerOrders = () => {
                                             <div className="flex items-center gap-2 flex-nowrap">
                                                 <button
                                                     onClick={() => handlePrintOrder(order)}
-                                                    className="text-white bg-indigo-600 hover:bg-indigo-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    className="text-white bg-indigo-600 hover:bg-indigo-700 action-button shadow-md"
                                                     title="معاينة وطباعة الفاتورة"
                                                 >
-                                                    <Printer className="h-4 w-4" />
+                                                    <Printer />
                                                 </button>
                                                 <button
                                                     onClick={() => handleEditOrder(order)}
-                                                    className="text-white bg-blue-600 hover:bg-blue-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    className="text-white bg-blue-600 hover:bg-blue-700 action-button shadow-md"
                                                     title="تعديل"
                                                 >
-                                                    <Edit className="h-4 w-4" />
+                                                    <Edit />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteOrder(order.id)}
-                                                    className="text-white bg-red-600 hover:bg-red-700 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    className="text-white bg-red-600 hover:bg-red-700 action-button shadow-md"
                                                     title="حذف"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 />
                                                 </button>
                                                 <button
                                                     onClick={() => toggleExpand(order.id)}
-                                                    className="text-white bg-slate-700 hover:bg-slate-800 p-1.5 rounded-lg transition-colors shadow-sm min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                                    className="text-white bg-slate-700 hover:bg-slate-800 action-button shadow-md"
                                                     title="عرض التفاصيل"
                                                 >
-                                                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                                    {isExpanded ? <ChevronUp /> : <ChevronDown />}
                                                 </button>
                                                 {/* Status change dropdown */}
                                                 <select

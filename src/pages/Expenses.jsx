@@ -316,17 +316,17 @@ const Expenses = () => {
                                             <div className="flex justify-center space-x-2 space-x-reverse opacity-0 group-hover:opacity-100 transition-all">
                                                 <button
                                                     onClick={() => openEditModal(expense)}
-                                                    className="p-2 bg-blue-50 hover:bg-blue-600 rounded-lg text-blue-600 hover:text-white transition-all shadow-sm"
+                                                    className="bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white action-button shadow-md"
                                                     title="تعديل"
                                                 >
-                                                    <Edit className="w-4 h-4" />
+                                                    <Edit />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(expense.id)}
-                                                    className="p-2 bg-red-50 hover:bg-red-600 rounded-lg text-red-600 hover:text-white transition-all shadow-sm"
+                                                    className="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white action-button shadow-md"
                                                     title="حذف"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 />
                                                 </button>
                                             </div>
                                         </td>

@@ -28,15 +28,30 @@ const ShiftManager = () => {
   const [message, setMessage] = useState('');
 
   // تفاصيل الوردية النشطة لحظياً
-  const { activeDetails, activeSalesList } = useMemo(() => {
+  const { activeDetails, activeSalesList, activeProductionOrders, activePayments } = useMemo(() => {
     try {
-      if (!currentShift) return { activeDetails: null, activeSalesList: [] };
+      if (!currentShift) return { activeDetails: null, activeSalesList: [], activeProductionOrders: [], activePayments: [] };
+      
       const allSales = JSON.parse(localStorage.getItem('sales') || '[]');
-      const list = (currentShift.sales && currentShift.sales.length > 0)
-        ? currentShift.sales
-        : allSales.filter(s => s.shiftId === currentShift.id);
-      return { activeDetails: calculateSalesDetails(list || []), activeSalesList: list };
-    } catch (_) { return { activeDetails: null, activeSalesList: [] }; }
+      const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+      const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+      const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+      
+      // Filter by shift ID
+      const salesList = allSales.filter(s => s.shiftId === currentShift.id);
+      const ordersList = allOrders.filter(o => o.status === 'CLOSED' && o.shiftId === currentShift.id);
+      const paymentsList = allPayments.filter(p => p.shiftId === currentShift.id);
+      const expensesList = allExpenses.filter(e => e.shiftId === currentShift.id);
+      
+      return { 
+        activeDetails: calculateSalesDetails(salesList, ordersList, paymentsList, expensesList), 
+        activeSalesList: salesList,
+        activeProductionOrders: ordersList,
+        activePayments: paymentsList
+      };
+    } catch (_) { 
+      return { activeDetails: null, activeSalesList: [], activeProductionOrders: [], activePayments: [] }; 
+    }
   }, [currentShift]);
 
   const loadShifts = async () => {
@@ -165,10 +180,16 @@ const ShiftManager = () => {
 
     const now = new Date();
     const allSales = JSON.parse(localStorage.getItem('sales') || '[]');
-    const shiftSales = (currentShift.sales && currentShift.sales.length > 0)
-      ? currentShift.sales
-      : allSales.filter(s => s.shiftId === currentShift.id);
-    const salesDetails = calculateSalesDetails(shiftSales);
+    const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+    const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+    const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+    const shiftSales = allSales.filter(s => s.shiftId === currentShift.id);
+    const shiftOrders = allOrders.filter(o => o.status === 'CLOSED' && o.shiftId === currentShift.id);
+    const shiftPayments = allPayments.filter(p => p.shiftId === currentShift.id);
+    const shiftExpenses = allExpenses.filter(e => e.shiftId === currentShift.id);
+
+    const salesDetails = calculateSalesDetails(shiftSales, shiftOrders, shiftPayments, shiftExpenses);
 
     const updatedShift = {
       ...currentShift,
@@ -210,8 +231,8 @@ const ShiftManager = () => {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // حساب تفاصيل المبيعات
-  const calculateSalesDetails = (sales) => {
+  // حساب تفاصيل المبيعات (نظام مصنع متكامل)
+  const calculateSalesDetails = (sales = [], productionOrders = [], customerPayments = [], expenses = []) => {
     let totalSales = 0;
     let totalReceived = 0;
     let totalRemaining = 0;
@@ -222,7 +243,7 @@ const ShiftManager = () => {
     let refundInvoices = 0;
     let discountInvoices = 0;
 
-    // تقسيم المبالغ حسب طرق الدفع
+    // المبالغ الخاصة بالمبيعات المباشرة (POS)
     const paymentMethods = {
       'نقدي': { received: 0, remaining: 0, count: 0 },
       'محفظة إلكترونية': { received: 0, remaining: 0, count: 0 },
@@ -230,44 +251,13 @@ const ShiftManager = () => {
       'مرتجع': { received: 0, remaining: 0, count: 0 }
     };
 
-    // دمج المرتجعات من تقرير returns ضمن الحسابات لهذه الوردية
-    let combinedSales = Array.isArray(sales) ? [...sales] : [];
-    try {
-      const returnsList = JSON.parse(localStorage.getItem('returns') || '[]');
-      // استنتاج shiftId من أول عنصر في المبيعات، أو من الوردية النشطة
-      let shiftIdRef = combinedSales.find(s => s && s.shiftId)?.shiftId;
-      if (!shiftIdRef) {
-        try { shiftIdRef = JSON.parse(localStorage.getItem('activeShift') || 'null')?.id; } catch (_) { }
-      }
-      const relevantReturns = returnsList.filter(r => !shiftIdRef || r.shiftId === shiftIdRef);
-      relevantReturns.forEach(r => {
-        const amount = Math.abs(Number(r.amount) || 0);
-        combinedSales.push({ type: 'refund', total: -amount, paymentMethod: 'مرتجع' });
-      });
-    } catch (_) { }
-
-    (combinedSales || []).forEach(sale => {
+    // 1. حساب مبيعات الـ POS
+    (sales || []).forEach(sale => {
       const saleTotal = Number(sale.total) || 0;
-
-      // تحديد إن كانت العملية مرتجعاً بأي من الدلائل المتاحة
       let refundAmount = 0;
       const explicitRefund = sale.type === 'refund' || sale.isRefund === true;
-      if (explicitRefund) {
-        refundAmount = Math.abs(saleTotal);
-      }
-      if (saleTotal < 0) {
-        refundAmount = Math.max(refundAmount, Math.abs(saleTotal));
-      }
-      if (Number(sale.refundAmount) > 0) {
-        refundAmount = Math.max(refundAmount, Number(sale.refundAmount));
-      }
-      if (Array.isArray(sale.items)) {
-        const negativeLines = sale.items.reduce((sum, item) => {
-          const line = (Number(item.price) || 0) * (Number(item.quantity) || 0);
-          return line < 0 ? safeMath.add(sum, Math.abs(line)) : sum;
-        }, 0);
-        refundAmount = Math.max(refundAmount, negativeLines);
-      }
+      if (explicitRefund) refundAmount = Math.abs(saleTotal);
+      if (saleTotal < 0) refundAmount = Math.max(refundAmount, Math.abs(saleTotal));
 
       if (refundAmount > 0) {
         totalRefunds = safeMath.add(totalRefunds, refundAmount);
@@ -276,55 +266,60 @@ const ShiftManager = () => {
           paymentMethods['مرتجع'].received += refundAmount;
           paymentMethods['مرتجع'].count++;
         }
-        return; // لا تُحتسب ضمن إجمالي المبيعات
+        return;
       }
 
-      // فاتورة عادية: أضف لإجمالي المبيعات
       totalSales += saleTotal;
+      const paymentMethod = sale.paymentMethod || 'نقدي';
+      if (!paymentMethods[paymentMethod]) paymentMethods[paymentMethod] = { received: 0, remaining: 0, count: 0 };
 
-      {
-        // فاتورة عادية أو بخصم
-        let hasDiscount = sale.discount && sale.discount.amount > 0;
-        let hasDownPayment = sale.downPayment && sale.downPayment.enabled;
-        const paymentMethod = sale.paymentMethod || 'نقدي';
+      if (sale.discount && sale.discount.amount > 0) {
+        totalDiscounts = safeMath.add(totalDiscounts, sale.discount.amount);
+        discountInvoices++;
+      }
 
-        // التأكد من وجود طريقة الدفع في القائمة
-        if (!paymentMethods[paymentMethod]) {
-          paymentMethods[paymentMethod] = { received: 0, remaining: 0, count: 0 };
-        }
-
-        if (hasDiscount) {
-          totalDiscounts = safeMath.add(totalDiscounts, sale.discount.amount);
-          discountInvoices++;
-        }
-
-        // حساب المبلغ المستلم والمتبقي
-        if (hasDownPayment) {
-          // فاتورة بعربون
-          const receivedAmount = sale.downPayment.amount;
-          const remainingAmount = sale.downPayment.remaining || safeMath.subtract(sale.total, sale.downPayment.amount);
-
-          totalReceived = safeMath.add(totalReceived, receivedAmount);
-          totalRemaining = safeMath.add(totalRemaining, remainingAmount);
-          partialInvoices++;
-
-          // تقسيم حسب طريقة الدفع
-          paymentMethods[paymentMethod].received = safeMath.add(paymentMethods[paymentMethod].received, receivedAmount);
-          paymentMethods[paymentMethod].remaining = safeMath.add(paymentMethods[paymentMethod].remaining, remainingAmount);
-          paymentMethods[paymentMethod].count++;
-        } else {
-          // فاتورة مكتملة
-          totalReceived = safeMath.add(totalReceived, sale.total);
-          completeInvoices++;
-
-          // تقسيم حسب طريقة الدفع
-          paymentMethods[paymentMethod].received = safeMath.add(paymentMethods[paymentMethod].received, sale.total);
-          paymentMethods[paymentMethod].count++;
-        }
+      if (sale.downPayment && sale.downPayment.enabled) {
+        const receivedAmount = sale.downPayment.amount;
+        const remainingAmount = sale.downPayment.remaining || safeMath.subtract(sale.total, sale.downPayment.amount);
+        totalReceived = safeMath.add(totalReceived, receivedAmount);
+        totalRemaining = safeMath.add(totalRemaining, remainingAmount);
+        partialInvoices++;
+        paymentMethods[paymentMethod].received = safeMath.add(paymentMethods[paymentMethod].received, receivedAmount);
+        paymentMethods[paymentMethod].remaining = safeMath.add(paymentMethods[paymentMethod].remaining, remainingAmount);
+        paymentMethods[paymentMethod].count++;
+      } else {
+        totalReceived = safeMath.add(totalReceived, sale.total);
+        completeInvoices++;
+        paymentMethods[paymentMethod].received = safeMath.add(paymentMethods[paymentMethod].received, sale.total);
+        paymentMethods[paymentMethod].count++;
       }
     });
 
-    // تنظيف طرق الدفع الفارغة
+    // 2. إضافة مبيعات المصنع (Customer Orders)
+    (productionOrders || []).forEach(order => {
+      const orderTotal = Number(order.totalPrice) || 0;
+      totalSales = safeMath.add(totalSales, orderTotal);
+      // الطلبات المغلقة تُعتبر مبيعات تامة، ولكن التحصيل الفعلي يتم عبر Payments
+      // في نظام المصنع، المديونية هي الأساس، لذا نعتبرها Remaining حتى يتم دفعها
+      totalRemaining = safeMath.add(totalRemaining, orderTotal);
+    });
+
+    // 3. إضافة المدفوعات النقدية (Customer Payments / Settlements)
+    (customerPayments || []).forEach(pay => {
+      const payAmount = Number(pay.amount) || 0;
+      totalReceived = safeMath.add(totalReceived, payAmount);
+      // المدفوعات تقلل المديونية الكلية الظاهرة في الوردية
+      totalRemaining = safeMath.subtract(totalRemaining, payAmount);
+      
+      const method = pay.method === 'CASH' ? 'نقدي' : (pay.method === 'WALLET' ? 'محفظة إلكترونية' : 'نقدي');
+      if (!paymentMethods[method]) paymentMethods[method] = { received: 0, remaining: 0, count: 0 };
+      paymentMethods[method].received = safeMath.add(paymentMethods[method].received, payAmount);
+      paymentMethods[method].count++;
+    });
+
+    // 4. خصم المصروفات (اختياري للعرض فقط هنا ولكن يؤثر على الصندوق)
+    let totalExpenses = (expenses || []).reduce((sum, exp) => safeMath.add(sum, Number(exp.amount) || 0), 0);
+
     const activePaymentMethods = Object.entries(paymentMethods)
       .filter(([method, data]) => data.received > 0 || data.remaining > 0 || data.count > 0)
       .reduce((acc, [method, data]) => {
@@ -338,11 +333,14 @@ const ShiftManager = () => {
       totalRemaining,
       totalRefunds,
       totalDiscounts,
+      totalExpenses,
       completeInvoices,
       partialInvoices,
       refundInvoices,
       discountInvoices,
-      totalInvoices: (sales || []).length,
+      productionOrdersCount: (productionOrders || []).length,
+      posSalesCount: (sales || []).length,
+      totalInvoices: (sales || []).length + (productionOrders || []).length,
       paymentMethods: activePaymentMethods
     };
   };
@@ -1380,7 +1378,7 @@ const ShiftManager = () => {
                 <TrendingUp className="h-4 w-4 text-purple-400" />
                 <span className="text-sm text-slate-600">عدد الطلبات</span>
               </div>
-              <p className="text-slate-800 font-semibold">{activeSalesList?.length || currentShift.sales?.length || 0}</p>
+              <p className="text-slate-800 font-semibold">{activeDetails?.totalInvoices || 0}</p>
             </div>
           </div>
 
@@ -1492,11 +1490,10 @@ const ShiftManager = () => {
                           {shift.status === 'completed' && (
                             <button
                               onClick={() => { soundManager.play('openWindow'); showShiftReport(shift); }}
-                              className="flex items-center space-x-1 px-3 py-1.5 bg-blue-500 bg-opacity-20 hover:bg-opacity-30 text-blue-300 hover:text-blue-200 rounded-lg border border-blue-500 border-opacity-30 hover:border-opacity-50 transition-all duration-200 text-xs font-medium"
+                              className="bg-blue-500 bg-opacity-10 hover:bg-opacity-30 text-blue-300 action-button hover:bg-blue-500"
                               title="عرض تقرير الوردية"
                             >
-                              <Receipt className="h-3 w-3" />
-                              <span>تقرير</span>
+                              <Receipt />
                             </button>
                           )}
                           <button
@@ -1506,11 +1503,10 @@ const ShiftManager = () => {
                                 deleteShift(shift.id);
                               }
                             }}
-                            className="flex items-center space-x-1 px-3 py-1.5 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-red-300 hover:text-red-200 rounded-lg border border-red-500 border-opacity-30 hover:border-opacity-50 transition-all duration-200 text-xs font-medium"
+                            className="bg-red-500 bg-opacity-10 hover:bg-opacity-30 text-red-300 action-button hover:bg-red-500"
                             title="حذف الوردية"
                           >
-                            <Trash2 className="h-3 w-3" />
-                            <span>حذف</span>
+                            <Trash2 />
                           </button>
                         </div>
                       </td>

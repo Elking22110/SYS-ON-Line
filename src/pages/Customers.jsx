@@ -677,24 +677,24 @@ const Customers = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => { soundManager.play('openWindow'); navigate(`/customers/${customer.id}`); }}
-                          className="text-purple-400 hover:text-purple-300 transition-colors p-2 hover:bg-purple-500 hover:bg-opacity-20 rounded-lg"
+                          className="text-purple-400 hover:text-purple-300 hover:bg-purple-500 hover:bg-opacity-20 action-button"
                           title="عرض الطلبات والتفاصيل"
                         >
-                          <FileText className="h-4 w-4" />
+                          <FileText />
                         </button>
                         <button
                           onClick={() => { soundManager.play('update'); handleEditCustomer(customer); }}
-                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-blue-500 hover:bg-opacity-20 rounded-lg"
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500 hover:bg-opacity-20 action-button"
                           title="تعديل العميل"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit />
                         </button>
                         <button
                           onClick={() => { soundManager.play('delete'); handleDeleteCustomer(customer.id); }}
-                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-red-500 hover:bg-opacity-20 rounded-lg"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 action-button"
                           title="حذف العميل"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 />
                         </button>
                       </div>
                     </td>
