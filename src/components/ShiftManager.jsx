@@ -355,21 +355,61 @@ const ShiftManager = () => {
         return;
       }
 
-      // تحديد مبيعات الوردية: من داخل الوردية مباشرة أو من جميع المبيعات بحسب shiftId أو نطاق الزمن
+      // 1. تجميع البيانات الأساسية للنطاق الزمني للوردية
+      const shiftStart = new Date(shift.startTime).getTime();
+      const shiftEnd = new Date(shift.endTime || Date.now()).getTime();
+      const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+      const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+      const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
       const allSales = JSON.parse(localStorage.getItem('sales') || '[]');
+      const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+      const allSupplierPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+
+      // فحص مبيعات الـ POS
       const salesForShift = (shift.sales && shift.sales.length > 0)
         ? shift.sales
         : allSales.filter(s => {
-          const byId = s.shiftId && s.shiftId === shift.id;
-          if (byId) return true;
+          if (s.shiftId && s.shiftId === shift.id) return true;
           const ts = new Date(s.timestamp || s.date || 0).getTime();
-          const start = new Date(shift.startTime).getTime();
-          const end = new Date(shift.endTime || Date.now()).getTime();
-          return ts >= start && ts <= end;
+          return ts >= shiftStart && ts <= shiftEnd;
         });
 
-      // أعِد حساب تفاصيل المبيعات دائماً بناءً على البيانات الحالية لضمان عدم عرض نتائج قديمة
-      const salesDetails = calculateSalesDetails(salesForShift || []);
+      // فحص طلبات الإنتاج المغلقة
+      const closedOrdersInShift = allOrders.filter(order => {
+        if (order.status !== 'CLOSED') return false;
+        if (order.shiftId && order.shiftId === shift.id) return true;
+        const closedAt = new Date(order.closedAt || order.date || 0).getTime();
+        return closedAt >= shiftStart && closedAt <= shiftEnd;
+      });
+
+      // فحص تحصيلات العملاء (الدفعيات)
+      const customerPaymentsInShift = allPayments.filter(p => {
+        if (p.shiftId && p.shiftId === shift.id) return true;
+        const ts = new Date(p.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+
+      // فحص المصاريف
+      const expensesInShift = allExpenses.filter(exp => {
+        if (exp.shiftId && exp.shiftId === shift.id) return true;
+        const ts = new Date(exp.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+
+      // فحص مدفوعات الموردين (المسجلة في هذا الوقت)
+      const supplierPaymentsInShift = allSupplierPayments.filter(p => {
+        if (p.shiftId && p.shiftId === shift.id) return true;
+        const ts = new Date(p.date || 0).getTime();
+        return ts >= shiftStart && ts <= shiftEnd;
+      });
+
+      // 2. حساب تفاصيل المبيعات المجمعة (تمرير كافة المكونات)
+      const salesDetails = calculateSalesDetails(
+        salesForShift, 
+        closedOrdersInShift, 
+        customerPaymentsInShift, 
+        expensesInShift
+      );
 
       // التحقق من صحة البيانات
       console.log('🔍 فحص بيانات التقرير:', {
@@ -391,134 +431,34 @@ const ShiftManager = () => {
         });
       }
 
-      // تجهيز بيانات المرتجعات
-      const refundSales = (salesForShift || []).filter(s => s && s.type === 'refund');
-      const refundsTotalAmount = refundSales.reduce((sum, s) => sum + (Number(s.total) || 0), 0);
-      const refundItemsAgg = (() => {
-        const map = new Map();
-        refundSales.forEach(sale => {
-          (sale.items || []).forEach(item => {
-            const key = (item.id || item.sku || item.name || 'منتج غير معروف') + '|' + (item.name || 'منتج غير معروف');
-            const prev = map.get(key) || { name: item.name || 'منتج غير معروف', quantity: 0, total: 0 };
-            const qty = Number(item.quantity) || 0;
-            const price = Number(item.price) || 0;
-            prev.quantity = safeMath.add(prev.quantity, qty);
-            prev.total = safeMath.add(prev.total, safeMath.multiply(qty, price));
-            map.set(key, prev);
-          });
-        });
-        return Array.from(map.values());
-      })();
-
-      // --- New Comprehensive Calculations for Factory System ---
-      const shiftStart = new Date(shift.startTime).getTime();
-      const shiftEnd = new Date(shift.endTime || Date.now()).getTime();
-
-      // 1. Production Orders (Filter by closure date if status is CLOSED)
-      const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-      const closedOrdersInShift = allOrders.filter(order => {
-        if (order.status !== 'CLOSED') return false;
-        
-        // Prioritize Shift ID
-        if (order.shiftId && order.shiftId === shift.id) return true;
-        
-        // Fallback to Date Range (Double check for legacy data)
-        const closedAt = new Date(order.closedAt || order.date || 0).getTime();
-        return closedAt >= shiftStart && closedAt <= shiftEnd;
-      }).map(o => {
-        if (o.totalPrice) return o;
-        // Fallback calculation for old orders within the shift report
-        const qty = parseFloat(o.quantity) || 0;
-        const price = parseFloat(o.pricePerKg) || 0;
-        const print = parseFloat(o.printingCostPerKg) || 0;
-        const cut = parseFloat(o.cuttingCostPerKg) || 0;
-        const margin = parseFloat(o.profitMargin) || 0;
-        const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
-        const subtotal = qty * (price + print + cut + margin);
-        return { ...o, totalPrice: subtotal + cliche };
-      });
-
-      const productionTotals = {
-        count: closedOrdersInShift.length,
-        totalRevenue: closedOrdersInShift.reduce((s, o) => s + (Number(o.totalPrice) || 0), 0),
-        totalWeight: closedOrdersInShift.reduce((s, o) => s + (Number(o.orderedQuantity) || 0), 0),
-        totalWaste: closedOrdersInShift.reduce((s, o) => s + (Number(o.wasteQuantity) || 0), 0),
-        netWeight: closedOrdersInShift.reduce((s, o) => s + (Number(o.orderedQuantity || 0) - Number(o.wasteQuantity || 0)), 0)
-      };
-
-      // 2. Supplier Supplies (Recorded during shift)
-      const allSuppliesRaw = localStorage.getItem('supplier_supplies');
-      let allSupplies = [];
-      try { allSupplies = JSON.parse(allSuppliesRaw || '[]'); } catch(e) { console.error('Error parsing supplies', e); }
-      
-      const suppliesInShift = allSupplies.filter(sup => {
-        // Prioritize Shift ID
-        if (sup.shiftId && sup.shiftId === shift.id) return true;
-        
-        // Fallback to Date Range
-        const ts = new Date(sup.date || 0).getTime();
-        return ts >= shiftStart && ts <= shiftEnd;
-      });
+      // 3. حساب تكاليف الموردين (المواد الخام للطلبات المغلقة في هذه الوردية)
+      const materialCostForClosedOrders = closedOrdersInShift.reduce((sum, order) => {
+        const linkedSupplies = allSupplies.filter(s => s.linkedOrderId?.toString() === order.id?.toString());
+        return sum + linkedSupplies.reduce((sub, s) => sub + (Number(s.totalPrice) || 0), 0);
+      }, 0);
 
       const supplierTotals = {
-        totalCost: suppliesInShift.reduce((s, sup) => s + (Number(sup.totalPrice) || 0), 0),
-        totalPaid: suppliesInShift.reduce((s, sup) => s + (Number(sup.paidAmount) || 0), 0),
-        totalWaste: suppliesInShift.reduce((s, sup) => s + (Number(sup.wasteQuantity) || 0), 0)
+        totalCost: materialCostForClosedOrders, 
+        totalPaid: supplierPaymentsInShift.reduce((s, p) => s + (Number(p.amount) || 0), 0),
+        count: supplierPaymentsInShift.length
       };
 
-      // 3. Expenses (Recorded during shift)
-      const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
-      const expensesInShift = allExpenses.filter(exp => {
-        // Prioritize Shift ID
-        if (exp.shiftId && exp.shiftId === shift.id) return true;
-        
-        // Fallback to Date Range
-        const ts = new Date(exp.date || 0).getTime();
-        return ts >= shiftStart && ts <= shiftEnd;
-      });
-
-      const expenseTotals = {
-        total: expensesInShift.reduce((s, exp) => s + (Number(exp.amount) || 0), 0),
-        byCategory: expensesInShift.reduce((acc, exp) => {
-          const cat = exp.category || 'أخرى';
-          acc[cat] = (acc[cat] || 0) + (Number(exp.amount) || 0);
-          return acc;
-        }, {})
+      const customerTotals = {
+        ordersCount: closedOrdersInShift.length,
+        paymentsReceived: customerPaymentsInShift.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0),
+        newDebt: closedOrdersInShift.reduce((s, o) => s + ((Number(o.totalPrice) || 0) - (Number(o.paidAmount) || 0)), 0)
       };
 
-      // 4. Customer Payments (Debt Settlements / Independent Payments)
-      const allCustomerPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
-      const customerPaymentsInShift = allCustomerPayments.filter(p => {
-        if (p.shiftId && p.shiftId === shift.id) return true;
-        const ts = new Date(p.date || 0).getTime();
-        return ts >= shiftStart && ts <= shiftEnd;
-      });
-      const totalCustomerPayments = customerPaymentsInShift.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
-
-      // 5. Supplier Payments (Direct Cash Out to suppliers)
-      const allSupplierPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
-      const supplierPaymentsInShift = allSupplierPayments.filter(p => {
-        if (p.shiftId && p.shiftId === shift.id) return true;
-        const ts = new Date(p.date || 0).getTime();
-        return ts >= shiftStart && ts <= shiftEnd;
-      });
-      const totalSupplierPayments = supplierPaymentsInShift.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
-
-      // 6. Net Profit Calculation
-      // ACCRUAL Profit = (Value of Closed Production Orders) - (Cost of Raw Materials in this Shift) - (Expenses)
-      // Note: This is simplified. Real profit might differ.
-      const netProfit = productionTotals.totalRevenue - supplierTotals.totalCost - expenseTotals.total;
-
-      // 7. Cash Drawer Expected Balance
-      // Opening balance + POS Cash Received + Customer Payments - Supplier Payments - Expenses
+      // 4. صافي الربح والسيولة
+      const netProfit = salesDetails.totalSales - supplierTotals.totalCost - salesDetails.totalExpenses;
       const openingBalance = parseFloat(shift.cashDrawer?.openingAmount) || 0;
-      const posCashReceived = salesDetails.paymentMethods['نقدي']?.received || 0;
-      const expectedCashDrawer = openingBalance + posCashReceived + totalCustomerPayments - totalSupplierPayments - expenseTotals.total;
+      const actualReceivedCash = salesDetails.totalReceived; // مجمع (POS + Payments)
+      const expectedCashDrawer = openingBalance + actualReceivedCash - supplierTotals.totalPaid - salesDetails.totalExpenses;
 
       const reportWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
 
       if (!reportWindow) {
-        soundManager.play('error'); // تشغيل صوت الخطأ
+        soundManager.play('error');
         setMessage('يرجى السماح بالنوافذ المنبثقة لعرض التقرير');
         setTimeout(() => setMessage(''), 3000);
         return;
@@ -530,543 +470,80 @@ const ShiftManager = () => {
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>تقرير الوردية - ${shift.id}</title>
+            <title>تقرير الوردية المبسط - ${shift.id}</title>
             <style>
-              * {
-                box-sizing: border-box;
-              }
-              body {
-                font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                margin: 0;
-                padding: 20px;
-                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                color: #333;
-                direction: rtl;
-                line-height: 1.6;
-              }
-              .report-container {
-                max-width: 900px;
-                margin: 0 auto;
-                background: white;
-                border-radius: 20px;
-                box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-                overflow: hidden;
-                border: 1px solid #e0e6ed;
-              }
-              .header {
-                background: linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #3182ce 100%);
-                color: white;
-                padding: 40px 30px;
-                text-align: center;
-                position: relative;
-                overflow: hidden;
-              }
-              .header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-                opacity: 0.3;
-              }
-              .header h1 {
-                margin: 0;
-                font-size: 32px;
-                font-weight: 700;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                position: relative;
-                z-index: 1;
-              }
-              .header p {
-                margin: 8px 0 0 0;
-                opacity: 0.9;
-                font-size: 16px;
-                position: relative;
-                z-index: 1;
-              }
-              .header .shift-info {
-                display: flex;
-                justify-content: space-around;
-                margin-top: 20px;
-                flex-wrap: wrap;
-                gap: 15px;
-              }
-              .header .info-item {
-                background: rgba(255,255,255,0.1);
-                padding: 10px 15px;
-                border-radius: 8px;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255,255,255,0.2);
-              }
-              .content {
-                padding: 40px 30px;
-              }
-              .summary-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 25px;
-                margin-bottom: 40px;
-              }
-              .summary-card {
-                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-                padding: 25px 20px;
-                border-radius: 15px;
-                text-align: center;
-                border: 2px solid transparent;
-                transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
-              }
-              .summary-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: linear-gradient(90deg, #3182ce, #2b6cb0);
-              }
-              .summary-card.sales::before { background: linear-gradient(90deg, #38a169, #2f855a); }
-              .summary-card.received::before { background: linear-gradient(90deg, #3182ce, #2b6cb0); }
-              .summary-card.remaining::before { background: linear-gradient(90deg, #d69e2e, #b7791f); }
-              .summary-card.refunds::before { background: linear-gradient(90deg, #e53e3e, #c53030); }
-              .summary-card.discounts::before { background: linear-gradient(90deg, #805ad5, #6b46c1); }
-              .summary-card.invoices::before { background: linear-gradient(90deg, #319795, #2c7a7b); }
-              .summary-card.production::before { background: linear-gradient(90deg, #ed64a6, #d53f8c); }
-              .summary-card.expenses::before { background: linear-gradient(90deg, #718096, #4a5568); }
-              .summary-card.profit::before { background: linear-gradient(90deg, #10b981, #059669); }
-              .summary-card h3 {
-                margin: 0 0 15px 0;
-                color: #2d3748;
-                font-size: 14px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-              }
-              .summary-card .value {
-                font-size: 28px;
-                font-weight: 700;
-                color: #1a202c;
-                margin-bottom: 5px;
-              }
-              .summary-card .currency {
-                font-size: 14px;
-                color: #4a5568;
-                font-weight: 500;
-              }
-              .summary-card.negative .value {
-                color: #e53e3e;
-              }
-              .details-section {
-                margin-bottom: 40px;
-                background: #f8fafc;
-                border-radius: 15px;
-                padding: 25px;
-                border: 1px solid #e2e8f0;
-              }
-              .details-section h2 {
-                color: #1a202c;
-                border-bottom: 3px solid #3182ce;
-                padding-bottom: 12px;
-                margin-bottom: 25px;
-                font-size: 20px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-              }
-              .details-section h2::before {
-                content: '📊';
-                font-size: 18px;
-              }
-              .details-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-                background: white;
-                border-radius: 10px;
-                overflow: hidden;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-              }
-              .details-table th,
-              .details-table td {
-                padding: 15px 12px;
-                text-align: right;
-                border-bottom: 1px solid #e2e8f0;
-              }
-              .details-table th {
-                background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
-                font-weight: 600;
-                color: #2d3748;
-                font-size: 14px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-              }
-              .details-table tr:hover {
-                background: #f7fafc;
-                transform: translateY(-1px);
-                transition: all 0.2s ease;
-              }
-              .details-table tr:last-child td {
-                border-bottom: none;
-              }
-              .status-badge {
-                padding: 6px 14px;
-                border-radius: 25px;
-                font-size: 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                display: inline-block;
-              }
-              .status-complete {
-                background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
-                color: #22543d;
-                border: 1px solid #68d391;
-              }
-              .status-partial {
-                background: linear-gradient(135deg, #fef5e7 0%, #fbd38d 100%);
-                color: #744210;
-                border: 1px solid #f6ad55;
-              }
-              .status-refund {
-                background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-                color: #742a2a;
-                border: 1px solid #fc8181;
-              }
-              .footer {
-                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-                padding: 25px;
-                text-align: center;
-                color: #4a5568;
-                border-top: 2px solid #e2e8f0;
-                font-size: 14px;
-              }
-              .print-btn {
-                background: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%);
-                color: white;
-                border: none;
-                padding: 15px 30px;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 600;
-                margin: 20px 0;
-                box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
-                transition: all 0.3s ease;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-              }
-              .print-btn:hover {
-                background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(49, 130, 206, 0.4);
-              }
-              .highlight {
-                background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-weight: 600;
-              }
-              @media print {
-                /* ضبط الطباعة على رولة 80mm */
-                @page { size: 80mm auto; margin: 1mm; }
-                html, body { width: 80mm; margin: 0; padding: 0; background: white; }
-                .report-container { width: calc(80mm - 2mm); margin: 0 auto; box-shadow: none; border: 1px solid #ccc; }
-                .print-btn { display: none; }
-              }
+              body { font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; background: #f0f2f5; direction: rtl; }
+              .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+              .header { background: #1e3c72; color: white; padding: 30px; text-align: center; }
+              .content { padding: 30px; }
+              .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+              .card { padding: 20px; border-radius: 12px; border: 1px solid #e1e4e8; background: #fff; }
+              .card h3 { margin: 0 0 10px 0; color: #5f6368; font-size: 14px; }
+              .card .val { font-size: 24px; font-weight: 700; color: #202124; }
+              .section { margin-bottom: 25px; padding: 20px; border-radius: 12px; background: #f8f9fa; border-right: 5px solid #1e3c72; }
+              .section h2 { margin: 0 0 15px 0; font-size: 18px; color: #1a73e8; }
+              .row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+              .total-box { background: #e8f0fe; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; }
+              .btn-print { display: block; width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+              @media print { .btn-print { display: none; } }
             </style>
           </head>
-      <body>
-        <div class="report-container">
-          <div class="header">
-            <h1>📊 تقرير الوردية</h1>
-            <div class="shift-info">
-              <div class="info-item">
-                <strong>📅 تاريخ البداية:</strong><br>
-                ${formatDateTime(shift.startTime)}
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>📊 تقرير الوردية الملخص</h1>
+                <p>${shift.userName} | ${new Date(shift.startTime).toLocaleString('ar-EG')} - ${new Date(shift.endTime || Date.now()).toLocaleString('ar-EG')}</p>
               </div>
-              <div class="info-item">
-                <strong>🕐 تاريخ النهاية:</strong><br>
-                ${formatDateTime(shift.endTime)}
-              </div>
-              <div class="info-item">
-                <strong>👤 الكاشير:</strong><br>
-                ${shift.userName}
-              </div>
-            </div>
-          </div>
-          
-          <div class="content">
-            <div class="summary-grid">
-              <div class="summary-card sales">
-                <h3>💰 إجمالي المبيعات</h3>
-                <div class="value">${(salesDetails.totalSales || 0).toFixed(2)}</div>
-                <div class="currency">جنيه مصري</div>
-              </div>
-              <div class="summary-card received">
-                <h3>💵 المبالغ المستلمة (كاش/محافظ)</h3>
-                <div class="value">${(salesDetails.totalReceived || 0).toFixed(2)}</div>
-                <div class="currency">جنيه مصري</div>
-              </div>
-              <div class="summary-card received">
-                <h3>💰 تحصيل مديونيات</h3>
-                <div class="value">+${totalCustomerPayments.toFixed(2)}</div>
-                <div class="currency">جنيه مصري</div>
-              </div>
-              <div class="summary-card remaining">
-                <h3>⏳ مبيعات آجلة (جديدة)</h3>
-                <div class="value">${(salesDetails.totalRemaining || 0).toFixed(2)}</div>
-                <div class="currency">جنيه مصري</div>
-              </div>
-              <div class="summary-card refunds negative">
-                <h3>🔄 إجمالي المرتجعات</h3>
-                <div class="value">-${(salesDetails.totalRefunds || 0).toFixed(2)}</div>
-                <div class="currency">جنيه مصري</div>
-              </div>
-              <div class="summary-card discounts negative">
-                <h3>🎯 إجمالي الخصومات</h3>
-                <div class="value">-${(salesDetails.totalDiscounts || 0).toFixed(2)}</div>
-                <div class="currency">جنيه مصري</div>
-              </div>
-              <div class="summary-card invoices">
-                <h3>📄 عدد فواتير الـ POS</h3>
-                <div class="value">${salesDetails.totalInvoices}</div>
-                <div class="currency">فاتورة</div>
-              </div>
-            </div>
-
-            <div class="details-section">
-              <h2>🏭 ملخص طلبات الإنتاج</h2>
-              <div class="summary-grid">
-                <div class="summary-card production">
-                   <h3>إجمالي إيراد الطلبات</h3>
-                   <div class="value">${productionTotals.totalRevenue.toFixed(2)}</div>
-                   <div class="currency">جنيه مصري</div>
-                </div>
-                <div class="summary-card production">
-                   <h3>عدد الطلبات المغلقة</h3>
-                   <div class="value">${productionTotals.count}</div>
-                   <div class="currency">أوردر</div>
-                </div>
-                <div class="summary-card production">
-                   <h3>إجمالي الوزن (صافي)</h3>
-                   <div class="value">${productionTotals.netWeight.toFixed(2)}</div>
-                   <div class="currency">كجم</div>
-                </div>
-                <div class="summary-card refunds negative">
-                   <h3>إجمالي الهالك</h3>
-                   <div class="value">${productionTotals.totalWaste.toFixed(2)}</div>
-                   <div class="currency">كجم</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="details-section">
-              <h2>🚚 تكاليف التوريدات ومدفوعات الموردين</h2>
-              <div class="summary-grid">
-                <div class="summary-card refunds negative">
-                   <h3>إجمالي تكلفة الخامات</h3>
-                   <div class="value">-${supplierTotals.totalCost.toFixed(2)}</div>
-                   <div class="currency">جنيه مصري</div>
-                </div>
-                <div class="summary-card expenses negative">
-                   <h3>مدفوعات للموردين (خارج من الدرج)</h3>
-                   <div class="value">-${totalSupplierPayments.toFixed(2)}</div>
-                   <div class="currency">جنيه مصري</div>
-                </div>
-                <div class="summary-card remaining">
-                   <h3>المتبقي كمديونية للموردين</h3>
-                   <div class="value">${(supplierTotals.totalCost - totalSupplierPayments).toFixed(2)}</div>
-                   <div class="currency">جنيه مصري</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="details-section">
-              <h2>💸 المصروفات والنثريات</h2>
-              <div class="summary-grid">
-                <div class="summary-card expenses negative">
-                   <h3>إجمالي المصروفات</h3>
-                   <div class="value">-${expenseTotals.total.toFixed(2)}</div>
-                   <div class="currency">جنيه مصري</div>
-                </div>
-                ${Object.entries(expenseTotals.byCategory).map(([cat, val]) => `
-                  <div class="summary-card expenses">
-                     <h3>${cat}</h3>
-                     <div class="value">${val.toFixed(2)}</div>
-                     <div class="currency">جنيه مصري</div>
+              <div class="content">
+                <div class="grid">
+                  <div class="card" style="border-top: 4px solid #1a73e8;">
+                    <h3>💰 إجمالي الإيرادات (مجمع)</h3>
+                    <div class="val">${salesDetails.totalSales.toFixed(2)} ج.م</div>
                   </div>
-                `).join('')}
+                  <div class="card" style="border-top: 4px solid #34a853;">
+                    <h3>🛍️ عدد الأوردرات</h3>
+                    <div class="val">${salesDetails.totalInvoices}</div>
+                  </div>
+                  <div class="card" style="border-top: 4px solid #fbbc04;">
+                    <h3>💵 مبالغ مستلمة (نقدية)</h3>
+                    <div class="val">${actualReceivedCash.toFixed(2)} ج.م</div>
+                  </div>
+                  <div class="card" style="border-top: 4px solid #ea4335;">
+                    <h3>📉 فلوس بره (مديونيات جديدة)</h3>
+                    <div class="val">${salesDetails.totalRemaining.toFixed(2)} ج.م</div>
+                  </div>
+                </div>
+
+                <div class="section">
+                  <h2>🚚 تفاصيل الموردين</h2>
+                  <div class="row"><span>إجمالي تكلفة الخامات (للطلبات المغلقة):</span> <strong>${supplierTotals.totalCost.toFixed(2)} ج.م</strong></div>
+                  <div class="row"><span>المدفوع للموردين في هذه الوردية:</span> <strong>${supplierTotals.totalPaid.toFixed(2)} ج.م</strong></div>
+                </div>
+
+                <div class="section">
+                  <h2>👥 تفاصيل العملاء</h2>
+                  <div class="row"><span>أوردرات إنتاج مغلقة:</span> <strong>${customerTotals.ordersCount} أوردر</strong></div>
+                  <div class="row"><span>تحصيلات نقدية من العملاء:</span> <strong>${customerTotals.paymentsReceived.toFixed(2)} ج.م</strong></div>
+                </div>
+
+                <div class="section">
+                  <h2>💸 المصاريف والربح</h2>
+                  <div class="row"><span>إجمالي المصروفات والنثريات:</span> <strong>${salesDetails.totalExpenses.toFixed(2)} ج.م</strong></div>
+                  <div class="row"><span>صافي الربح التقديري:</span> <strong style="color: #34a853;">${netProfit.toFixed(2)} ج.م</strong></div>
+                </div>
+
+                <div class="total-box">
+                  <h3 style="margin-bottom: 5px;">🏦 رصيد الصندوق المتوقع</h3>
+                  <div style="font-size: 32px; font-weight: 900; color: #1e3c72;">${expectedCashDrawer.toFixed(2)} ج.م</div>
+                  <p style="font-size: 12px; color: #5f6368; margin-top: 10px;">(البداية: ${openingBalance} + تحصيل: ${actualReceivedCash} - دفع للموردين: ${supplierTotals.totalPaid} - مصاريف: ${salesDetails.totalExpenses})</p>
+                </div>
+
+                <button class="btn-print" onclick="window.print()">طباعة التقرير 🖨️</button>
               </div>
             </div>
-
-            <div class="details-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #10b981;">
-              <h2>💰 التقرير المالي النهائي (صافي الربح)</h2>
-              <div class="summary-grid">
-                <div class="summary-card profit">
-                   <h3>صافي الربح للوردية</h3>
-                   <div class="value" style="color: ${netProfit >= 0 ? '#10b981' : '#ef4444'}">${netProfit.toFixed(2)}</div>
-                   <div class="currency">جنيه مصري</div>
-                </div>
-                <div class="info-item" style="grid-column: span 2; text-align: center; color: #374151; font-size: 14px; padding: 15px;">
-                   معادلة الحساب: (إيراد الإنتاج: ${productionTotals.totalRevenue.toFixed(2)}) - (تكاليف الخامات: ${supplierTotals.totalCost.toFixed(2)}) - (المصروفات: ${expenseTotals.total.toFixed(2)})
-                </div>
-              </div>
-            </div>
-
-            <div class="details-section">
-              <h2>📋 تفاصيل الفواتير</h2>
-              <table class="details-table">
-                <thead>
-                  <tr>
-                    <th>🔢 رقم الفاتورة</th>
-                    <th>👤 العميل</th>
-                    <th>💰 المبلغ الإجمالي</th>
-                    <th>💵 المبلغ المستلم</th>
-                    <th>⏳ المبلغ المتبقي</th>
-                    <th>📊 الحالة</th>
-                    <th>🕐 الوقت</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${(shift.sales || []).map(sale => `
-                    <tr>
-                      <td><span class="highlight">#${sale.id}</span></td>
-                      <td>${sale.customer?.name || sale.customerName || (typeof sale.customer === 'string' ? sale.customer : 'نقدي')}</td>
-                      <td><strong>${(sale.total || 0).toFixed(2)} جنيه</strong></td>
-                      <td><strong>${sale.downPayment && sale.downPayment.enabled ? (sale.downPayment.amount || 0).toFixed(2) : (sale.total || 0).toFixed(2)} جنيه</strong></td>
-                      <td><strong>${sale.downPayment && sale.downPayment.enabled ? (sale.downPayment.remaining || ((sale.total || 0) - (sale.downPayment.amount || 0))).toFixed(2) : '0.00'} جنيه</strong></td>
-                      <td>
-                        <span class="status-badge ${sale.type === 'refund' ? 'status-refund' :
-          sale.downPayment && sale.downPayment.enabled ? 'status-partial' : 'status-complete'
-        }">
-                          ${sale.type === 'refund' ? '🔄 مرتجع' :
-          sale.downPayment && sale.downPayment.enabled ? '⏳ عربون' : '✅ مكتمل'}
-                        </span>
-                      </td>
-                      <td>${formatDateTime(sale.timestamp)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-
-            ${refundSales.length > 0 ? `
-            <div class="details-section">
-              <h2>🔄 تفاصيل فواتير المرتجعات</h2>
-              <table class="details-table">
-                <thead>
-                  <tr>
-                    <th>🔢 رقم الفاتورة</th>
-                    <th>👤 العميل</th>
-                    <th>💵 قيمة المرتجع</th>
-                    <th>🕐 الوقت</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${refundSales.map(sale => `
-                    <tr>
-                      <td><span class="highlight">#${sale.id}</span></td>
-                      <td>${(sale.customer && sale.customer.name) || 'غير محدد'}</td>
-                      <td style="color:#e53e3e; font-weight:700;">-${(Number(sale.total) || 0).toFixed(2)} جنيه</td>
-                      <td>${formatDateTime(sale.timestamp)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="2" style="text-align:right; font-weight:700;">الإجمالي</td>
-                    <td colspan="2" style="color:#e53e3e; font-weight:800;">-${(refundsTotalAmount || 0).toFixed(2)} جنيه</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            <div class="details-section">
-              <h2>📦 تجميع المرتجعات حسب المنتج</h2>
-              <table class="details-table">
-                <thead>
-                  <tr>
-                    <th>المنتج</th>
-                    <th>الكمية المرتجعة</th>
-                    <th>القيمة</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${refundItemsAgg.map(row => `
-                    <tr>
-                      <td>${row.name}</td>
-                      <td style="font-weight:600;">${row.quantity}</td>
-                      <td style="color:#e53e3e; font-weight:700;">-${(row.total || 0).toFixed(2)} جنيه</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-            ` : ''}
-
-            <div class="details-section">
-              <h2>🏦 ملخص حركة الصندوق (الخزينة)</h2>
-              <table class="details-table">
-                <tr>
-                  <td><strong>💰 رصيد بداية الوردية (العهدة)</strong></td>
-                  <td><span class="highlight">${openingBalance.toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>💵 مبيعات نقدية (POS)</strong></td>
-                  <td><span class="highlight">+${posCashReceived.toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>💰 تحصيل مديونيات عملاء</strong></td>
-                  <td><span class="highlight" style="color: #38a169;">+${totalCustomerPayments.toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>🔄 مرتجعات نقدية</strong></td>
-                  <td><span class="highlight" style="color: #e53e3e;">-${(salesDetails.totalRefunds || 0).toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>💸 إجمالي المصروفات</strong></td>
-                  <td><span class="highlight" style="color: #e53e3e;">-${expenseTotals.total.toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>🚚 مدفوعات للموردين</strong></td>
-                  <td><span class="highlight" style="color: #e53e3e;">-${totalSupplierPayments.toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr style="background: #f0fdf4; border-top: 2px solid #22c55e;">
-                  <td><strong>📊 المبلغ المتوقع وجوده في الصندوق</strong></td>
-                  <td><span class="highlight" style="color: #22c55e; font-size: 18px; font-weight: 900;">${expectedCashDrawer.toFixed(2)} جنيه</span></td>
-                </tr>
-              </table>
-            </div>
-
-            <div class="details-section">
-              <h2>📈 إحصائيات الفواتير</h2>
-              <table class="details-table">
-                <tr>
-                  <td><strong>✅ الفواتير المكتملة</strong></td>
-                  <td><span class="highlight" style="color: #38a169;">${salesDetails.completeInvoices} فاتورة</span></td>
-                </tr>
-                <tr>
-                  <td><strong>⏳ الفواتير بالعربون</strong></td>
-                  <td><span class="highlight" style="color: #d69e2e;">${salesDetails.partialInvoices} فاتورة</span></td>
-                </tr>
-                <tr>
-                  <td><strong>🔄 فواتير المرتجعات</strong></td>
-                  <td><span class="highlight" style="color: #e53e3e;">${salesDetails.refundInvoices} فاتورة</span></td>
-                </tr>
-                <tr>
-                  <td><strong>🎯 فواتير الخصومات</strong></td>
-                  <td><span class="highlight" style="color: #805ad5;">${salesDetails.discountInvoices} فاتورة</span></td>
-                </tr>
-                <tr>
-                  <td><strong>📊 إجمالي الفواتير</strong></td>
-                  <td><span class="highlight" style="color: #3182ce; font-size: 18px; font-weight: 700;">${salesDetails.totalInvoices} فاتورة</span></td>
-                </tr>
-              </table>
-            </div>
+          </body>
+          </html>
+      `;
 
             ${Object.keys(salesDetails.paymentMethods || {}).length > 0 ? `
             <div class="details-section">

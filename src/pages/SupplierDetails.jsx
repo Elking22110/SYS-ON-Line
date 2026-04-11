@@ -154,6 +154,7 @@ const SupplierDetails = () => {
             return `SUP-${maxNum + 1}`;
         };
 
+        const activeShiftForSupply = JSON.parse(localStorage.getItem('activeShift') || 'null');
         const supply = {
             id: Date.now(),
             supplyNumber: generateSupplyNumber(),
@@ -168,6 +169,7 @@ const SupplierDetails = () => {
             remainingAmount: safeMath.subtract(totalPrice, paid),
             remainingQuantity: qty,
             wasteQuantity: 0,
+            shiftId: activeShiftForSupply?.id || null,
             // Order linking
             linkedOrderId: newSupply.linkedOrderId || null,
             linkedOrderNumber: newSupply.linkedOrderId
