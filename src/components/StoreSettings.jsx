@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Save, RefreshCw, Building, Phone, Mail, MapPin } from 'lucide-react';
+import { Store, Save, RefreshCw, Building, Phone, Mail, MapPin, Volume2, VolumeX, Settings2 } from 'lucide-react';
+import { soundEngine } from '../utils/soundEngine.js';
 
 const StoreSettings = () => {
   const [storeInfo, setStoreInfo] = useState({
@@ -292,6 +293,57 @@ const StoreSettings = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* إعدادات النظام والأصوات */}
+        <div className="glass-card p-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Settings2 className="h-5 w-5 text-indigo-400" />
+            <h3 className="text-lg font-semibold text-slate-800">إعدادات النظام</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-white/50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${!soundEngine.isMuted ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                  {!soundEngine.isMuted ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-slate-700 block text-right">أصوات النظام</label>
+                  <p className="text-xs text-slate-500 text-right">تفعيل أو تعطيل المؤثرات الصوتية</p>
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  soundEngine.setMuted(!soundEngine.isMuted);
+                  handleInputChange('_soundUpdate', Date.now()); 
+                }}
+                className={`w-14 h-7 rounded-full transition-all duration-300 relative ${!soundEngine.isMuted ? 'bg-indigo-500 shadow-md shadow-indigo-200' : 'bg-slate-300'}`}
+              >
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${!soundEngine.isMuted ? 'right-1' : 'right-8'}`}></div>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-medium text-slate-500 px-1">
+                <span>مستوى الصوت</span>
+                <span>{Math.round(soundEngine.volume * 100)}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="1" 
+                step="0.1" 
+                value={soundEngine.volume}
+                onChange={(e) => {
+                  soundEngine.setVolume(parseFloat(e.target.value));
+                  handleInputChange('_soundUpdate', Date.now());
+                }}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              />
             </div>
           </div>
         </div>

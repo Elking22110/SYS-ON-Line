@@ -12,6 +12,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { formatDateTime, getCurrentDate } from '../utils/dateUtils.js';
+import { soundEngine } from '../utils/soundEngine.js';
 
 // أنواع الإشعارات
 export const NOTIFICATION_TYPES = {
@@ -213,6 +214,23 @@ export const NotificationProvider = ({ children }) => {
     };
 
     setNotifications(prev => [newNotification, ...prev]);
+
+    // Play sound based on notification type
+    switch (notification.type) {
+      case NOTIFICATION_TYPES.SUCCESS:
+        soundEngine.play('success');
+        break;
+      case NOTIFICATION_TYPES.ERROR:
+        soundEngine.play('error');
+        break;
+      case NOTIFICATION_TYPES.WARNING:
+        soundEngine.play('warning');
+        break;
+      case NOTIFICATION_TYPES.INFO:
+      default:
+        soundEngine.play('notification');
+        break;
+    }
 
     // إزالة تلقائية للإشعار
     if (newNotification.autoRemove) {

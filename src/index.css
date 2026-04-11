@@ -2912,3 +2912,68 @@ select.input-modern {
 .animate-number-pop {
   animation: number-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Premium Interactivity & Sound-Visual Feedback Sync */
+button, 
+.clickable,
+[role="button"] {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+button:active, 
+.clickable:active,
+[role="button"]:active {
+  transform: scale(0.96) translateY(1px) !important;
+  filter: brightness(0.9);
+}
+
+/* Interactive Element Hover Glow */
+button:hover, 
+.clickable:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(82, 53, 232, 0.2);
+}
+
+/* Subtle Active Ripple-like effect (CSS only) */
+button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+button:focus:not(:active)::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% { transform: scale(0, 0); opacity: 0.5; }
+  100% { transform: scale(20, 20); opacity: 0; }
+}
+
+/* Premium Navigation Item Active State */
+.nav-item-active {
+  background: linear-gradient(90deg, rgba(82, 53, 232, 0.1) 0%, transparent 100%);
+  border-right: 3px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Modern Smooth Scroll for the whole app */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced Modal Backdrop */
+.modal-overlay {
+  backdrop-filter: blur(8px) saturate(180%);
+  background-color: rgba(0, 0, 0, 0.4);
+}
