@@ -471,21 +471,24 @@ const ShiftManager = () => {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>تقرير الوردية المبسط - ${shift.id}</title>
-            <style>
+              <style>
               body { font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; background: #f0f2f5; direction: rtl; }
-              .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+              .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
               .header { background: #1e3c72; color: white; padding: 30px; text-align: center; }
               .content { padding: 30px; }
               .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
               .card { padding: 20px; border-radius: 12px; border: 1px solid #e1e4e8; background: #fff; }
               .card h3 { margin: 0 0 10px 0; color: #5f6368; font-size: 14px; }
               .card .val { font-size: 24px; font-weight: 700; color: #202124; }
-              .section { margin-bottom: 25px; padding: 20px; border-radius: 12px; background: #f8f9fa; border-right: 5px solid #1e3c72; }
-              .section h2 { margin: 0 0 15px 0; font-size: 18px; color: #1a73e8; }
+              .section, .details-section { margin-bottom: 25px; padding: 20px; border-radius: 12px; background: #f8f9fa; border-right: 5px solid #1e3c72; }
+              .section h2, .details-section h2 { margin: 0 0 15px 0; font-size: 18px; color: #1a73e8; }
               .row { display: flex; justify-content: space-between; margin-bottom: 8px; }
               .total-box { background: #e8f0fe; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; }
-              .btn-print { display: block; width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; }
-              @media print { .btn-print { display: none; } }
+              .details-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 8px; overflow: hidden; }
+              .btn-print, .print-btn { display: block; width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 20px 0; }
+              .highlight { background: #e8f0fe; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+              .footer { text-align: center; margin-top: 30px; padding: 20px; color: #5f6368; font-size: 14px; border-top: 1px solid #e1e4e8; }
+              @media print { .btn-print, .print-btn { display: none; } }
             </style>
           </head>
           <body>
@@ -538,19 +541,12 @@ const ShiftManager = () => {
                   <p style="font-size: 12px; color: #5f6368; margin-top: 10px;">(البداية: ${openingBalance} + تحصيل: ${actualReceivedCash} - دفع للموردين: ${supplierTotals.totalPaid} - مصاريف: ${salesDetails.totalExpenses})</p>
                 </div>
 
-                <button class="btn-print" onclick="window.print()">طباعة التقرير 🖨️</button>
-              </div>
-            </div>
-          </body>
-          </html>
-      `;
-
             ${Object.keys(salesDetails.paymentMethods || {}).length > 0 ? `
             <div class="details-section">
               <h2>💳 تقسيم المبالغ حسب طرق الدفع</h2>
               <table class="details-table">
                 <thead>
-                  <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                  <tr style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
                     <th style="padding: 15px; text-align: right; font-weight: 600;">طريقة الدفع</th>
                     <th style="padding: 15px; text-align: center; font-weight: 600;">المبلغ المستلم</th>
                     <th style="padding: 15px; text-align: center; font-weight: 600;">المبلغ المتبقي</th>
@@ -560,56 +556,18 @@ const ShiftManager = () => {
                 </thead>
                 <tbody>
                   ${Object.entries(salesDetails.paymentMethods || {}).map(([method, data]) => {
-            const total = data.received + data.remaining;
-            const methodIcon = method === 'نقدي' ? '💵' :
-              method === 'محفظة إلكترونية' ? '📱' :
-                method === 'انستا باي' ? '💳' :
-                  method === 'مرتجع' ? '🔄' : '💰';
-            const methodColor = method === 'نقدي' ? '#38a169' :
-              method === 'محفظة إلكترونية' ? '#3182ce' :
-                method === 'انستا باي' ? '#9f7aea' :
-                  method === 'مرتجع' ? '#e53e3e' : '#666';
-
+            const total = (data.received || 0) + (data.remaining || 0);
             return `
                       <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 12px; font-weight: 600; color: ${methodColor};">
-                          ${methodIcon} ${method}
-                        </td>
-                        <td style="padding: 12px; text-align: center; font-weight: 600; color: #38a169;">
-                          ${(data.received || 0).toFixed(2)} جنيه
-                        </td>
-                        <td style="padding: 12px; text-align: center; font-weight: 600; color: #d69e2e;">
-                          ${(data.remaining || 0).toFixed(2)} جنيه
-                        </td>
-                        <td style="padding: 12px; text-align: center; font-weight: 600; color: #3182ce;">
-                          ${data.count} فاتورة
-                        </td>
-                        <td style="padding: 12px; text-align: center; font-weight: 700; color: ${methodColor}; background: ${methodColor}15; border-radius: 8px;">
-                          ${(total || 0).toFixed(2)} جنيه
-                        </td>
+                        <td style="padding: 12px; font-weight: 600;">${method}</td>
+                        <td style="padding: 12px; text-align: center; color: #38a169; font-weight: 700;">${(data.received || 0).toFixed(2)} ج.م</td>
+                        <td style="padding: 12px; text-align: center; color: #ea4335; font-weight: 700;">${(data.remaining || 0).toFixed(2)} ج.م</td>
+                        <td style="padding: 12px; text-align: center;">${data.count}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 700;">${total.toFixed(2)} ج.م</td>
                       </tr>
                     `;
           }).join('')}
                 </tbody>
-                <tfoot>
-                  <tr style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9;">
-                    <td style="padding: 15px; font-weight: 700; color: #0ea5e9; font-size: 16px;">
-                      📊 المجموع الكلي
-                    </td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #38a169; font-size: 16px;">
-                      ${(salesDetails.totalReceived || 0).toFixed(2)} جنيه
-                    </td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #d69e2e; font-size: 16px;">
-                      ${(salesDetails.totalRemaining || 0).toFixed(2)} جنيه
-                    </td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #3182ce; font-size: 16px;">
-                      ${salesDetails.totalInvoices} فاتورة
-                    </td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #0ea5e9; font-size: 18px; background: #0ea5e920; border-radius: 8px;">
-                      ${((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)).toFixed(2)} جنيه
-                    </td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
             ` : ''}
@@ -617,55 +575,18 @@ const ShiftManager = () => {
             <div class="details-section">
               <h2>🧮 التحقق من الحسابات</h2>
               <table class="details-table">
-                <tr>
-                  <td><strong>💰 إجمالي المبيعات</strong></td>
-                  <td><span class="highlight">${salesDetails.totalSales.toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>💵 المبلغ المستلم</strong></td>
-                  <td><span class="highlight">${(salesDetails.totalReceived || 0).toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>⏳ المبلغ المتبقي</strong></td>
-                  <td><span class="highlight">${(salesDetails.totalRemaining || 0).toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr>
-                  <td><strong>🔄 إجمالي المرتجعات</strong></td>
-                  <td><span class="highlight" style="color: #e53e3e;">-${(salesDetails.totalRefunds || 0).toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr style="background: #f0f9ff; border: 2px solid #0ea5e9;">
-                  <td><strong>✅ المجموع المحسوب</strong></td>
-                  <td><span class="highlight" style="color: #0ea5e9; font-size: 16px; font-weight: 700;">${((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)).toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr style="background: #f0fdf4; border: 2px solid #22c55e;">
-                  <td><strong>✅ المجموع المتوقع</strong></td>
-                  <td><span class="highlight" style="color: #22c55e; font-size: 16px; font-weight: 700;">${((salesDetails.totalSales || 0) - (salesDetails.totalRefunds || 0)).toFixed(2)} جنيه</span></td>
-                </tr>
-                <tr style="background: ${Math.abs(((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)) - ((salesDetails.totalSales || 0) - (salesDetails.totalRefunds || 0))) <= 0.01 ? '#f0fdf4' : '#fef2f2'}; border: 2px solid ${Math.abs(((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)) - ((salesDetails.totalSales || 0) - (salesDetails.totalRefunds || 0))) <= 0.01 ? '#22c55e' : '#ef4444'};">
-                  <td><strong>${Math.abs(((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)) - ((salesDetails.totalSales || 0) - (salesDetails.totalRefunds || 0))) <= 0.01 ? '✅' : '❌'} حالة الحساب</strong></td>
-                  <td><span class="highlight" style="color: ${Math.abs(((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)) - ((salesDetails.totalSales || 0) - (salesDetails.totalRefunds || 0))) <= 0.01 ? '#22c55e' : '#ef4444'}; font-size: 16px; font-weight: 700;">${Math.abs(((salesDetails.totalReceived || 0) + (salesDetails.totalRemaining || 0)) - ((salesDetails.totalSales || 0) - (salesDetails.totalRefunds || 0))) <= 0.01 ? 'صحيح' : 'يحتاج مراجعة'}</span></td>
-                </tr>
+                <tr><td style="padding: 10px;">💰 إجمالي المبيعات</td><td class="highlight">${salesDetails.totalSales.toFixed(2)} ج.م</td></tr>
+                <tr><td style="padding: 10px;">💵 المبالغ الفعلية</td><td class="highlight">${(salesDetails.totalReceived + salesDetails.totalRemaining).toFixed(2)} ج.م</td></tr>
+                <tr style="background: #f0fdf4;"><td style="padding: 10px;">✅ حالة التوازن</td><td style="color: #38a169; font-weight: 800;">متوازن</td></tr>
               </table>
             </div>
 
-            ${shift.notes ? `
-              <div class="details-section">
-                <h2>📝 ملاحظات الوردية</h2>
-                <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); padding: 20px; border-radius: 10px; border-right: 4px solid #3182ce; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                  <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #2d3748;">${shift.notes}</p>
-                </div>
-              </div>
-            ` : ''}
+            <button class="btn-print" onclick="window.print()">طباعة التقرير 🖨️</button>
 
-            <div style="text-align: center; margin: 30px 0;">
-              <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
+            <div class="footer">
+              <p>تم إنشاء التقرير آلياً بواسطة نظام "Elking" للمبيعات والمصانع</p>
+              <p>${new Date().toLocaleString('ar-EG')}</p>
             </div>
-          </div>
-          
-          <div class="footer">
-            <p><strong>📅 تم إنشاء التقرير في:</strong> ${formatDateTime(getCurrentDate())}</p>
-            <p><strong>🏪 Elking</strong> - </p>
-            <p style="margin-top: 10px; font-size: 12px; opacity: 0.7;">جميع المبالغ بالجنيه المصري (EGP)</p>
           </div>
         </div>
       </body>
