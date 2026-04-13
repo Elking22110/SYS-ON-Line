@@ -48,8 +48,11 @@ function createWindow() {
     mainWindow.focus();
   });
 
-  // منع فتح روابط خارجية داخل التطبيق
+  // السماح بنوافذ الطباعة والتقارير فارغة المصدر، ومنع الروابط الخارجية
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url === 'about:blank' || url === '') {
+      return { action: 'allow' };
+    }
     shell.openExternal(url);
     return { action: 'deny' };
   });
