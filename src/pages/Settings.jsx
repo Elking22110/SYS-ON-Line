@@ -848,6 +848,79 @@ const Settings = () => {
     }
   };
 
+  const handleFullSystemReset = async () => {
+    const firstConfirm = window.confirm(
+      '⚠️ تحذير: إعادة تعيين كاملة للسيستم\n\n' +
+      'سيتم حذف جميع البيانات بشكل نهائي:\n' +
+      '• العملاء وطلباتهم ومدفوعاتهم\n' +
+      '• الموردين وتوريداتهم ومدفوعاتهم\n' +
+      '• المنتجات والأصناف\n' +
+      '• المبيعات والمصروفات\n' +
+      '• الورديات\n' +
+      '• الأكلشيهات\n' +
+      '• سجلات النشاط\n\n' +
+      'سيتم الاحتفاظ فقط بـ: مستخدم admin\n\n' +
+      'هل أنت متأكد؟'
+    );
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm('تأكيد نهائي: هذه العملية لا يمكن التراجع عنها. هل تريد المتابعة؟');
+    if (!secondConfirm) return;
+
+    const resetToast = toast.loading('جاري حذف جميع البيانات...');
+    try {
+      // 1. مسح localStorage بالكامل
+      const keysToDelete = [
+        'customers', 'customer_orders', 'customer_payments',
+        'suppliers', 'supplier_supplies', 'supplier_payments',
+        'products', 'categories', 'sales',
+        'expenses', 'shifts', 'activeShift',
+        'manufacturing_waste', 'activity_logs',
+        'categoryImages', 'cliches', 'cliches_inventory',
+        'customer_orders_sequence', 'shift_sequence',
+        'storeInfo', 'pos-settings'
+      ];
+      keysToDelete.forEach(key => localStorage.removeItem(key));
+
+      // 2. إعادة ضبط المستخدم admin فقط
+      const { hashPassword } = await import('../utils/security.js');
+      const adminUser = {
+        id: '1',
+        name: 'admin',
+        username: 'admin',
+        email: 'admin@admin.com',
+        phone: '01000000000',
+        role: 'admin',
+        status: 'active',
+        password: hashPassword('admin'),
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem('users', JSON.stringify([adminUser]));
+      setUsers([adminUser]);
+
+      // 3. محاولة مسح Supabase (في الخلفية)
+      const tables = ['CustomerPayment', 'CustomerOrder', 'Customer', 'SupplierPayment', 'SupplierSupply', 'Supplier', 'SaleItem', 'Sale', 'Shift', 'Product', 'Category', 'Expense'];
+      for (const table of tables) {
+        try {
+          const { supabase } = await import('../utils/supabaseService');
+          await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        } catch (e) { /* تجاهل أخطاء Supabase */ }
+      }
+
+      toast.dismiss(resetToast);
+      soundManager.play('success');
+      toast.success('✅ تم إعادة تعيين السيستم بالكامل بنجاح!\nيُنصح بإعادة تحميل الصفحة.', { duration: 6000 });
+
+      // إعادة التحميل بعد 2 ثانية
+      setTimeout(() => window.location.reload(), 2500);
+    } catch (error) {
+      toast.dismiss(resetToast);
+      console.error('Reset error:', error);
+      toast.error('حدث خطأ أثناء إعادة التعيين: ' + error.message);
+    }
+  };
+
+
   const exportSettings = () => {
     const dataStr = JSON.stringify(settings, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -1674,6 +1747,30 @@ const Settings = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* منطقة الخطر - إعادة تعيين كاملة */}
+      <div className="bg-red-500 bg-opacity-10 border-2 border-red-500 border-opacity-40 rounded-xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="h-5 w-5 text-red-400" />
+          </div>
+          <div>
+            <h4 className="font-bold text-red-300 text-base">⛔ منطقة الخطر - إعادة تعيين كاملة</h4>
+            <p className="text-xs text-red-400 mt-0.5">هذه العملية لا يمكن التراجع عنها</p>
+          </div>
+        </div>
+        <p className="text-sm text-red-300 mb-4 leading-relaxed">
+          سيتم حذف جميع بيانات السيستم نهائياً (العملاء، الموردين، الطلبات، المبيعات، المنتجات، الورديات...)
+          والاحتفاظ فقط بمستخدم <span className="font-bold text-white">admin</span>. استخدم هذا الزر لتجهيز السيستم لعميل جديد.
+        </p>
+        <button
+          onClick={() => { soundManager.play('warning'); handleFullSystemReset(); }}
+          className="w-full py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 border border-red-400 border-opacity-50 shadow-lg"
+        >
+          <Trash2 className="h-5 w-5" />
+          إعادة تعيين كاملة للسيستم (مسح جميع البيانات)
+        </button>
       </div>
     </div>
   );

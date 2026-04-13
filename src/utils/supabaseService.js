@@ -220,6 +220,7 @@ const dbApi = {
         const { data: res, error } = await supabase.from('Shift').update(cleanPayload).eq('id', id).select().single();
         if (error) throw error; return res;
     },
+    deleteShift: async (id) => { const { error } = await supabase.from('Shift').delete().eq('id', id); if (error) throw error; return true; },
 
     getExpenses: async () => { const { data } = await supabase.from('Expense').select('*'); return data || []; },
     addExpense: async (dataArg) => {
@@ -887,6 +888,19 @@ class SupabaseService {
         }
     }
 
+    async deleteShift(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteShift', [id], options);
+        if (offlineResult) return offlineResult;
+
+        try {
+            if (dbApi) {
+                return await dbApi.deleteShift(id);
+            }
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteShift', [id]);
+            throw error;
+        }
+    }
     // USERS
     async getUsers() {
         try {

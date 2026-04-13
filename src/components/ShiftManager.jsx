@@ -714,6 +714,45 @@ const ShiftManager = () => {
     document.body.removeChild(link);
   };
 
+  const deleteShift = async (shiftId) => {
+    try {
+      if (currentShift && currentShift.id === shiftId) {
+        setMessage('لا يمكن حذف وردية نشطة. أنهِها أولاً.');
+        setTimeout(() => setMessage(''), 3000);
+        return;
+      }
+      const updatedShifts = shifts.filter(s => s.id !== shiftId);
+      setShifts(updatedShifts);
+      localStorage.setItem('shifts', JSON.stringify(updatedShifts));
+      try { await supabaseService.deleteShift(shiftId); } catch (e) { console.error('Supabase deleteShift error:', e); }
+      setMessage('تم حذف الوردية بنجاح!');
+      setTimeout(() => setMessage(''), 3000);
+      publish(EVENTS.SHIFTS_CHANGED, { type: 'delete', shiftId });
+    } catch (error) {
+      console.error('Error deleting shift:', error);
+      setMessage('حدث خطأ أثناء حذف الوردية');
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const clearAllShifts = async () => {
+    if (!window.confirm('هل أنت متأكد من حذف جميع الورديات القديمة المكتملة؟\n\nلن يتم حذف الوردية النشطة الحالية إن وجدت.')) return;
+    try {
+      const toDelete = shifts.filter(s => s.status !== 'active');
+      const remaining = shifts.filter(s => s.status === 'active');
+      setShifts(remaining);
+      localStorage.setItem('shifts', JSON.stringify(remaining));
+      for (const s of toDelete) {
+        try { await supabaseService.deleteShift(s.id); } catch (e) { /* ignore */ }
+      }
+      setMessage(`تم حذف ${toDelete.length} وردية قديمة بنجاح!`);
+      setTimeout(() => setMessage(''), 4000);
+      publish(EVENTS.SHIFTS_CHANGED, { type: 'clearAll' });
+    } catch (error) {
+      console.error('Error clearing shifts:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
@@ -830,13 +869,23 @@ const ShiftManager = () => {
             <Calendar className="h-5 w-5 text-blue-400 mr-2" />
             تاريخ الورديات
           </h3>
-          <button
-            onClick={() => { soundManager.play('save'); exportShiftsReport(); }}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-800 rounded-lg transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>تصدير التقرير</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { soundManager.play('delete'); clearAllShifts(); }}
+              className="flex items-center space-x-2 px-3 py-2 bg-red-600 bg-opacity-20 hover:bg-opacity-40 text-red-400 rounded-lg transition-colors border border-red-500 border-opacity-30"
+              title="حذف جميع الورديات القديمة المكتملة"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="text-xs">مسح الكل</span>
+            </button>
+            <button
+              onClick={() => { soundManager.play('save'); exportShiftsReport(); }}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-800 rounded-lg transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>تصدير التقرير</span>
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
