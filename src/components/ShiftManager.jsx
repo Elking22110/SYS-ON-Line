@@ -662,24 +662,35 @@ const ShiftManager = () => {
   // حذف وردية
   const deleteShift = async (shiftId) => {
     try {
+      if (currentShift && currentShift.id === shiftId) {
+        setMessage('لا يمكن حذف وردية نشطة. أنهِها أولاً.');
+        setTimeout(() => setMessage(''), 3000);
+        return;
+      }
+      
       const shiftToDelete = shifts.find(shift => shift.id === shiftId);
 
-      // حذف من قاعدة البيانات أيضاً
+      // حذف من قاعدة البيانات المحلية (إذا كانت مستخدمة)
       try {
         const databaseManager = (await import('../utils/database')).default;
         await databaseManager.delete('shifts', shiftId);
-        console.log('✅ تم حذف الوردية من قاعدة البيانات');
+      } catch (error) {}
+
+      // مسح من Supabase
+      try {
+        await supabaseService.deleteShift(shiftId);
       } catch (error) {
-        console.error('خطأ في حذف الوردية من قاعدة البيانات:', error);
+        console.error('Supabase deleteShift error:', error);
       }
 
       const updatedShifts = shifts.filter(shift => shift.id !== shiftId);
       setShifts(updatedShifts);
       localStorage.setItem('shifts', JSON.stringify(updatedShifts));
+      
       try { publish(EVENTS.SHIFTS_CHANGED, { type: 'delete', shiftId, shifts: updatedShifts }); } catch (_) { }
 
-      soundManager.play('delete'); // تشغيل صوت الحذف
-      setMessage(`تم حذف وردية ${shiftToDelete?.userName || 'غير محدد'} بنجاح!`);
+      soundManager.play('delete');
+      setMessage('تم حذف الوردية بنجاح!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('خطأ في حذف الوردية:', error);
@@ -712,27 +723,6 @@ const ShiftManager = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const deleteShift = async (shiftId) => {
-    try {
-      if (currentShift && currentShift.id === shiftId) {
-        setMessage('لا يمكن حذف وردية نشطة. أنهِها أولاً.');
-        setTimeout(() => setMessage(''), 3000);
-        return;
-      }
-      const updatedShifts = shifts.filter(s => s.id !== shiftId);
-      setShifts(updatedShifts);
-      localStorage.setItem('shifts', JSON.stringify(updatedShifts));
-      try { await supabaseService.deleteShift(shiftId); } catch (e) { console.error('Supabase deleteShift error:', e); }
-      setMessage('تم حذف الوردية بنجاح!');
-      setTimeout(() => setMessage(''), 3000);
-      publish(EVENTS.SHIFTS_CHANGED, { type: 'delete', shiftId });
-    } catch (error) {
-      console.error('Error deleting shift:', error);
-      setMessage('حدث خطأ أثناء حذف الوردية');
-      setTimeout(() => setMessage(''), 3000);
-    }
   };
 
   const clearAllShifts = async () => {
