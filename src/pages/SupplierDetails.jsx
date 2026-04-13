@@ -20,6 +20,7 @@ import {
 import soundManager from '../utils/soundManager.js';
 import { formatDate, getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
+import { printHtmlContent } from '../utils/printHelper.js';
 import { publish, subscribe, EVENTS } from '../utils/observerManager';
 import supabaseService from '../utils/supabaseService';
 
@@ -240,11 +241,6 @@ const SupplierDetails = () => {
     // Handle Printing Supply Receipt
     const handlePrintSupply = (supply) => {
         soundManager.play('openWindow');
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            toast.error('يرجى السماح بالنوافذ المنبثقة للطباعة');
-            return;
-        }
 
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const storeName = storeInfo.storeName || 'إلكينج';
@@ -336,8 +332,7 @@ const SupplierDetails = () => {
             </html>
         `;
 
-        printWindow.document.write(html);
-        printWindow.document.close();
+        printHtmlContent(html);
     };
 
     // Handle adding a payment

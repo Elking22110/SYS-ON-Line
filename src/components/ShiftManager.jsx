@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Clock,
   Play,
@@ -20,6 +20,7 @@ import { formatDate, formatTimeOnly, formatDateOnly, formatDateTime, getCurrentD
 import { getNextShiftId } from '../utils/sequence.js';
 import safeMath from '../utils/safeMath.js';
 import supabaseService from '../utils/supabaseService';
+import { printHtmlContent } from '../utils/printHelper.js';
 
 const ShiftManager = () => {
   const [shifts, setShifts] = useState([]);
@@ -437,10 +438,12 @@ const ShiftManager = () => {
         return sum + linkedSupplies.reduce((sub, s) => sub + (Number(s.totalPrice) || 0), 0);
       }, 0);
 
+      const suppliesInShift = allSupplies.filter(s => s.shiftId === shift.id);
+
       const supplierTotals = {
         totalCost: materialCostForClosedOrders, 
         totalPaid: supplierPaymentsInShift.reduce((s, p) => s + (Number(p.amount) || 0), 0),
-        count: supplierPaymentsInShift.length
+        count: suppliesInShift.length
       };
 
       const customerTotals = {
@@ -454,15 +457,6 @@ const ShiftManager = () => {
       const openingBalance = parseFloat(shift.cashDrawer?.openingAmount) || 0;
       const actualReceivedCash = salesDetails.totalReceived; // مجمع (POS + Payments)
       const expectedCashDrawer = openingBalance + actualReceivedCash - supplierTotals.totalPaid - salesDetails.totalExpenses;
-
-      const reportWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
-
-      if (!reportWindow) {
-        soundManager.play('error');
-        setMessage('يرجى السماح بالنوافذ المنبثقة لعرض التقرير');
-        setTimeout(() => setMessage(''), 3000);
-        return;
-      }
 
       const reportHTML = `
           <!DOCTYPE html>
@@ -581,8 +575,6 @@ const ShiftManager = () => {
               </table>
             </div>
 
-            <button class="btn-print" onclick="window.print()">طباعة التقرير 🖨️</button>
-
             <div class="footer">
               <p>تم إنشاء التقرير آلياً بواسطة نظام "Elking" للمبيعات والمصانع</p>
               <p>${new Date().toLocaleString('ar-EG')}</p>
@@ -593,15 +585,8 @@ const ShiftManager = () => {
       </html>
     `;
 
-      // كتابة المحتوى في النافذة
-      reportWindow.document.open();
-      reportWindow.document.write(reportHTML);
-      reportWindow.document.close();
-
-      // التأكد من تحميل المحتوى
-      reportWindow.onload = () => {
-        console.log('✅ تم تحميل التقرير بنجاح');
-      };
+      // كتابة المحتوى والطباعة
+      printHtmlContent(reportHTML);
 
       setMessage(`تم فتح تقرير وردية ${shift.userName} بنجاح!`);
       setTimeout(() => setMessage(''), 3000);

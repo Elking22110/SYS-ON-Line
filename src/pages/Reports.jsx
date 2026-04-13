@@ -1,6 +1,7 @@
 import { publish, EVENTS, subscribe } from '../utils/observerManager';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNotifications } from '../components/NotificationSystem';
+import { printHtmlContent } from '../utils/printHelper.js';
 import soundManager from '../utils/soundManager.js';
 import emojiManager from '../utils/emojiManager.js';
 import storageOptimizer from '../utils/storageOptimizer.js';
@@ -557,15 +558,8 @@ const Reports = () => {
         console.log('تم العثور على الفاتورة:', invoice);
         // إنشاء نافذة طباعة للفاتورة
         const printContent = generateInvoiceContent(invoice);
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(printContent);
-          printWindow.document.close();
-          // سيتم الطباعة من داخل القالب مرة واحدة عند تحميل الشعار/المحتوى
-          notifySuccess('تم فتح نافذة الطباعة', 'تحقق من إعدادات الطابعة');
-        } else {
-          notifyError('خطأ في الطباعة', 'لا يمكن فتح نافذة الطباعة');
-        }
+        printHtmlContent(printContent);
+        notifySuccess('تم إنشاء الفاتورة', 'جاري الطباعة...');
       } else {
         console.log('الفاتورة غير موجودة في أي مكان');
         notifyError('خطأ في العثور على الفاتورة', `الفاتورة رقم ${invoiceId} غير موجودة`);
@@ -1531,11 +1525,7 @@ const Reports = () => {
       </html>
     `;
 
-    // فتح نافذة جديدة للطباعة
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(pdfContent);
-    printWindow.document.close();
-    printWindow.print();
+    printHtmlContent(pdfContent);
 
     // تنبيه نجاح التصدير
     notifySuccess('تم إنشاء تقرير PDF للطباعة', 'تم فتح نافذة الطباعة');

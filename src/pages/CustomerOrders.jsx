@@ -41,6 +41,7 @@ import safeMath from '../utils/safeMath.js';
 import { publish, subscribe, EVENTS } from '../utils/observerManager';
 import supabaseService from '../utils/supabaseService';
 import toast from 'react-hot-toast';
+import { printHtmlContent } from '../utils/printHelper.js';
 
 const ORDER_STATUSES = [
     { value: 'OPEN', label: 'مفتوح', color: 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-700/50', icon: Clock },
@@ -602,11 +603,6 @@ const CustomerOrders = () => {
     // ─── Printing Orders ─────────────────────────────────────
     const handlePrintOrder = (order) => {
         soundManager.play('openWindow');
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            toast.error('يرجى السماح بالنوافذ المنبثقة للطباعة');
-            return;
-        }
 
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const storeName = storeInfo.storeName || 'إلكينج';
@@ -728,8 +724,7 @@ const CustomerOrders = () => {
             </html>
         `;
 
-        printWindow.document.write(html);
-        printWindow.document.close();
+        printHtmlContent(html);
     };
 
 
