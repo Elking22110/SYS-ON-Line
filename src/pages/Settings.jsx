@@ -209,7 +209,11 @@ const Settings = () => {
       // المخزون
       inventoryEnabled: savedStoreInfo.inventoryEnabled !== undefined ? savedStoreInfo.inventoryEnabled : (savedSettings.inventoryEnabled !== undefined ? savedSettings.inventoryEnabled : true),
       // نسبة الربح الافتراضية للطلبات
-      orderProfitMargin: savedSettings.orderProfitMargin !== undefined && savedSettings.orderProfitMargin !== '' ? savedSettings.orderProfitMargin : 10
+      orderProfitMargin: savedSettings.orderProfitMargin !== undefined && savedSettings.orderProfitMargin !== '' ? savedSettings.orderProfitMargin : 10,
+      
+      // حقول إضافية لإعدادات المتجر (لتوحيدها مع StoreSettings)
+      storeTaxNumber: savedStoreInfo.storeTaxNumber || '',
+      storeDescription: savedStoreInfo.storeDescription || ''
     };
   });
 
@@ -785,26 +789,39 @@ const Settings = () => {
     }
   };
 
-  const saveSettings = async () => {
-    try {
       // حفظ الإعدادات العامة محلياً
       localStorage.setItem('pos-settings', JSON.stringify(settings));
 
+      // تجهيز بيانات المتجر الموحدة
+      const storeInfo = {
+        storeName: settings.companyName,
+        storePhone: settings.companyPhone,
+        storeAddress: settings.companyAddress,
+        storeEmail: settings.companyEmail,
+        storeTaxNumber: settings.storeTaxNumber,
+        storeDescription: settings.storeDescription,
+        taxEnabled: settings.taxEnabled,
+        taxRate: settings.taxRate,
+        taxName: settings.taxName,
+        inventoryEnabled: settings.inventoryEnabled
+      };
+      localStorage.setItem('storeInfo', JSON.stringify(storeInfo));
+
       // مزامنة مع Supabase
-      try {
-        await supabaseService.updateSetting('pos-settings', settings);
-        console.log('✅ تم حفظ الإعدادات في سوبا بيز');
-      } catch (syncErr) {
-        console.error('فشل حفظ الإعدادات في Supabase:', syncErr);
-      }
+      const syncTasks = [
+        supabaseService.updateSetting('pos-settings', settings).catch(e => console.error('Cloud Sync Error (pos-settings):', e)),
+        supabaseService.updateSetting('storeInfo', storeInfo).catch(e => console.error('Cloud Sync Error (storeInfo):', e))
+      ];
+
+      await Promise.all(syncTasks);
+      console.log('✅ تم حفظ كافة الإعدادات محلياً وفي السحاب');
 
       try { publish(EVENTS.SETTINGS_CHANGED, { type: 'save_all', settings }); } catch (_) { }
 
-      // إرسال إشارة لحفظ إعدادات المتجر
-      const evt = new Event('save-store-settings');
-      window.dispatchEvent(evt);
+      // إشعار المكونات الفرعية (إذا لزم الأمر)
+      window.dispatchEvent(new Event('settings-saved-global'));
 
-      toast.success('تم حفظ الإعدادات بنجاح!');
+      toast.success('تم حفظ كافة الإعدادات بنجاح!');
     } catch (error) {
       console.error('خطأ في حفظ الإعدادات:', error);
       toast.error('حدث خطأ في حفظ الإعدادات!');
@@ -1729,7 +1746,7 @@ const Settings = () => {
               step="any"
               placeholder="مثال: 10"
               value={settings.orderProfitMargin}
-              onChange={(e) => handleSettingChange('orderProfitMargin', e.target.value)}
+              onChange={(e) => handleSettingChange('orderProfitMargin', parseFloat(e.target.value) || 0)}
               className="input-modern w-full px-3 py-2 text-right"
             />
             <p className="text-[10px] text-emerald-400 mt-1 font-medium italic">تطبق هذه النسبة تلقائياً على جميع الطلبات الجديدة (المجموع + تكلفة الأكلشية)</p>
@@ -1778,7 +1795,12 @@ const Settings = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'store': return <StoreSettings />;
+      case 'store': return (
+        <StoreSettings 
+          settings={settings} 
+          onSettingChange={handleSettingChange} 
+        />
+      );
       case 'shifts': return <ShiftManager />;
       case 'users': return renderUserSettings();
       case 'backup': return renderBackupSettings();

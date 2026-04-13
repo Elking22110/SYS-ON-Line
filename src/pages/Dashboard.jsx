@@ -31,13 +31,14 @@ const Dashboard = () => {
     totalSales: 0,
     totalOrders: 0,
     totalCustomers: 0,
-    dailySupplyQty: 0
+    dailySupplyQty: 0,
+    todayNetQuantity: 0
   });
 
   const [allTimeSales, setAllTimeSales] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0, supplierDebts: 0, customerDebts: 0, expenses: 0, monthlyExpenses: 0 });
+  const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0, supplierDebts: 0, customerDebts: 0, expenses: 0, monthlyExpenses: 0, netQuantity: 0 });
   const [yesterdayStats, setYesterdayStats] = useState({ sales: 0, orders: 0, customers: 0 });
   const [lastSync, setLastSync] = useState(new Date().toLocaleTimeString('ar-EG'));
   const [auditModal, setAuditModal] = useState({ isOpen: false, title: '', type: '', data: [] });
@@ -163,9 +164,17 @@ const Dashboard = () => {
       const todayPOSSales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === today);
       const yesterdayPOSSales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === yesterday);
 
-      // 4. Today's Customer Orders (Advanced)
-      const todayCustomerOrders = customerOrders.filter(o => 
-        (o.date || o.createdAt || '').split('T')[0] === today && validCustomerIds.has(String(o.customerId))
+      // 4. Today's Customer Orders (Advanced) - Only count CLOSED ones as Sales
+      const todayCLOSEDOrders = customerOrders.filter(o => 
+        (o.closedAt || o.date || '').split('T')[0] === today && 
+        o.status === 'CLOSED' &&
+        validCustomerIds.has(String(o.customerId))
+      );
+
+      const yesterdayCLOSEDOrders = customerOrders.filter(o => 
+        (o.closedAt || o.date || '').split('T')[0] === yesterday && 
+        o.status === 'CLOSED' &&
+        validCustomerIds.has(String(o.customerId))
       );
 
       // 5. Revenue Calculation (POS Sales + Customer Payments)
@@ -180,8 +189,12 @@ const Dashboard = () => {
          .filter(p => (p.date || '').split('T')[0] === yesterday && validCustomerIds.has(String(p.customerId)))
          .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
-      const totalTodayRevenue = todayPOSRevenue + todayCustomerPaymentsTotal;
-      const totalYesterdayRevenue = yesterdayPOSRevenue + yesterdayCustomerPaymentsTotal;
+      // Value of Closed Orders Today
+      const todayFactoryRevenue = todayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.totalPrice) || 0), 0);
+      const yesterdayFactoryRevenue = yesterdayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.totalPrice) || 0), 0);
+
+      const totalTodayRevenue = todayPOSRevenue + todayFactoryRevenue;
+      const totalYesterdayRevenue = yesterdayPOSRevenue + yesterdayFactoryRevenue;
 
       // 6. Supplier Debt Calculation (Filter by valid supplier IDs only)
       const totalSuppliesValue = allSupplies
@@ -194,9 +207,9 @@ const Dashboard = () => {
       
       const totalSupplierDebt = Math.max(0, totalSuppliesValue - totalSupplierPaymentsValue);
 
-      // 7. Customer Debt Calculation (Filter by valid customer IDs only)
+      // 7. Customer Debt Calculation - Only Closed Orders count as debt
       const totalOrdersValue = customerOrders
-        .filter(o => validCustomerIds.has(String(o.customerId)))
+        .filter(o => o.status === 'CLOSED' && validCustomerIds.has(String(o.customerId)))
         .reduce((sum, o) => {
           const q = (parseFloat(o.quantity) || 0);
           const raw = q * (parseFloat(o.pricePerKg) || 0);
@@ -231,18 +244,19 @@ const Dashboard = () => {
       // 9. Update Today's Summary (POS + Advanced Orders)
       setTodayStats({
         sales: totalTodayRevenue,
-        orders: todayPOSSales.length + todayCustomerOrders.length,
+        orders: todayPOSSales.length + todayCLOSEDOrders.length,
         customers: customers.length,
         supplierDebts: totalSupplierDebt,
         customerDebts: totalCustomerDebt,
         expenses: todayExpenses,
         monthlyExpenses: monthlyExpenses,
-        shiftExpenses: shiftExpenses
+        shiftExpenses: shiftExpenses,
+        netQuantity: todayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0)
       });
 
       setYesterdayStats({ 
         sales: totalYesterdayRevenue, 
-        orders: yesterdayPOSSales.length, 
+        orders: yesterdayPOSSales.length + yesterdayCLOSEDOrders.length, 
         customers: Math.max(customers.length - 1, 0) 
       });
 
@@ -319,7 +333,8 @@ const Dashboard = () => {
         dailySupplyQty: dailySupplyQty,
         totalStockValue: totalStockValue,
         totalSupplierDebt,
-        totalCustomerDebt
+        totalCustomerDebt,
+        todayNetQuantity: todayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0)
       });
 
       setRecentOrders(recent);
@@ -475,8 +490,24 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* --- 4 STATS CARDS --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" style={{ overflow: 'visible' }}>
+      {/* --- 5 STATS CARDS --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6" style={{ overflow: 'visible' }}>
+
+        {/* Card 0 - Net Delivered Today */}
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[24px] p-5 text-white shadow-xl shadow-emerald-500/20 relative overflow-hidden group cursor-pointer hover:shadow-emerald-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+          <div className="absolute top-4 right-4 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-[3rem] md:text-[4rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.4)]">📈</span>
+          </div>
+          <div className="relative z-10">
+            <p className="text-emerald-100 text-[10px] font-bold mb-1 tracking-wide uppercase">الصافي المسلم اليوم</p>
+            <h3 className="text-3xl font-black mb-3 tracking-tight drop-shadow-sm">{(stats.todayNetQuantity || 0).toLocaleString()} <span className="text-xs font-bold text-emerald-200">كجم</span></h3>
+            <div className="flex items-center text-[10px] font-semibold">
+              <span className="flex items-center bg-black/20 backdrop-blur-md px-2 py-1 rounded-full border border-white/10 shadow-sm">
+                <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-200" /> مبيعات محققة
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Card 1 - Daily Supply Qty */}
         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[28px] p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
@@ -518,7 +549,7 @@ const Dashboard = () => {
         </div>
 
         {/* Card 3 - Total Orders */}
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-6 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[28px] p-5 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group cursor-pointer hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 border border-white/10 backdrop-blur-sm z-10">
           <div className="absolute top-4 right-4 flex items-center justify-center z-0 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '1s' }}>
             <span className="text-[3.5rem] md:text-[5rem] leading-none drop-shadow-[0_4px_20px_rgba(255,255,255,0.4)]">🛒</span>
           </div>
