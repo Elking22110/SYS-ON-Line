@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Activation from "./pages/Activation";
+
 import { getSavedLicense, verifyLicense } from "./utils/licenseManager";
 import { AuthProvider } from "./components/AuthProvider";
 import { NotificationProvider } from "./components/NotificationSystem";
@@ -35,22 +36,21 @@ function App() {
   const [isLicensed, setIsLicensed] = useState(false);
   const [checkingLicense, setCheckingLicense] = useState(true);
 
-  // التحقق من الرخصة عند البدء
+  // التحقق من الرخصة عند البدء (مطلوب فقط لنسخة الـ exe)
   useEffect(() => {
     const checkActivation = async () => {
       try {
+        // تخطي التفعيل تلقائياً إذا لم يكن التطبيق يعمل داخل Electron (أي يعمل على الإنترنت Vercel)
+        if (!window.electronAPI || !window.electronAPI.getMachineId) {
+          setIsLicensed(true);
+          return;
+        }
+
         const savedKey = getSavedLicense();
-        if (window.electronAPI && window.electronAPI.getMachineId) {
-          const machineId = await window.electronAPI.getMachineId();
-          if (savedKey && verifyLicense(savedKey, machineId)) {
-            setIsLicensed(true);
-          }
-        } else {
-          // في بيئة التطوير
-          const mId = 'DEV-MACHINE-1234';
-          if (savedKey && verifyLicense(savedKey, mId)) {
-            setIsLicensed(true);
-          }
+        const machineId = await window.electronAPI.getMachineId();
+        
+        if (savedKey && verifyLicense(savedKey, machineId)) {
+          setIsLicensed(true);
         }
       } catch (err) {
         console.error('License check failed:', err);
@@ -58,6 +58,7 @@ function App() {
         setCheckingLicense(false);
       }
     };
+    
     checkActivation();
   }, []);
 
@@ -264,6 +265,8 @@ function App() {
       window.removeEventListener('storage', onStorage);
     };
   }, []);
+
+
 
   if (checkingLicense) {
     return (
