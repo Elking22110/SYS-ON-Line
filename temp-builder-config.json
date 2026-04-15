@@ -1,0 +1,6 @@
+{
+  "win": {
+    "sign": null,
+    "target": ["nsis"]
+  }
+}
