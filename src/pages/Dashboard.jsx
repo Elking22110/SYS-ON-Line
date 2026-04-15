@@ -275,7 +275,8 @@ const Dashboard = () => {
       // تحصيلات المديونية (customer payments) لا تُحسب ضمن المبيعات — هي استرداد لدَيْن قائم
       const totalSales = shiftSales.reduce((sum, sale) => safeMath.add(sum, sale.total || sale.totalAmount || 0), 0)
                        + shiftClosedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.totalPrice) || 0), 0);
-      const totalOrdersCount = shiftSales.length + shiftClosedOrders.length + shiftCustomerPayments.length;
+      // عدد الطلبات = POS فقط + طلبات المصنع المغلقة — التحصيل النقدي ليس طلباً
+      const totalOrdersCount = shiftSales.length + shiftClosedOrders.length;
 
       // Combine and format recent sales & custom orders
       const combinedRecent = [
