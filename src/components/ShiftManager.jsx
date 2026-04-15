@@ -366,36 +366,43 @@ const ShiftManager = () => {
       const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
       const allSupplierPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
 
-      // فحص مبيعات الـ POS
-      const salesForShift = (shift.sales && shift.sales.length > 0)
-        ? shift.sales
+      // فحص مبيعات الـ POS - دائماً نصفي بالـ shiftId أولاً (الأدق)
+      // ثم نرجع للنطاق الزمني فقط إذا لم يكن shiftId موجود في السجلات
+      const hasShiftIdSales = allSales.some(s => s.shiftId === shift.id);
+      const salesForShift = hasShiftIdSales
+        ? allSales.filter(s => s.shiftId === shift.id)
         : allSales.filter(s => {
-          if (s.shiftId && s.shiftId === shift.id) return true;
           const ts = new Date(s.timestamp || s.date || 0).getTime();
           return ts >= shiftStart && ts <= shiftEnd;
         });
 
-      // فحص طلبات الإنتاج المغلقة
-      const closedOrdersInShift = allOrders.filter(order => {
-        if (order.status !== 'CLOSED') return false;
-        if (order.shiftId && order.shiftId === shift.id) return true;
-        const closedAt = new Date(order.closedAt || order.date || 0).getTime();
-        return closedAt >= shiftStart && closedAt <= shiftEnd;
-      });
+      // فحص طلبات الإنتاج المغلقة - نصفي بالـ shiftId أولاً
+      const hasShiftIdOrders = allOrders.some(o => o.status === 'CLOSED' && o.shiftId === shift.id);
+      const closedOrdersInShift = hasShiftIdOrders
+        ? allOrders.filter(order => order.status === 'CLOSED' && order.shiftId === shift.id)
+        : allOrders.filter(order => {
+          if (order.status !== 'CLOSED') return false;
+          const closedAt = new Date(order.closedAt || order.updatedAt || order.date || 0).getTime();
+          return closedAt >= shiftStart && closedAt <= shiftEnd;
+        });
 
-      // فحص تحصيلات العملاء (الدفعيات)
-      const customerPaymentsInShift = allPayments.filter(p => {
-        if (p.shiftId && p.shiftId === shift.id) return true;
-        const ts = new Date(p.date || 0).getTime();
-        return ts >= shiftStart && ts <= shiftEnd;
-      });
+      // فحص تحصيلات العملاء
+      const hasShiftIdPayments = allPayments.some(p => p.shiftId === shift.id);
+      const customerPaymentsInShift = hasShiftIdPayments
+        ? allPayments.filter(p => p.shiftId === shift.id)
+        : allPayments.filter(p => {
+          const ts = new Date(p.date || 0).getTime();
+          return ts >= shiftStart && ts <= shiftEnd;
+        });
 
       // فحص المصاريف
-      const expensesInShift = allExpenses.filter(exp => {
-        if (exp.shiftId && exp.shiftId === shift.id) return true;
-        const ts = new Date(exp.date || 0).getTime();
-        return ts >= shiftStart && ts <= shiftEnd;
-      });
+      const hasShiftIdExpenses = allExpenses.some(e => e.shiftId === shift.id);
+      const expensesInShift = hasShiftIdExpenses
+        ? allExpenses.filter(e => e.shiftId === shift.id)
+        : allExpenses.filter(exp => {
+          const ts = new Date(exp.date || 0).getTime();
+          return ts >= shiftStart && ts <= shiftEnd;
+        });
 
       // فحص مدفوعات الموردين (المسجلة في هذا الوقت)
       const supplierPaymentsInShift = allSupplierPayments.filter(p => {
