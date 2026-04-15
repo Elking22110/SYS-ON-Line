@@ -86,9 +86,10 @@ const Customers = () => {
 
         // Calculate dynamic stats from orders
         const customerOrders = allOrders.filter(o => o.customerId?.toString() === customerIdStr);
-        const ordersCount = customerOrders.length;
+        const closedOrders = customerOrders.filter(o => o.status === 'CLOSED');
+        const ordersCount = customerOrders.length; // Keep total order count for activity reference
 
-        const totalSpentAmount = customerOrders.reduce((sum, o) => {
+        const totalSpentAmount = closedOrders.reduce((sum, o) => {
           if (o.totalPrice) return sum + (parseFloat(o.totalPrice) || 0);
 
           const qty = parseFloat(o.quantity) || 0;
@@ -107,8 +108,8 @@ const Customers = () => {
         const lastOrder = [...customerOrders].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0];
         const lastVisitDate = lastOrder ? lastOrder.date : (customer.lastVisit || null);
 
-        const totalQuantity = customerOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
-        const totalWaste = customerOrders.reduce((sum, o) => sum + (parseFloat(o.wasteQuantity) || 0), 0);
+        const totalQuantity = closedOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
+        const totalWaste = closedOrders.reduce((sum, o) => sum + (parseFloat(o.wasteQuantity) || 0), 0);
 
         let status = customer.status || 'جديد';
         if (totalSpentAmount >= 5000) status = 'VIP';

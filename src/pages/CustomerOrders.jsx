@@ -690,7 +690,11 @@ const CustomerOrders = () => {
                     ${Array.isArray(order.sizes) && order.sizes.length > 0 ? order.sizes.map((s, i) => `<div class="row"><span class="label">مقاس ${i + 2}:</span><span class="value">${s.width} (عرض) × ${s.height} (طول) سم</span></div>`).join('') : ''}
                     <div class="row"><span class="label">سوفليهات:</span><span class="value">${order.bottomEnabled ? (order.bottomSize || '-') : 'بدون سوفليهات'}</span></div>
                     <div class="row"><span class="label">السمك:</span><span class="value">${order.thickness || '-'}</span></div>
-                    <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${qty} كجم</span></div>
+                    <div class="row"><span class="label">الوزن / الكمية:</span><span class="value">${order.status === 'CLOSED' ? 'الصافي المسلم' : 'الكمية المطلوبة'}</span></div>
+                    <div class="row"><span class="label">الوزن الفعلي:</span><span class="value">${qty} كجم</span></div>
+                    ${order.status === 'CLOSED' && order.orderedQuantity ? `
+                        <div class="row"><span class="label">الكمية المطلوبة أصلاً:</span><span class="value">${order.orderedQuantity} كجم</span></div>
+                    ` : ''}
                     ${order.clicheEnabled ? `
                         <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
                         <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
@@ -1163,18 +1167,20 @@ const CustomerOrders = () => {
     const totalSuppliesLinked = linkedSupplies.length;
 
     // Financial Stats
-    const totalQuantityOrdered = orders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
-    const totalOrdersAmount = orders.reduce((sum, o) => {
+    const closedOrders = orders.filter(o => o.status === 'CLOSED');
+    const totalQuantityOrdered = closedOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
+    const totalOrdersAmount = closedOrders.reduce((sum, o) => {
         const qty = parseFloat(o.quantity) || 0;
-        const productTotal = qty * (parseFloat(o.pricePerKg) || 0);
-        const printingTotal = qty * (parseFloat(o.printingCostPerKg) || 0);
-        const cuttingTotal = qty * (parseFloat(o.cuttingCostPerKg) || 0);
-        const clicheTotal = parseFloat(o.clicheCost) || 0;
+        const productPrice = parseFloat(o.pricePerKg) || 0;
+        const printing = parseFloat(o.printingCostPerKg) || 0;
+        const cutting = parseFloat(o.cuttingCostPerKg) || 0;
+        const margin = parseFloat(o.profitMargin) || 0;
+        const price = productPrice + printing + cutting + margin;
+        
+        const subtotal = qty * price;
+        const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
 
-        const subtotal = productTotal + printingTotal + cuttingTotal + clicheTotal;
-        const profit = qty * (parseFloat(o.profitMargin) || 0);
-
-        return sum + subtotal + profit;
+        return sum + subtotal + cliche;
     }, 0);
     const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
     const remainingBalance = totalOrdersAmount - totalPaid;

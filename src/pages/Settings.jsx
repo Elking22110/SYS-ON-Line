@@ -789,6 +789,8 @@ const Settings = () => {
     }
   };
 
+  const saveSettings = async () => {
+    try {
       // حفظ الإعدادات العامة محلياً
       localStorage.setItem('pos-settings', JSON.stringify(settings));
 
