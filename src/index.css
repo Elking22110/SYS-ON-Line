@@ -604,7 +604,6 @@ img {
 }
 
 .scale-on-hover:hover {
-  transform: scale(1.05);
 }
 
 .rotate-on-hover {
@@ -713,15 +712,9 @@ img {
   height: 18px;
   pointer-events: none;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-.action-button:hover {
-  transform: scale(1.15);
-}
-
-.action-button:active {
-  transform: scale(0.95);
-}
 
 
 /* حقول الإدخال المحسنة لتناسب الوضع الفاتح */
@@ -1153,17 +1146,14 @@ img {
   }
 
   .pos-product-card:active {
-    transform: scale(0.98);
     transition: transform 0.1s ease;
   }
 
   .btn-primary:active {
-    transform: scale(0.95);
     transition: transform 0.1s ease;
   }
 
   .glass-card:active {
-    transform: scale(0.98);
     transition: transform 0.1s ease;
   }
 }
@@ -1642,33 +1632,27 @@ img {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
 @keyframes bounceIn {
   0% {
     opacity: 0;
-    transform: scale(0.3);
   }
 
   50% {
     opacity: 1;
-    transform: scale(1.05);
   }
 
   70% {
-    transform: scale(0.9);
   }
 
   100% {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -1797,7 +1781,6 @@ img {
 
 .icon-enhanced:hover {
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-  transform: scale(1.1);
 }
 
 .icon-glow {
@@ -1989,7 +1972,6 @@ img {
 
 .table-enhanced tr:hover {
   background: rgba(255, 255, 255, 0.05);
-  transform: scale(1.01);
   transition: all 0.2s ease;
 }
 
@@ -2058,7 +2040,6 @@ img {
 }
 
 .chart-enhanced:hover {
-  transform: scale(1.02);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -2607,19 +2588,15 @@ select.input-modern {
 
   0%,
   100% {
-    transform: scale(1) rotate(0deg);
   }
 
   25% {
-    transform: scale(1.15) rotate(-10deg);
   }
 
   50% {
-    transform: scale(1.15) rotate(10deg);
   }
 
   75% {
-    transform: scale(1.1) rotate(-5deg);
   }
 }
 
@@ -2822,7 +2799,6 @@ select.input-modern {
   border-radius: 50%;
   transform-origin: bottom;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-  transform: scale(0.85);
 }
 
 
@@ -2923,7 +2899,6 @@ button::after {
   background: rgba(255, 255, 255, 0.5);
   opacity: 0;
   border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
   transform-origin: 50% 50%;
 }
 
@@ -3016,7 +2991,6 @@ html {
   border-radius: 50%;
   transform-origin: bottom;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-  transform: scale(0.85);
 }
 
 
@@ -3116,7 +3090,6 @@ button::after {
   background: rgba(255, 255, 255, 0.5);
   opacity: 0;
   border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
   transform-origin: 50% 50%;
 }
 

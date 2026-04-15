@@ -888,18 +888,17 @@ const Settings = () => {
 
     const resetToast = toast.loading('جاري حذف جميع البيانات...');
     try {
-      // 1. مسح localStorage بالكامل
-      const keysToDelete = [
-        'customers', 'customer_orders', 'customer_payments',
-        'suppliers', 'supplier_supplies', 'supplier_payments',
-        'products', 'categories', 'sales',
-        'expenses', 'shifts', 'activeShift',
-        'manufacturing_waste', 'activity_logs',
-        'categoryImages', 'cliches', 'cliches_inventory',
-        'customer_orders_sequence', 'shift_sequence',
-        'storeInfo', 'pos-settings'
-      ];
-      keysToDelete.forEach(key => localStorage.removeItem(key));
+      // 1. مسح localStorage بالكامل بشكل ديناميكي لضمان حذف جميع البيانات
+      const keysToKeep = ['elking_license', 'encryption_key'];
+      const allKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        allKeys.push(localStorage.key(i));
+      }
+      allKeys.forEach(key => {
+        if (!keysToKeep.includes(key)) {
+          localStorage.removeItem(key);
+        }
+      });
 
       // 2. إعادة ضبط المستخدم admin فقط
       const { hashPassword } = await import('../utils/security.js');
@@ -917,8 +916,8 @@ const Settings = () => {
       localStorage.setItem('users', JSON.stringify([adminUser]));
       setUsers([adminUser]);
 
-      // 3. محاولة مسح Supabase (في الخلفية)
-      const tables = ['CustomerPayment', 'CustomerOrder', 'Customer', 'SupplierPayment', 'SupplierSupply', 'Supplier', 'SaleItem', 'Sale', 'Shift', 'Product', 'Category', 'Expense'];
+      // 3. محاولة مسح Supabase بالكامل (في الخلفية)
+      const tables = ['CustomerPayment', 'CustomerOrder', 'Customer', 'SupplierPayment', 'SupplierSupply', 'Supplier', 'SaleItem', 'Sale', 'Shift', 'Product', 'Category', 'Expense', 'User', 'Setting'];
       for (const table of tables) {
         try {
           const { supabase } = await import('../utils/supabaseService');
