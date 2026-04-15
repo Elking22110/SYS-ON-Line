@@ -525,7 +525,17 @@ const CustomerOrders = () => {
                 const localOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
                 const merged = cloudOrders.map(co => {
                     const lo = localOrders.find(o => o.id?.toString() === co.id?.toString());
-                    return lo ? { ...lo, ...co } : co;
+                    if (!lo) return co;
+                    // Safe merge: cloud wins only when its value is non-null and non-empty string
+                    // This prevents cloud nulls from overwriting correct local values (e.g. sizeWidth, sizeHeight)
+                    const safeCloud = {};
+                    Object.keys(co).forEach(key => {
+                        const cloudVal = co[key];
+                        if (cloudVal !== null && cloudVal !== undefined && cloudVal !== '') {
+                            safeCloud[key] = cloudVal;
+                        }
+                    });
+                    return { ...lo, ...safeCloud };
                 });
                 // Also include local-only orders (not yet synced)
                 const localOnly = localOrders.filter(lo =>

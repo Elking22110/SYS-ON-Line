@@ -451,8 +451,15 @@ class SupabaseService {
                 } else if (payload.eventType === 'UPDATE') {
                     updatedData = updatedData.map(item => {
                         if (item.id == payload.new.id) {
-                            const mergedItem = { ...item, ...payload.new };
-                            return mergedItem;
+                            // Safe merge: only apply cloud values that are non-null and non-empty
+                            const safeCloudUpdate = {};
+                            Object.keys(payload.new).forEach(key => {
+                                const val = payload.new[key];
+                                if (val !== null && val !== undefined && val !== '') {
+                                    safeCloudUpdate[key] = val;
+                                }
+                            });
+                            return { ...item, ...safeCloudUpdate };
                         }
                         return item;
                     });
@@ -537,7 +544,20 @@ class SupabaseService {
                         const cloudIds = new Set(cloud.map(item => item.id?.toString()));
                         // Keep local items that are NOT in the cloud yet
                         const localOnly = local.filter(item => item && item.id && !cloudIds.has(item.id.toString()));
-                        const merged = [...cloud, ...localOnly];
+                        // Safe merge: for each cloud item, merge with local, but cloud nulls/empty don't override local values
+                        const safeMerged = cloud.map(co => {
+                            const lo = local.find(l => l && l.id?.toString() === co.id?.toString());
+                            if (!lo) return co;
+                            const safeCloud = {};
+                            Object.keys(co).forEach(key => {
+                                const val = co[key];
+                                if (val !== null && val !== undefined && val !== '') {
+                                    safeCloud[key] = val;
+                                }
+                            });
+                            return { ...lo, ...safeCloud };
+                        });
+                        const merged = [...safeMerged, ...localOnly];
                         localStorage.setItem(task.key, JSON.stringify(merged));
                     }
                 }
@@ -1159,6 +1179,8 @@ class SupabaseService {
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
+                sizeWidth: orderData.sizeWidth !== undefined ? String(orderData.sizeWidth) : '',
+                sizeHeight: orderData.sizeHeight !== undefined ? String(orderData.sizeHeight) : '',
                 status: orderData.status || 'OPEN',
                 wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
                 orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
@@ -1187,6 +1209,7 @@ class SupabaseService {
                 colorCount: parseFloat(orderData.colorCount) || 0,
                 clicheWidth: parseFloat(orderData.clicheWidth) || 0,
                 clicheHeight: parseFloat(orderData.clicheHeight) || 0,
+                clichePricePerCm: parseFloat(orderData.clichePricePerCm) || 0.85,
                 printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
                 cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
                 notes: orderData.notes || '',
@@ -1201,6 +1224,8 @@ class SupabaseService {
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
                 profitMargin: parseFloat(orderData.profitMargin) || 0,
+                sizeWidth: orderData.sizeWidth !== undefined ? String(orderData.sizeWidth) : '',
+                sizeHeight: orderData.sizeHeight !== undefined ? String(orderData.sizeHeight) : '',
                 wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
                 orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
                 totalPrice: parseFloat(orderData.totalPrice) || 0,
