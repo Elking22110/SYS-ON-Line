@@ -290,6 +290,8 @@ const SupplierDetails = () => {
                 ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" /></div>` : ''}
                 <div class="header">
                     <h1>MS-GROUP</h1>
+                    <p style="font-size:11px; color:#555; margin-top:2px;">باسوس - القناطر الخيرية - الطريق الدائري</p>
+                    <p style="font-size:11px; color:#555; margin-top:1px;">تليفوُن: 01029022006 | بريد إلكتروني: info@msgroupplast.com</p>
                     <span class="badge">إيصال استلام بضاعة (توريدة)</span>
                     <p style="margin-top: 8px; font-weight: bold; color: #333;">رقم الإيصال: ${supply.supplyNumber}</p>
                 </div>

@@ -679,6 +679,8 @@ const CustomerOrders = () => {
                 ${logoHtml}
                 <div class="header">
                     <h1>MS-GROUP</h1>
+                    <p style="font-size:11px; color:#555; margin-top:2px;">باسوس - القناطر الخيرية - الطريق الدائري</p>
+                    <p style="font-size:11px; color:#555; margin-top:1px;">تليفوُن: 01029022006 | بريد إلكتروني: info@msgroupplast.com</p>
                     <span class="badge">فاتورة طلب تشغيل</span>
                     <p style="margin-top: 8px; color: #333; font-weight: bold;">رقم الطلب: ${order.orderNumber}</p>
                 </div>
@@ -695,6 +697,10 @@ const CustomerOrders = () => {
                     <div class="section-title">تفاصيل التصنيع</div>
                     <div class="row"><span class="label">نوع المنتج:</span><span class="value">${order.productType || '-'}</span></div>
                     <div class="row"><span class="label">اللون:</span><span class="value">${order.color || '-'}</span></div>
+                    ${order.clicheEnabled ? `
+                        <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
+                        <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
+                    ` : ''}
                     <div class="row"><span class="label">المقاس الأساسي:</span><span class="value">${order.sizeWidth && order.sizeHeight ? order.sizeWidth + ' (عرض) × ' + order.sizeHeight + ' (طول) سم' : '-'}</span></div>
                     ${Array.isArray(order.sizes) && order.sizes.length > 0 ? order.sizes.map((s, i) => `<div class="row"><span class="label">مقاس ${i + 2}:</span><span class="value">${s.width} (عرض) × ${s.height} (طول) سم</span></div>`).join('') : ''}
                     <div class="row"><span class="label">سوفليهات:</span><span class="value">${order.bottomEnabled ? (order.bottomSize || '-') : 'بدون سوفليهات'}</span></div>
@@ -702,11 +708,7 @@ const CustomerOrders = () => {
                     <div class="row"><span class="label">الوزن / الكمية:</span><span class="value">${order.status === 'CLOSED' ? 'الصافي المسلم' : 'الكمية المطلوبة'}</span></div>
                     <div class="row"><span class="label">الوزن الفعلي:</span><span class="value">${qty} كجم</span></div>
                     ${order.status === 'CLOSED' && order.orderedQuantity ? `
-                        <div class="row"><span class="label">الكمية المطلوبة أصلاً:</span><span class="value">${order.orderedQuantity} كجم</span></div>
-                    ` : ''}
-                    ${order.clicheEnabled ? `
-                        <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
-                        <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
+                        <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${order.orderedQuantity} كجم</span></div>
                     ` : ''}
                     ${orderSupplies.length > 0 ? `
                         <div style="padding: 10px 14px;">
