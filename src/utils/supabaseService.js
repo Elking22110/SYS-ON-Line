@@ -2,6 +2,12 @@ import { createClient } from '@supabase/supabase-js';
 import { publish, EVENTS } from './observerManager';
 import { syncManager } from './syncManager';
 
+const sanitizeNumerical = (val, defaultValue = 0) => {
+    if (val === null || val === undefined || val === '') return defaultValue;
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? defaultValue : parsed;
+};
+
 // Initialize Supabase Client for REALTIME only
 // Note: We use Prisma for CRUD (via Electron IPC), but Supabase Client for Realtime subscriptions
 const supabaseUrl = 'https://aqiefmheajfllzominuf.supabase.co';
@@ -113,8 +119,6 @@ const dbApi = {
         const payload = { ...dataArg, createdAt: new Date().toISOString() };
         if (!payload.id) payload.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
-        // Allowed schema for Customer (Full Sync Enabled)
-        // NOTE: bagSizes, profileCliches, profileSizes must be JSONB columns in Supabase
         const allowed = [
             'name', 'phone', 'email', 'address', 'id', 'createdAt', 'points',
             'totalPurchases', 'orders', 'lastVisit', 'joinDate', 'status', 'totalSpent',
@@ -131,10 +135,21 @@ const dbApi = {
             }
         });
 
-        // Convert empty strings to null for optional fields
-        ['email', 'phone', 'address', 'sizeWidth', 'sizeHeight', 'clicheWidth', 'clicheHeight',
-         'businessActivity', 'usualProduct', 'cliche', 'colorCount', 'notes'].forEach(key => {
+        // Strictly Sanitize Optional & Numerical Fields
+        ['email', 'phone', 'address', 'businessActivity', 'usualProduct', 'cliche', 'notes'].forEach(key => {
             if (cleanPayload[key] === '') cleanPayload[key] = null;
+        });
+
+        ['sizeWidth', 'sizeHeight', 'clicheWidth', 'clicheHeight', 'colorCount'].forEach(key => {
+            if (cleanPayload[key] !== undefined && cleanPayload[key] !== null) {
+                cleanPayload[key] = String(sanitizeNumerical(cleanPayload[key], 0));
+            }
+        });
+
+        ['totalSpent', 'totalPurchases', 'orders', 'points'].forEach(key => {
+            if (cleanPayload[key] !== undefined) {
+                cleanPayload[key] = sanitizeNumerical(cleanPayload[key], 0);
+            }
         });
 
         let result = cleanPayload.id
@@ -164,10 +179,21 @@ const dbApi = {
             }
         });
 
-        // Convert empty strings to null for optional fields
-        ['email', 'phone', 'address', 'sizeWidth', 'sizeHeight', 'clicheWidth', 'clicheHeight',
-         'businessActivity', 'usualProduct', 'cliche', 'colorCount', 'notes'].forEach(key => {
+        // Strictly Sanitize Optional & Numerical Fields
+        ['email', 'phone', 'address', 'businessActivity', 'usualProduct', 'cliche', 'notes'].forEach(key => {
             if (cleanPayload[key] === '') cleanPayload[key] = null;
+        });
+
+        ['sizeWidth', 'sizeHeight', 'clicheWidth', 'clicheHeight', 'colorCount'].forEach(key => {
+            if (cleanPayload[key] !== undefined && cleanPayload[key] !== null) {
+                cleanPayload[key] = String(sanitizeNumerical(cleanPayload[key], 0));
+            }
+        });
+
+        ['totalSpent', 'totalPurchases', 'orders', 'points'].forEach(key => {
+            if (cleanPayload[key] !== undefined) {
+                cleanPayload[key] = sanitizeNumerical(cleanPayload[key], 0);
+            }
         });
 
         let result = await supabase.from('Customer').update(cleanPayload).eq('id', id).select().single();
@@ -1160,16 +1186,16 @@ class SupabaseService {
                 orderNumber: orderData.orderNumber || '',
                 date: orderData.date || '',
                 productType: orderData.productType || '',
-                quantity: parseFloat(orderData.quantity) || 0,
-                pricePerKg: parseFloat(orderData.pricePerKg) || 0,
-                colorCount: parseFloat(orderData.colorCount) || 0,
-                clicheWidth: parseFloat(orderData.clicheWidth) || 0,
-                clicheHeight: parseFloat(orderData.clicheHeight) || 0,
-                printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
-                cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
+                quantity: sanitizeNumerical(orderData.quantity, 0),
+                pricePerKg: sanitizeNumerical(orderData.pricePerKg, 0),
+                colorCount: sanitizeNumerical(orderData.colorCount, 0),
+                clicheWidth: sanitizeNumerical(orderData.clicheWidth, 0),
+                clicheHeight: sanitizeNumerical(orderData.clicheHeight, 0),
+                printingCostPerKg: sanitizeNumerical(orderData.printingCostPerKg, 0),
+                cuttingCostPerKg: sanitizeNumerical(orderData.cuttingCostPerKg, 0),
                 notes: orderData.notes || '',
                 clicheEnabled: !!orderData.clicheEnabled,
-                clicheCost: parseFloat(orderData.clicheCost) || 0,
+                clicheCost: sanitizeNumerical(orderData.clicheCost, 0),
                 color: orderData.color || '',
                 size: orderData.size || '',
                 sizes: orderData.sizes || [],
@@ -1178,13 +1204,13 @@ class SupabaseService {
                 thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
-                profitMargin: parseFloat(orderData.profitMargin) || 0,
-                sizeWidth: orderData.sizeWidth !== undefined ? String(orderData.sizeWidth) : '',
-                sizeHeight: orderData.sizeHeight !== undefined ? String(orderData.sizeHeight) : '',
+                profitMargin: sanitizeNumerical(orderData.profitMargin, 0),
+                sizeWidth: String(sanitizeNumerical(orderData.sizeWidth, 0)),
+                sizeHeight: String(sanitizeNumerical(orderData.sizeHeight, 0)),
                 status: orderData.status || 'OPEN',
-                wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
-                orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
-                totalPrice: parseFloat(orderData.totalPrice) || 0,
+                wasteQuantity: sanitizeNumerical(orderData.wasteQuantity, 0),
+                orderedQuantity: sanitizeNumerical(orderData.orderedQuantity, 0),
+                totalPrice: sanitizeNumerical(orderData.totalPrice, 0),
                 shiftId: orderData.shiftId || null,
                 createdAt: new Date().toISOString()
             };
@@ -1204,17 +1230,17 @@ class SupabaseService {
         try {
             const payload = {
                 productType: orderData.productType,
-                quantity: parseFloat(orderData.quantity) || 0,
-                pricePerKg: parseFloat(orderData.pricePerKg) || 0,
-                colorCount: parseFloat(orderData.colorCount) || 0,
-                clicheWidth: parseFloat(orderData.clicheWidth) || 0,
-                clicheHeight: parseFloat(orderData.clicheHeight) || 0,
-                clichePricePerCm: parseFloat(orderData.clichePricePerCm) || 0.85,
-                printingCostPerKg: parseFloat(orderData.printingCostPerKg) || 0,
-                cuttingCostPerKg: parseFloat(orderData.cuttingCostPerKg) || 0,
+                quantity: sanitizeNumerical(orderData.quantity, 0),
+                pricePerKg: sanitizeNumerical(orderData.pricePerKg, 0),
+                colorCount: sanitizeNumerical(orderData.colorCount, 0),
+                clicheWidth: sanitizeNumerical(orderData.clicheWidth, 0),
+                clicheHeight: sanitizeNumerical(orderData.clicheHeight, 0),
+                clichePricePerCm: sanitizeNumerical(orderData.clichePricePerCm, 0.85),
+                printingCostPerKg: sanitizeNumerical(orderData.printingCostPerKg, 0),
+                cuttingCostPerKg: sanitizeNumerical(orderData.cuttingCostPerKg, 0),
                 notes: orderData.notes || '',
                 clicheEnabled: !!orderData.clicheEnabled,
-                clicheCost: parseFloat(orderData.clicheCost) || 0,
+                clicheCost: sanitizeNumerical(orderData.clicheCost, 0),
                 color: orderData.color || '',
                 size: orderData.size || '',
                 sizes: orderData.sizes || [],
@@ -1223,12 +1249,12 @@ class SupabaseService {
                 thickness: orderData.thickness || '',
                 deliveryDate: orderData.deliveryDate || '',
                 reminderDate: orderData.reminderDate || '',
-                profitMargin: parseFloat(orderData.profitMargin) || 0,
-                sizeWidth: orderData.sizeWidth !== undefined ? String(orderData.sizeWidth) : '',
-                sizeHeight: orderData.sizeHeight !== undefined ? String(orderData.sizeHeight) : '',
-                wasteQuantity: parseFloat(orderData.wasteQuantity) || 0,
-                orderedQuantity: parseFloat(orderData.orderedQuantity) || 0,
-                totalPrice: parseFloat(orderData.totalPrice) || 0,
+                profitMargin: sanitizeNumerical(orderData.profitMargin, 0),
+                sizeWidth: String(sanitizeNumerical(orderData.sizeWidth, 0)),
+                sizeHeight: String(sanitizeNumerical(orderData.sizeHeight, 0)),
+                wasteQuantity: sanitizeNumerical(orderData.wasteQuantity, 0),
+                orderedQuantity: sanitizeNumerical(orderData.orderedQuantity, 0),
+                totalPrice: sanitizeNumerical(orderData.totalPrice, 0),
                 shiftId: orderData.shiftId || null,
                 status: orderData.status
             };

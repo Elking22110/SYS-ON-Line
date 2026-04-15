@@ -177,15 +177,15 @@ const Customers = () => {
           status: 'جديد',
           businessActivity: formData.businessActivity || '',
           usualProduct: formData.usualProduct || '',
-          sizeWidth: formData.sizeWidth || '',
-          sizeHeight: formData.sizeHeight || '',
+          sizeWidth: String(parseFloat(formData.sizeWidth) || 0),
+          sizeHeight: String(parseFloat(formData.sizeHeight) || 0),
           bagSizes: formData.bagSizes || [],
-          clicheWidth: formData.clicheWidth || '',
-          clicheHeight: formData.clicheHeight || '',
+          clicheWidth: String(parseFloat(formData.clicheWidth) || 0),
+          clicheHeight: String(parseFloat(formData.clicheHeight) || 0),
           cliche: (formData.clicheWidth && formData.clicheHeight)
             ? `${formData.clicheHeight} × ${formData.clicheWidth}`
             : (formData.cliche || ''),
-          colorCount: formData.colorCount || '',
+          colorCount: String(parseFloat(formData.colorCount) || 0),
           notes: formData.notes || ''
         };
 
@@ -224,15 +224,15 @@ const Customers = () => {
           address: formData.address,
           businessActivity: formData.businessActivity || '',
           usualProduct: formData.usualProduct || '',
-          sizeWidth: formData.sizeWidth || '',
-          sizeHeight: formData.sizeHeight || '',
+          sizeWidth: String(parseFloat(formData.sizeWidth) || 0),
+          sizeHeight: String(parseFloat(formData.sizeHeight) || 0),
           bagSizes: formData.bagSizes || [],
-          clicheWidth: formData.clicheWidth || '',
-          clicheHeight: formData.clicheHeight || '',
+          clicheWidth: String(parseFloat(formData.clicheWidth) || 0),
+          clicheHeight: String(parseFloat(formData.clicheHeight) || 0),
           cliche: (formData.clicheWidth && formData.clicheHeight)
             ? `${formData.clicheHeight} × ${formData.clicheWidth}`
             : (formData.cliche || ''),
-          colorCount: formData.colorCount || '',
+          colorCount: String(parseFloat(formData.colorCount) || 0),
           notes: formData.notes || '',
           // الحفاظ على الأكلاشيهات الإضافية عند تحديث بيانات العميل
           profileCliches: editingCustomer.profileCliches || []
