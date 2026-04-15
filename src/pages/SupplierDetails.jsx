@@ -280,7 +280,8 @@ const SupplierDetails = () => {
                     .remaining-row .value { font-size: 14px; font-weight: 900; color: #dc2626; }
                     .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 12px; }
                     @media print {
-                        body { padding: 10px; }
+                        @page { margin: 0; }
+                        body { padding: 1.5cm; }
                         button { display: none !important; }
                     }
                 </style>

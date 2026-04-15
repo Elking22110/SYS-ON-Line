@@ -1443,11 +1443,12 @@ const Reports = () => {
           <meta charset="utf-8">
           <title>${reportTitle} - ${periodTitle}</title>
           <style>
+            @page { margin: 0; }
             body { 
               font-family: 'Arial', sans-serif; 
               direction: rtl; 
               text-align: right; 
-              padding: 20px; 
+              padding: 1.5cm; 
               background: white;
               color: black;
             }
