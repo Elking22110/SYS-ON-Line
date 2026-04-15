@@ -890,11 +890,7 @@ const Settings = () => {
     try {
       // 1. مسح localStorage بالكامل بشكل ديناميكي لضمان حذف جميع البيانات
       const keysToKeep = ['elking_license', 'encryption_key'];
-      const allKeys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        allKeys.push(localStorage.key(i));
-      }
-      allKeys.forEach(key => {
+      Object.keys(localStorage).forEach(key => {
         if (!keysToKeep.includes(key)) {
           localStorage.removeItem(key);
         }
@@ -917,12 +913,26 @@ const Settings = () => {
       setUsers([adminUser]);
 
       // 3. محاولة مسح Supabase بالكامل (في الخلفية)
-      const tables = ['CustomerPayment', 'CustomerOrder', 'Customer', 'SupplierPayment', 'SupplierSupply', 'Supplier', 'SaleItem', 'Sale', 'Shift', 'Product', 'Category', 'Expense', 'User', 'Setting'];
+      const tables = [
+        'CustomerPayment', 'CustomerOrder', 'Customer', 
+        'SupplierPayment', 'SupplierSupply', 'Supplier', 
+        'SaleItem', 'Sale', 'Shift', 'Product', 'Category', 
+        'Expense', 'User', 'Setting'
+      ];
+      
+      const { supabase } = await import('../utils/supabaseService');
+      
       for (const table of tables) {
         try {
-          const { supabase } = await import('../utils/supabaseService');
-          await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        } catch (e) { /* تجاهل أخطاء Supabase */ }
+          // Use filter that always matches for the table's primary key
+          if (table === 'Setting') {
+            await supabase.from(table).delete().not('key', 'is', null);
+          } else {
+            await supabase.from(table).delete().not('id', 'is', null);
+          }
+        } catch (e) { 
+          console.warn(`Failed to clear table ${table}:`, e);
+        }
       }
 
       toast.dismiss(resetToast);
