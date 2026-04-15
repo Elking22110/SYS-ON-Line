@@ -5,50 +5,55 @@ export const printHtmlContent = (html) => {
             @media print {
                 button { display: none !important; }
                 body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                @page { margin: 0; }
             }
         </style>
     `;
     const finalHtml = html.replace('</head>', `${printStyles}</head>`);
 
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    document.body.appendChild(iframe);
+    // إنشاء نافذة مؤقتة بدلاً من iframe لدعم المعاينة في Electron
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    if (!printWindow) {
+        console.error('Failed to open print window. Pop-up blocker might be active.');
+        alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.');
+        return;
+    }
 
     try {
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(finalHtml);
-        doc.close();
+        printWindow.document.open();
+        printWindow.document.write(finalHtml);
+        printWindow.document.close();
 
-        // الانتظار قليلاً حتى يتم تحميل الصور والمستند
-        setTimeout(() => {
-            try {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            } catch (e) {
-                console.error('Print failed:', e);
-            }
-            
-            // تنظيف بعد الطباعة
+        // الانتظار حتى يتم تحميل المحتوى والصور
+        printWindow.onload = () => {
             setTimeout(() => {
-                if (document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                }
-            }, 10000);
-        }, 800);
+                printWindow.focus();
+                printWindow.print();
+                // إغلاق النافذة بعد الانتهاء أو إلغاء الطباعة
+                // نستخدم تركيز النافذة الأصلية للكشف عن انتهاء الطباعة في بعض المتصفحات
+                // أو نتركها للمستخدم ليغلقها لضمان عدم ضياع المعاينة
+                setTimeout(() => {
+                    if (!printWindow.closed) {
+                        printWindow.close();
+                    }
+                }, 500);
+            }, 500);
+        };
+
+        // Fallback في حال لم يعمل onload
+        setTimeout(() => {
+            if (printWindow && !printWindow.closed) {
+                printWindow.focus();
+                printWindow.print();
+            }
+        }, 2000);
+
     } catch (e) {
-        console.error('Iframe creation failed', e);
-        // Fallback to blob if iframe fails
+        console.error('Printing failed:', e);
+        // Fallback to blob
         const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
-        if (document.body.contains(iframe)) {
-            document.body.removeChild(iframe);
-        }
     }
 };
