@@ -887,10 +887,8 @@ const POSMain = () => {
         ` : ''}
         
         <div class="footer" style="color:#000;">
-          <div class="footer">
-            <div>هذه فاتوره مطبوعه من نظام اداره مبيعات Elking</div>
-            <div>01029022006</div>
-          </div>
+          نظام إدارة الفاتورة &mdash; elking<br>
+          ت: 01553448631
         </div>
         
         <script>

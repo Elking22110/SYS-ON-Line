@@ -678,8 +678,6 @@ const CustomerOrders = () => {
                 ${logoHtml}
                 <div class="header">
                     <h1>MS-GROUP</h1>
-                    <p style="font-size:13px; color:#5235E8; font-weight:700; margin-top:2px;">نظام إدارة الفاتورة &mdash; elking</p>
-                    <p style="font-size:12px; color:#555; margin-top:2px;">ت: 01553448631</p>
                     <span class="badge">فاتورة طلب تشغيل</span>
                     <p style="margin-top: 8px; color: #333; font-weight: bold;">رقم الطلب: ${order.orderNumber}</p>
                 </div>
@@ -732,7 +730,8 @@ const CustomerOrders = () => {
                 </div>
 
                 <div class="footer">
-                    تم إصدار هذه الفاتورة من نظام الإدارة<br>
+                    نظام إدارة الفاتورة &mdash; elking<br>
+                    ت: 01553448631
                 </div>
             </body>
             </html>

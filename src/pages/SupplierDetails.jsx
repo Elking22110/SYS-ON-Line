@@ -289,8 +289,6 @@ const SupplierDetails = () => {
                 ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" /></div>` : ''}
                 <div class="header">
                     <h1>MS-GROUP</h1>
-                    <p style="font-size:13px; color:#5235E8; font-weight:700; margin-top:2px;">نظام إدارة الفاتورة &mdash; elking</p>
-                    <p style="font-size:12px; color:#555; margin-top:2px;">ت: 01553448631</p>
                     <span class="badge">إيصال استلام بضاعة (توريدة)</span>
                     <p style="margin-top: 8px; font-weight: bold; color: #333;">رقم الإيصال: ${supply.supplyNumber}</p>
                 </div>
@@ -325,7 +323,8 @@ const SupplierDetails = () => {
                 </div>
 
                 <div class="footer">
-                    تم إصدار هذا الإيصال من نظام الإدارة الآلي<br>
+                    نظام إدارة الفاتورة &mdash; elking<br>
+                    ت: 01553448631
                 </div>
                 <script>window.onload = function() { setTimeout(function(){ window.print(); }, 500); }</script>
             </body>

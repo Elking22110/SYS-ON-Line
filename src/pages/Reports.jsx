@@ -1519,7 +1519,8 @@ const Reports = () => {
           
           <div class="footer">
             <p>تم إنشاء هذا التقرير في ${formatDateTime(getCurrentDate())}</p>
-            <p>نظام إدارة مصنع Elking Plast</p>
+            <p>نظام إدارة الفاتورة &mdash; elking</p>
+            <p>ت: 01553448631</p>
           </div>
         </body>
       </html>
