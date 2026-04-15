@@ -82,9 +82,12 @@ const ShiftManager = () => {
       const localShifts = JSON.parse(localStorage.getItem('shifts') || '[]');
       if (localShifts && localShifts.length > 0) {
         setShifts(localShifts);
-        const activeLocal = localShifts.find(s => s.status === 'active');
-        if (activeLocal) {
-          setCurrentShift(activeLocal);
+        const activeShiftStore = JSON.parse(localStorage.getItem('activeShift') || 'null');
+        if (activeShiftStore) {
+          setCurrentShift(activeShiftStore);
+        } else {
+          const activeLocal = localShifts.find(s => s.status === 'active');
+          if (activeLocal) setCurrentShift(activeLocal);
         }
       }
 
@@ -108,9 +111,17 @@ const ShiftManager = () => {
       setShifts(uniqueShifts);
       localStorage.setItem('shifts', JSON.stringify(uniqueShifts));
 
-      // تحميل الوردية النشطة
-      const active = uniqueShifts.find(s => s.status === 'active');
-      if (active) {
+      // تحميل الوردية النشطة: الأولوية لـ activeShift في الـ localStorage ليكون مطابقاً للوحة التحكم
+      let active = JSON.parse(localStorage.getItem('activeShift') || 'null');
+      if (!active) {
+        active = uniqueShifts.find(s => s.status === 'active');
+      } else {
+        // تحديث بياناته من uniqueShifts إذا كان موجوداً هناك
+        const updatedActive = uniqueShifts.find(s => s.id === active.id);
+        if (updatedActive) active = updatedActive;
+      }
+      
+      if (active && active.status === 'active') {
         setCurrentShift(active);
         localStorage.setItem('activeShift', JSON.stringify(active));
       } else {
