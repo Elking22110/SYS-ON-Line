@@ -28,6 +28,25 @@ const ShiftManager = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  const [dataVersion, setDataVersion] = useState(0);
+
+  // تحديث التفاصيل لحظياً عند أي تغيير في المبيعات أو الطلبات
+  useEffect(() => {
+    const handleDataChange = () => setDataVersion(v => v + 1);
+    window.addEventListener('storage', handleDataChange);
+    window.addEventListener('dataUpdated', handleDataChange);
+    const unsubSales = typeof subscribe === 'function' ? subscribe(EVENTS.INVOICES_CHANGED, handleDataChange) : null;
+    const unsubProducts = typeof subscribe === 'function' ? subscribe(EVENTS.PRODUCTS_CHANGED, handleDataChange) : null;
+    const unsubCustomers = typeof subscribe === 'function' ? subscribe(EVENTS.CUSTOMERS_CHANGED, handleDataChange) : null;
+    return () => {
+      window.removeEventListener('storage', handleDataChange);
+      window.removeEventListener('dataUpdated', handleDataChange);
+      if (unsubSales) unsubSales();
+      if (unsubProducts) unsubProducts();
+      if (unsubCustomers) unsubCustomers();
+    };
+  }, []);
+
   // تفاصيل الوردية النشطة لحظياً
   const { activeDetails, activeSalesList, activeProductionOrders, activePayments } = useMemo(() => {
     try {
@@ -53,7 +72,7 @@ const ShiftManager = () => {
     } catch (_) { 
       return { activeDetails: null, activeSalesList: [], activeProductionOrders: [], activePayments: [] }; 
     }
-  }, [currentShift]);
+  }, [currentShift, dataVersion]);
 
   const loadShifts = async () => {
     try {
@@ -789,7 +808,7 @@ const ShiftManager = () => {
                 <DollarSign className="h-4 w-4 text-green-400" />
                 <span className="text-sm text-slate-600">إجمالي المبيعات</span>
               </div>
-              <p className="text-slate-800 font-semibold">${(((activeDetails?.totalSales || 0) - (activeDetails?.totalRefunds || 0)) || 0).toFixed(2)}</p>
+              <p className="text-slate-800 font-semibold">{(((activeDetails?.totalSales || 0) - (activeDetails?.totalRefunds || 0)) || 0).toLocaleString()} <span className="text-xs">ج.م</span></p>
             </div>
 
             <div className="bg-white bg-opacity-10 rounded-lg p-4">
