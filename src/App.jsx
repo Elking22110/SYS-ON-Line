@@ -40,8 +40,12 @@ function App() {
   useEffect(() => {
     const checkActivation = async () => {
       try {
-        // تخطي التفعيل تلقائياً إذا لم يكن التطبيق يعمل داخل Electron (أي يعمل على الإنترنت Vercel)
-        if (!window.electronAPI || !window.electronAPI.getMachineId) {
+        // التحقق مما إذا كان التطبيق يعمل داخل Electron
+        const isElectron = window.electronAPI && window.electronAPI.isElectron;
+
+        // تخطي التفعيل تلقائياً إذا لم يكن التطبيق يعمل داخل Electron (أي يعمل على المتصفح أو الإنترنت)
+        if (!isElectron) {
+          console.log('🌐 Web Environment Detected: Bypassing Activation.');
           setIsLicensed(true);
           return;
         }
@@ -54,6 +58,8 @@ function App() {
         }
       } catch (err) {
         console.error('License check failed:', err);
+        // في حال حدوث خطأ تقني في التعرف على البيئة، نسمح بالدخول إذا لم نكن متأكدين أنها بيئة Electron
+        if (!window.electronAPI) setIsLicensed(true);
       } finally {
         setCheckingLicense(false);
       }

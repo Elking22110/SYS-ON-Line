@@ -39,7 +39,7 @@ export default defineConfig({
   // إعدادات البناء
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // تم إيقاف خرائط المصدر لحماية الكود من الاستخراج
     minify: 'esbuild',
     target: 'esnext',
     // إعدادات خاصة بـ Electron
@@ -153,7 +153,9 @@ export default defineConfig({
     target: 'esnext',
     minifyIdentifiers: true,
     minifySyntax: true,
-    minifyWhitespace: true
+    minifyWhitespace: true,
+    legalComments: 'none', // إزالة أي تعليقات قانونية قد تكشف عن تبعيات
+    treeShaking: true
   },
 
 })
