@@ -1,6 +1,6 @@
 {
   "name": "pos-system-modern-ui",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "نظام إدارة متجر الأزياء الرجالية - واجهة مستخدم حديثة ومتطورة",
   "keywords": [
     "pos",
@@ -57,7 +57,8 @@
     "outdated": "npm outdated",
     "size": "npm run build && du -sh dist",
     "serve": "npx serve dist -s -l 3000",
-    "generate:key": "node scripts/generate-license.cjs"
+    "generate:key": "node scripts/generate-license.cjs",
+    "publish": "set CSC_IDENTITY_AUTO_DISCOVERY=false && vite build && electron-builder --win --x64 --publish always"
   },
   "build": {
     "appId": "com.elking.store-manager",

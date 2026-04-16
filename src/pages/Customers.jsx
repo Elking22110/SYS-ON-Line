@@ -112,7 +112,7 @@ const Customers = () => {
         const totalWaste = closedOrders.reduce((sum, o) => sum + (parseFloat(o.wasteQuantity) || 0), 0);
 
         let status = customer.status || 'جديد';
-        if (totalSpentAmount >= 5000) status = 'VIP';
+        if (totalQuantity >= 5000) status = 'VIP'; // الوصول لـ 5 طن
         else if (totalSpentAmount >= 2000) status = 'نشط';
         else if (ordersCount > 0) status = 'نشط';
         else status = 'جديد';
@@ -314,6 +314,7 @@ const Customers = () => {
   };
 
   const topCustomers = customers
+    .filter(c => (parseFloat(c.totalQuantity) || 0) >= 5000) // شرط الـ 5 طن
     .sort((a, b) => b.totalSpent - a.totalSpent)
     .slice(0, 5);
 
