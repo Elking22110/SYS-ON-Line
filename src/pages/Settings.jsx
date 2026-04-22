@@ -155,9 +155,9 @@ const Settings = () => {
 
     return {
       // إعدادات عامة
-      companyName: savedStoreInfo.storeName || savedSettings.companyName || 'Elking',
-      companyAddress: savedStoreInfo.storeAddress || savedSettings.companyAddress || 'باسوس - القناطر الخيرية - الطريق الدائري',
-      companyPhone: savedStoreInfo.storePhone || savedSettings.companyPhone || '01029022006',
+      companyName: savedStoreInfo.storeName || savedSettings.companyName || 'Ms Group Factory',
+      companyAddress: savedStoreInfo.storeAddress || savedSettings.companyAddress || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي',
+      companyPhone: savedStoreInfo.storePhone || savedSettings.companyPhone || '01029022006-01102364000-01025171668',
       companyEmail: savedStoreInfo.storeEmail || savedSettings.companyEmail || 'info@msgroupplast.com',
       currency: savedSettings.currency || 'EGP',
       language: savedSettings.language || 'ar',
@@ -212,8 +212,8 @@ const Settings = () => {
       orderProfitMargin: savedSettings.orderProfitMargin !== undefined && savedSettings.orderProfitMargin !== '' ? savedSettings.orderProfitMargin : 10,
       
       // حقول إضافية لإعدادات المتجر (لتوحيدها مع StoreSettings)
-      storeTaxNumber: savedStoreInfo.storeTaxNumber || '',
-      storeDescription: savedStoreInfo.storeDescription || ''
+      storeTaxNumber: savedStoreInfo.storeTaxNumber || '769337252',
+      storeDescription: savedStoreInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف'
     };
   });
 
@@ -833,9 +833,9 @@ const Settings = () => {
   const resetSettings = () => {
     if (window.confirm('هل أنت متأكد من إعادة تعيين جميع الإعدادات؟')) {
       const defaultSettings = {
-        companyName: 'Elking',
-        companyAddress: 'باسوس - القناطر الخيرية - الطريق الدائري',
-        companyPhone: '01029022006',
+        companyName: 'Ms Group Factory',
+        companyAddress: 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي',
+        companyPhone: '01029022006-01102364000-01025171668',
         companyEmail: 'info@msgroupplast.com',
         currency: 'EGP',
         language: 'ar',

@@ -243,8 +243,13 @@ const SupplierDetails = () => {
         soundManager.play('openWindow');
 
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
-        const storeName = storeInfo.storeName || 'إلكينج';
+        const storeName = storeInfo.storeName || 'Ms Group Factory';
+        const storePhone = storeInfo.storePhone || storeInfo.phone || '01029022006-01102364000-01025171668';
+        const storeAddress = storeInfo.storeAddress || storeInfo.address || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
         const storeLogo = storeInfo.logo || '';
+        const storeEmail = storeInfo.storeEmail || 'info@msgroupplast.com';
+        const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
+        const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
 
         // Find existing linked order if any
         let linkedOrderText = supply.linkedOrderNumber ? `مرتبط بطلب: ${supply.linkedOrderNumber}` : '';
@@ -289,11 +294,15 @@ const SupplierDetails = () => {
             <body>
                 ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" /></div>` : ''}
                 <div class="header">
-                    <h1>MS-GROUP</h1>
-                    <p style="font-size:11px; color:#555; margin-top:2px;">باسوس - القناطر الخيرية - الطريق الدائري</p>
-                    <p style="font-size:11px; color:#555; margin-top:1px;">تليفوُن: 01029022006 | بريد إلكتروني: info@msgroupplast.com</p>
-                    <span class="badge">إيصال استلام بضاعة (توريدة)</span>
-                    <p style="margin-top: 8px; font-weight: bold; color: #333;">رقم الإيصال: ${supply.supplyNumber}</p>
+                    <h1 style="color: #5235E8; font-size: 28px; font-weight: 900; margin-bottom: 8px;">${storeName}</h1>
+                    <p style="font-size:13px; color:#555; margin-top:4px;">${storeDescription}</p>
+                    <p style="font-size:13px; color:#555; margin-top:4px;">${storeAddress}</p>
+                    <p style="font-size:13px; color:#555; margin-top:4px;">تليفوُن: ${storePhone} | بريد إلكتروني: ${storeEmail}</p>
+                    <p style="font-size:13px; color:#555; margin-top:4px; font-weight: bold;">الرقم الضريبي: ${storeTaxNumber}</p>
+                    <div style="margin-top: 12px; margin-bottom: 8px;">
+                        <span class="badge" style="padding: 6px 24px; font-size: 14px; border-radius: 20px;">إيصال استلام بضاعة (توريدة)</span>
+                    </div>
+                    <p style="margin-top: 8px; color: #111; font-weight: 900; font-size: 17px;">رقم الإيصال: ${supply.supplyNumber}</p>
                 </div>
 
                 <div class="section">
@@ -329,7 +338,6 @@ const SupplierDetails = () => {
                     نظام إدارة الفاتورة &mdash; elking<br>
                     ت: 01553448631
                 </div>
-                <script>window.onload = function() { setTimeout(function(){ window.print(); }, 500); }</script>
             </body>
             </html>
         `;

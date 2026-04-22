@@ -48,17 +48,30 @@ const Suppliers = () => {
       setLoading(true);
       const onlineSuppliers = await supabaseService.getSuppliers();
       const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+      const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
 
       if (onlineSuppliers && onlineSuppliers.length > 0) {
         const mapped = onlineSuppliers.map(s => {
           // Calculate dynamic stats from supplies
           const supplierSupplies = allSupplies.filter(sup => sup.supplierId?.toString() === s.id?.toString());
+          const supplierPaymentsList = allPayments.filter(pay => pay.supplierId?.toString() === s.id?.toString());
+          
           const sortedSupplies = [...supplierSupplies].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          
+          const totalSpent = supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.totalPrice || 0), 0);
+          
+          const paidInSupplies = supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.paidAmount || 0), 0);
+          const independentPayments = supplierPaymentsList.reduce((sum, pay) => safeMath.add(sum, pay.amount || 0), 0);
+          const totalPaid = safeMath.add(paidInSupplies, independentPayments);
+          
+          const totalRemaining = safeMath.subtract(totalSpent, totalPaid);
           
           return {
             ...s,
             lastVisit: sortedSupplies.length > 0 ? sortedSupplies[0].date : (s.lastVisit ? String(s.lastVisit).split('T')[0] : null),
-            totalSpent: supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.totalPrice || 0), 0),
+            totalSpent,
+            totalPaid,
+            totalRemaining,
             orders: supplierSupplies.length,
             joinDate: s.joinDate ? String(s.joinDate).split('T')[0] : null
           };
@@ -71,11 +84,24 @@ const Suppliers = () => {
       const localSuppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
       const enrichedLocal = localSuppliers.map(s => {
           const supplierSupplies = allSupplies.filter(sup => sup.supplierId?.toString() === s.id?.toString());
+          const supplierPaymentsList = allPayments.filter(pay => pay.supplierId?.toString() === s.id?.toString());
+          
           const sortedSupplies = [...supplierSupplies].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          
+          const totalSpent = supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.totalPrice || 0), 0);
+          
+          const paidInSupplies = supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.paidAmount || 0), 0);
+          const independentPayments = supplierPaymentsList.reduce((sum, pay) => safeMath.add(sum, pay.amount || 0), 0);
+          const totalPaid = safeMath.add(paidInSupplies, independentPayments);
+          
+          const totalRemaining = safeMath.subtract(totalSpent, totalPaid);
+
           return {
               ...s,
               lastVisit: sortedSupplies.length > 0 ? sortedSupplies[0].date : s.lastVisit,
-              totalSpent: supplierSupplies.reduce((sum, sup) => safeMath.add(sum, sup.totalPrice || 0), 0),
+              totalSpent,
+              totalPaid,
+              totalRemaining,
               orders: supplierSupplies.length
           };
       });
@@ -464,9 +490,10 @@ const Suppliers = () => {
                 <tr>
                   <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-blue-300 uppercase tracking-wider">المورد</th>
                   <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-green-300 uppercase tracking-wider">الاتصال</th>
-                  <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-emerald-300 uppercase tracking-wider">إجمالي المشتريات</th>
+                  <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-emerald-300 uppercase tracking-wider">إجمالي التوريدات</th>
+                  <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-blue-300 uppercase tracking-wider">إجمالي المدفوع</th>
+                  <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-red-300 uppercase tracking-wider">المديونية</th>
                   <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-orange-300 uppercase tracking-wider hidden lg:table-cell">عدد الطلبات</th>
-                  <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-cyan-300 uppercase tracking-wider hidden xl:table-cell">آخر زيارة</th>
                   <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider hidden sm:table-cell">الحالة</th>
                   <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">الإجراءات</th>
                 </tr>
@@ -504,18 +531,23 @@ const Suppliers = () => {
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-emerald-400 bg-emerald-500 bg-opacity-20 px-3 py-1 rounded-full inline-block">
-                        ${supplier.totalSpent}
+                      <div className="text-sm font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full inline-block">
+                        {(supplier.totalSpent || 0).toLocaleString()} ج.م
+                      </div>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full inline-block">
+                        {(supplier.totalPaid || 0).toLocaleString()} ج.م
+                      </div>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-bold text-red-600 bg-red-100 px-3 py-1 rounded-full inline-block">
+                        {(supplier.totalRemaining || 0).toLocaleString()} ج.م
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden lg:table-cell">
                       <div className="text-sm font-semibold text-orange-400 bg-orange-500 bg-opacity-20 px-3 py-1 rounded-full inline-block">
                         {supplier.orders} طلب
-                      </div>
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden xl:table-cell">
-                      <div className="text-sm font-medium text-cyan-300 bg-cyan-500 bg-opacity-20 px-3 py-1 rounded-full inline-block">
-                        {supplier.lastVisit}
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden sm:table-cell">

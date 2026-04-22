@@ -574,7 +574,7 @@ const Customers = () => {
         {/* Customers Table */}
         <div className="glass-card overflow-hidden table-enhanced">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[1100px]">
               <thead className="bg-[#f8fafc] border-b border-slate-200">
                 <tr>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">العميل</th>
@@ -584,7 +584,7 @@ const Customers = () => {
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاستهلاك والهالك (كجم)</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المشتريات</th>
                   <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden sm:table-cell">الحالة</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الإجراءات</th>
+                  <th className="px-4 md:px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider min-w-[140px]">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -675,28 +675,28 @@ const Customers = () => {
                         {customer.status}
                       </span>
                     </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium min-w-[160px]">
+                      <div className="flex gap-2 items-center">
                         <button
                           onClick={() => { soundManager.play('openWindow'); navigate(`/customers/${customer.id}`); }}
-                          className="text-purple-400 hover:text-purple-300 hover:bg-purple-500 hover:bg-opacity-20 action-button"
+                          className="text-purple-400 hover:text-purple-300 hover:bg-purple-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
                           title="عرض الطلبات والتفاصيل"
                         >
-                          <FileText />
+                          <FileText className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('update'); handleEditCustomer(customer); }}
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500 hover:bg-opacity-20 action-button"
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
                           title="تعديل العميل"
                         >
-                          <Edit />
+                          <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('delete'); handleDeleteCustomer(customer.id); }}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 action-button"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
                           title="حذف العميل"
                         >
-                          <Trash2 />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>

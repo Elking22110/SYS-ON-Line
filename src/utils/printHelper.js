@@ -25,27 +25,32 @@ export const printHtmlContent = (html) => {
         printWindow.document.write(finalHtml);
         printWindow.document.close();
 
+        let hasPrinted = false;
+        
+        const executePrint = () => {
+            if (hasPrinted) return;
+            hasPrinted = true;
+            
+            printWindow.focus();
+            printWindow.print();
+            
+            // إغلاق النافذة بعد الانتهاء أو إلغاء الطباعة
+            setTimeout(() => {
+                if (!printWindow.closed) {
+                    printWindow.close();
+                }
+            }, 500);
+        };
+
         // الانتظار حتى يتم تحميل المحتوى والصور
         printWindow.onload = () => {
-            setTimeout(() => {
-                printWindow.focus();
-                printWindow.print();
-                // إغلاق النافذة بعد الانتهاء أو إلغاء الطباعة
-                // نستخدم تركيز النافذة الأصلية للكشف عن انتهاء الطباعة في بعض المتصفحات
-                // أو نتركها للمستخدم ليغلقها لضمان عدم ضياع المعاينة
-                setTimeout(() => {
-                    if (!printWindow.closed) {
-                        printWindow.close();
-                    }
-                }, 500);
-            }, 500);
+            setTimeout(executePrint, 500);
         };
 
         // Fallback في حال لم يعمل onload
         setTimeout(() => {
             if (printWindow && !printWindow.closed) {
-                printWindow.focus();
-                printWindow.print();
+                executePrint();
             }
         }, 2000);
 

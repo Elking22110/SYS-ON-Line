@@ -496,6 +496,13 @@ const CustomerOrders = () => {
     const [completionPaymentAmount, setCompletionPaymentAmount] = useState('');
     const [completionPaymentMethod, setCompletionPaymentMethod] = useState('CASH');
 
+    const toggleExpand = (orderId) => {
+        setExpandedOrders(prev => ({
+            ...prev,
+            [orderId]: !prev[orderId]
+        }));
+    };
+
     // ─── Load ────────────────────────────────────────────────
     const loadData = React.useCallback(async () => {
         // Customer - try cloud first, fallback to local
@@ -615,10 +622,13 @@ const CustomerOrders = () => {
         soundManager.play('openWindow');
 
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
-        const storeName = storeInfo.storeName || 'إلكينج';
-        const storePhone = storeInfo.phone || '';
-        const storeAddress = storeInfo.address || '';
+        const storeName = storeInfo.storeName || 'Ms Group Factory';
+        const storePhone = storeInfo.storePhone || storeInfo.phone || '01029022006-01102364000-01025171668';
+        const storeAddress = storeInfo.storeAddress || storeInfo.address || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
         const storeLogo = storeInfo.logo || '';
+        const storeEmail = storeInfo.storeEmail || 'info@msgroupplast.com';
+        const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
+        const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
 
         const qty = parseFloat(order.quantity) || 0;
         const price = parseFloat(order.pricePerKg) || 0;
@@ -634,11 +644,8 @@ const CustomerOrders = () => {
         let logoHtml = '';
         if (storeLogo) {
             logoHtml = `<div style="text-align: center; margin-bottom: 20px;">
-                <img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" onload="window.print()" onerror="window.print()" />
+                <img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" />
             </div>`;
-        } else {
-            // If no logo, we print immediately
-            setTimeout(() => { if (printWindow.print) printWindow.print(); }, 500);
         }
 
         const html = `
@@ -649,40 +656,84 @@ const CustomerOrders = () => {
                 <title>فاتورة طلب تشغيل - ${order.orderNumber}</title>
                 <style>
                     * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 24px; color: #111; line-height: 1.7; background: #fff; }
-                    .header { text-align: center; border-bottom: 3px solid #5235E8; padding-bottom: 16px; margin-bottom: 24px; }
-                    .header h1 { color: #5235E8; font-size: 26px; font-weight: 900; margin-bottom: 4px; }
-                    .header p { color: #555; font-size: 14px; }
-                    .badge { display: inline-block; background: #5235E8; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 8px; }
-                    .section { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
-                    .section-title { font-weight: bold; background: #5235E8; color: #fff; padding: 8px 14px; font-size: 14px; letter-spacing: 0.5px; }
-                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 7px 14px; align-items: center; }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 28px; color: #1a1a2e; line-height: 1.6; background: #f8f9fe; }
+                    /* ====== HEADER ====== */
+                    .invoice-header { background: linear-gradient(135deg, #5235E8 0%, #7C3AED 100%); border-radius: 16px; padding: 28px 32px 22px; margin-bottom: 24px; color: #fff; position: relative; overflow: hidden; }
+                    .invoice-header::before { content: ''; position: absolute; top: -40px; left: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.07); border-radius: 50%; }
+                    .invoice-header::after  { content: ''; position: absolute; bottom: -50px; right: -30px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+                    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; position: relative; z-index: 1; }
+                    .company-name { font-size: 26px; font-weight: 900; letter-spacing: 0.5px; }
+                    .company-desc { font-size: 12px; opacity: 0.82; margin-top: 4px; }
+                    .invoice-badge { background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 6px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; backdrop-filter: blur(4px); white-space: nowrap; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
+                    .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; }
+                    .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+                    .info-card .val { font-size: 12px; font-weight: 700; word-break: break-all; }
+                    .order-strip { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(82,53,232,0.10); border-right: 5px solid #5235E8; }
+                    .order-strip .ord-label { font-size: 13px; color: #6b7280; }
+                    .order-strip .ord-value { font-size: 20px; font-weight: 900; color: #5235E8; }
+                    .order-strip .ord-badge { background: #eef2ff; color: #5235E8; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+                    /* ====== SECTIONS ====== */
+                    .section { margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+                    .section-title { font-weight: 700; background: linear-gradient(90deg, #5235E8, #7C3AED); color: #fff; padding: 9px 16px; font-size: 13px; letter-spacing: 0.5px; }
+                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding: 8px 16px; align-items: center; }
                     .row:last-child { border-bottom: none; }
-                    .label { color: #555; font-size: 13px; }
-                    .value { font-weight: bold; font-size: 13px; color: #111; }
-                    .totals { margin-top: 24px; background: #f0eeff; border: 2px solid #5235E8; border-radius: 10px; padding: 14px 16px; }
+                    .label { color: #6b7280; font-size: 12.5px; }
+                    .value { font-weight: 700; font-size: 13px; color: #111827; }
+                    /* ====== TOTALS ====== */
+                    .totals { margin-top: 20px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); border: 2px solid #5235E8; border-radius: 14px; padding: 16px 20px; }
                     .grand-total { display: flex; justify-content: space-between; align-items: center; }
                     .grand-total .label { font-size: 16px; font-weight: 700; color: #5235E8; }
-                    .grand-total .value { font-size: 22px; font-weight: 900; color: #5235E8; }
-                    .supply-box { margin-top: 12px; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; background: #f0fdf4; }
-                    .supply-box-title { font-weight: bold; color: #166534; font-size: 13px; margin-bottom: 6px; border-bottom: 1px solid #86efac; padding-bottom: 4px; }
-                    .supply-row { display: flex; justify-content: space-between; font-size: 12px; color: #166534; padding: 2px 0; }
-                    .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 12px; }
+                    .grand-total .value { font-size: 24px; font-weight: 900; color: #5235E8; }
+                    /* ====== SUPPLIES ====== */
+                    .supply-box { margin-top: 12px; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 16px; background: #f0fdf4; }
+                    .supply-box-title { font-weight: 700; color: #166534; font-size: 13px; margin-bottom: 6px; border-bottom: 1px solid #86efac; padding-bottom: 4px; }
+                    .supply-row { display: flex; justify-content: space-between; font-size: 12px; color: #166534; padding: 3px 0; }
+                    /* ====== FOOTER ====== */
+                    .footer { text-align: center; margin-top: 28px; font-size: 11px; color: #9ca3af; border-top: 1px dashed #e5e7eb; padding-top: 14px; }
                     @media print {
                         @page { margin: 0; }
-                        body { padding: 1.5cm; }
+                        body { padding: 1.2cm; background: #fff; }
                         button { display: none !important; }
                     }
                 </style>
             </head>
             <body>
                 ${logoHtml}
-                <div class="header">
-                    <h1>MS-GROUP</h1>
-                    <p style="font-size:11px; color:#555; margin-top:2px;">باسوس - القناطر الخيرية - الطريق الدائري</p>
-                    <p style="font-size:11px; color:#555; margin-top:1px;">تليفوُن: 01029022006 | بريد إلكتروني: info@msgroupplast.com</p>
-                    <span class="badge">فاتورة طلب تشغيل</span>
-                    <p style="margin-top: 8px; color: #333; font-weight: bold;">رقم الطلب: ${order.orderNumber}</p>
+
+                <!-- ===== HEADER ===== -->
+                <div class="invoice-header">
+                    <div class="header-top">
+                        <div>
+                            <div class="company-name">${storeName}</div>
+                            <div class="company-desc">${storeDescription}</div>
+                        </div>
+                        <span class="invoice-badge">• فاتورة طلب تشغيل •</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="lbl">📍 العنوان</div>
+                            <div class="val">${storeAddress}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="lbl">📞 التواصل</div>
+                            <div class="val">${storePhone}</div>
+                            <div class="val" style="font-weight:500; font-size:11px; margin-top:2px; opacity:.85;">${storeEmail}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="lbl">🏦 الرقم الضريبي</div>
+                            <div class="val">${storeTaxNumber}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== ORDER NUMBER STRIP ===== -->
+                <div class="order-strip">
+                    <div>
+                        <div class="ord-label">رقم الطلب</div>
+                        <div class="ord-value">${order.orderNumber}</div>
+                    </div>
+                    <span class="ord-badge">طلب تشغيل</span>
                 </div>
 
                 <div class="section">

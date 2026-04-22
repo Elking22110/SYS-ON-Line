@@ -36,6 +36,7 @@ const Dashboard = () => {
   });
 
   const [allTimeSales, setAllTimeSales] = useState([]);
+  const [allTimeClosedOrders, setAllTimeClosedOrders] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [todayStats, setTodayStats] = useState({ sales: 0, orders: 0, customers: 0, supplierDebts: 0, customerDebts: 0, expenses: 0, monthlyExpenses: 0, netQuantity: 0 });
@@ -56,6 +57,7 @@ const Dashboard = () => {
       allSupplies.forEach(s => {
         if (supplierDebtMap[s.supplierId]) {
           supplierDebtMap[s.supplierId].totalSupplies += parseFloat(s.totalPrice) || 0;
+          supplierDebtMap[s.supplierId].totalPayments += parseFloat(s.paidAmount) || 0;
         }
       });
       allPayments.forEach(p => {
@@ -106,7 +108,7 @@ const Dashboard = () => {
 
   // Build chart data from real sales — group by last 7 days
   const chartData = useMemo(() => {
-    if (!allTimeSales || allTimeSales.length === 0) return [];
+    if ((!allTimeSales || allTimeSales.length === 0) && (!allTimeClosedOrders || allTimeClosedOrders.length === 0)) return [];
 
     const days = [];
     for (let i = 6; i >= 0; i--) {
@@ -120,12 +122,21 @@ const Dashboard = () => {
         const saleDate = (s.date || s.createdAt || '').split('T')[0];
         return saleDate === day;
       });
-      const revenue = daySales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
-      const orders = daySales.length;
+      const dayOrders = allTimeClosedOrders.filter(o => {
+        const orderDate = (o.closedAt || o.updatedAt || o.date || '').split('T')[0];
+        return orderDate === day;
+      });
+      
+      const posRevenue = daySales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
+      const ordersRevenue = dayOrders.reduce((sum, o) => sum + (parseFloat(o.totalPrice) || 0), 0);
+      
+      const revenue = posRevenue + ordersRevenue;
+      const ordersCount = daySales.length + dayOrders.length;
+      
       const dayLabel = new Date(day).toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric' });
-      return { day: dayLabel, revenue: Math.round(revenue), orders };
+      return { day: dayLabel, revenue: Math.round(revenue), orders: ordersCount };
     });
-  }, [allTimeSales]);
+  }, [allTimeSales, allTimeClosedOrders]);
 
   // Calculate percentage change
   const calcChange = (today, yesterday) => {
@@ -155,6 +166,9 @@ const Dashboard = () => {
       // Map IDs for strict filtering to avoid "Ghost Data" (Orphan records)
       const validCustomerIds = new Set(customers.map(c => String(c.id)));
       const validSupplierIds = new Set(suppliers.map(s => String(s.id)));
+      
+      const allClosedOrders = customerOrders.filter(o => o.status === 'CLOSED' && validCustomerIds.has(String(o.customerId)));
+      setAllTimeClosedOrders(allClosedOrders);
 
       // 2. Dates
       const today = new Date().toISOString().split('T')[0];
@@ -197,15 +211,17 @@ const Dashboard = () => {
       const totalYesterdayRevenue = yesterdayPOSRevenue + yesterdayFactoryRevenue;
 
       // 6. Supplier Debt Calculation (Filter by valid supplier IDs only)
-      const totalSuppliesValue = allSupplies
-        .filter(s => validSupplierIds.has(String(s.supplierId)))
-        .reduce((sum, s) => sum + (parseFloat(s.totalPrice) || 0), 0);
+      const validSupplies = allSupplies.filter(s => validSupplierIds.has(String(s.supplierId)));
+      
+      const totalSuppliesValue = validSupplies.reduce((sum, s) => sum + (parseFloat(s.totalPrice) || 0), 0);
+      
+      const totalPaidInSupplies = validSupplies.reduce((sum, s) => sum + (parseFloat(s.paidAmount) || 0), 0);
       
       const totalSupplierPaymentsValue = allSupplierPayments
         .filter(p => validSupplierIds.has(String(p.supplierId)))
         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
       
-      const totalSupplierDebt = Math.max(0, totalSuppliesValue - totalSupplierPaymentsValue);
+      const totalSupplierDebt = Math.max(0, totalSuppliesValue - (totalSupplierPaymentsValue + totalPaidInSupplies));
 
       // 7. Customer Debt Calculation - Only Closed Orders count as debt
       const totalOrdersValue = customerOrders
