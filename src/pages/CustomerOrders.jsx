@@ -622,178 +622,144 @@ const CustomerOrders = () => {
         soundManager.play('openWindow');
 
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
-        const storeName = storeInfo.storeName || 'Ms Group Factory';
-        const storePhone = storeInfo.storePhone || storeInfo.phone || '01029022006-01102364000-01025171668';
-        const storeAddress = storeInfo.storeAddress || storeInfo.address || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
-        const storeLogo = storeInfo.logo || '';
-        const storeEmail = storeInfo.storeEmail || 'info@msgroupplast.com';
+        const storeName     = storeInfo.storeName     || 'Ms Group Factory';
+        const storePhone    = storeInfo.storePhone    || storeInfo.phone    || '0102902200601102364000-01025171668';
+        const storeAddress  = storeInfo.storeAddress  || storeInfo.address  || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
+        const storeLogo     = storeInfo.logo          || '';
+        const storeEmail    = storeInfo.storeEmail    || 'info@msgroupplast.com';
         const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
         const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
 
-        const qty = parseFloat(order.quantity) || 0;
-        const price = parseFloat(order.pricePerKg) || 0;
+        const qty      = parseFloat(order.quantity)          || 0;
+        const price    = parseFloat(order.pricePerKg)        || 0;
         const printing = parseFloat(order.printingCostPerKg) || 0;
-        const cutting = parseFloat(order.cuttingCostPerKg) || 0;
-        const cliche = parseFloat(order.clicheCost) || 0;
-        const subtotal = (qty * price) + (qty * printing) + (qty * cutting) + cliche;
-        const margin = parseFloat(order.profitMargin) || 0;
-        const grandTotal = subtotal + (qty * margin);
+        const cutting  = parseFloat(order.cuttingCostPerKg)  || 0;
+        const cliche   = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
+        const margin   = parseFloat(order.profitMargin)      || 0;
+        const grandTotal = (qty * price) + (qty * printing) + (qty * cutting) + cliche + (qty * margin);
 
-        const orderSupplies = getOrderLinkedSupplies(order.id);
+        const logoBlock = storeLogo
+            ? `<div style="text-align:center;margin-bottom:18px"><img src="${storeLogo}" style="max-height:70px;max-width:100%;object-fit:contain"/></div>`
+            : '';
 
-        let logoHtml = '';
-        if (storeLogo) {
-            logoHtml = `<div style="text-align: center; margin-bottom: 20px;">
-                <img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" />
-            </div>`;
-        }
+        const clicheRows = order.clicheEnabled
+            ? `<tr><td class="lbl">عدد الألوان</td><td class="val">${order.colorCount} لون</td></tr>
+               <tr><td class="lbl">مقاس الأكلشية</td><td class="val">${order.clicheHeight} × ${order.clicheWidth}</td></tr>`
+            : '';
 
-        const html = `
-            <!DOCTYPE html>
-            <html dir="rtl" lang="ar">
-            <head>
-                <meta charset="UTF-8">
-                <title>فاتورة طلب تشغيل - ${order.orderNumber}</title>
-                <style>
-                    * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 28px; color: #1a1a2e; line-height: 1.6; background: #f8f9fe; }
-                    /* ====== HEADER ====== */
-                    .invoice-header { background: linear-gradient(135deg, #5235E8 0%, #7C3AED 100%); border-radius: 16px; padding: 28px 32px 22px; margin-bottom: 24px; color: #fff; position: relative; overflow: hidden; }
-                    .invoice-header::before { content: ''; position: absolute; top: -40px; left: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.07); border-radius: 50%; }
-                    .invoice-header::after  { content: ''; position: absolute; bottom: -50px; right: -30px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
-                    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; position: relative; z-index: 1; }
-                    .company-name { font-size: 26px; font-weight: 900; letter-spacing: 0.5px; }
-                    .company-desc { font-size: 12px; opacity: 0.82; margin-top: 4px; }
-                    .invoice-badge { background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 6px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; backdrop-filter: blur(4px); white-space: nowrap; }
-                    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
-                    .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; }
-                    .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-                    .info-card .val { font-size: 12px; font-weight: 700; word-break: break-all; }
-                    .order-strip { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(82,53,232,0.10); border-right: 5px solid #5235E8; }
-                    .order-strip .ord-label { font-size: 13px; color: #6b7280; }
-                    .order-strip .ord-value { font-size: 20px; font-weight: 900; color: #5235E8; }
-                    .order-strip .ord-badge { background: #eef2ff; color: #5235E8; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-                    /* ====== SECTIONS ====== */
-                    .section { margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
-                    .section-title { font-weight: 700; background: linear-gradient(90deg, #5235E8, #7C3AED); color: #fff; padding: 9px 16px; font-size: 13px; letter-spacing: 0.5px; }
-                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding: 8px 16px; align-items: center; }
-                    .row:last-child { border-bottom: none; }
-                    .label { color: #6b7280; font-size: 12.5px; }
-                    .value { font-weight: 700; font-size: 13px; color: #111827; }
-                    /* ====== TOTALS ====== */
-                    .totals { margin-top: 20px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); border: 2px solid #5235E8; border-radius: 14px; padding: 16px 20px; }
-                    .grand-total { display: flex; justify-content: space-between; align-items: center; }
-                    .grand-total .label { font-size: 16px; font-weight: 700; color: #5235E8; }
-                    .grand-total .value { font-size: 24px; font-weight: 900; color: #5235E8; }
-                    /* ====== SUPPLIES ====== */
-                    .supply-box { margin-top: 12px; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 16px; background: #f0fdf4; }
-                    .supply-box-title { font-weight: 700; color: #166534; font-size: 13px; margin-bottom: 6px; border-bottom: 1px solid #86efac; padding-bottom: 4px; }
-                    .supply-row { display: flex; justify-content: space-between; font-size: 12px; color: #166534; padding: 3px 0; }
-                    /* ====== FOOTER ====== */
-                    .footer { text-align: center; margin-top: 28px; font-size: 11px; color: #9ca3af; border-top: 1px dashed #e5e7eb; padding-top: 14px; }
-                    @media print {
-                        @page { margin: 0; }
-                        body { padding: 1.2cm; background: #fff; }
-                        button { display: none !important; }
-                    }
-                </style>
-            </head>
-            <body>
-                ${logoHtml}
+        const extraSizes = Array.isArray(order.sizes) && order.sizes.length > 0
+            ? order.sizes.map((s, i) => `<tr><td class="lbl">مقاس ${i + 2}</td><td class="val">${s.width} (عرض) × ${s.height} (طول) سم</td></tr>`).join('')
+            : '';
 
-                <!-- ===== HEADER ===== -->
-                <div class="invoice-header">
-                    <div class="header-top">
-                        <div>
-                            <div class="company-name">${storeName}</div>
-                            <div class="company-desc">${storeDescription}</div>
-                        </div>
-                        <span class="invoice-badge">• فاتورة طلب تشغيل •</span>
-                    </div>
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <div class="lbl">📍 العنوان</div>
-                            <div class="val">${storeAddress}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="lbl">📞 التواصل</div>
-                            <div class="val">${storePhone}</div>
-                            <div class="val" style="font-weight:500; font-size:11px; margin-top:2px; opacity:.85;">${storeEmail}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="lbl">🏦 الرقم الضريبي</div>
-                            <div class="val">${storeTaxNumber}</div>
-                        </div>
-                    </div>
-                </div>
+        const orderedQtyRow = (order.status === 'CLOSED' && order.orderedQuantity)
+            ? `<tr><td class="lbl">الكمية المطلوبة</td><td class="val">${order.orderedQuantity} كجم</td></tr>`
+            : '';
 
-                <!-- ===== ORDER NUMBER STRIP ===== -->
-                <div class="order-strip">
-                    <div>
-                        <div class="ord-label">رقم الطلب</div>
-                        <div class="ord-value">${order.orderNumber}</div>
-                    </div>
-                    <span class="ord-badge">طلب تشغيل</span>
-                </div>
+        const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>فاتورة طلب تشغيل - ${order.orderNumber}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2ff;color:#1a1a2e;padding:28px}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);overflow:hidden;margin-bottom:18px}
+.hdr{background:linear-gradient(135deg,#5235E8,#7C3AED);color:#fff;padding:24px 28px 18px;position:relative;overflow:hidden;border-radius:14px;margin-bottom:18px}
+.hdr::before{content:'';position:absolute;top:-40px;left:-40px;width:150px;height:150px;background:rgba(255,255,255,.07);border-radius:50%}
+.hdr::after{content:'';position:absolute;bottom:-50px;right:-30px;width:190px;height:190px;background:rgba(255,255,255,.05);border-radius:50%}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;position:relative;z-index:1}
+.co-name{font-size:24px;font-weight:900}
+.co-desc{font-size:11px;opacity:.82;margin-top:3px}
+.inv-badge{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);padding:5px 18px;border-radius:50px;font-size:12px;font-weight:700;white-space:nowrap}
+.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
+.ic{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:9px 12px}
+.ic .l{font-size:9px;opacity:.72;margin-bottom:2px;letter-spacing:.4px}
+.ic .v{font-size:11px;font-weight:700;word-break:break-all}
+.strip{background:#fff;border-radius:12px;padding:12px 18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(82,53,232,.1);border-right:5px solid #5235E8}
+.strip .ol{font-size:12px;color:#6b7280}
+.strip .ov{font-size:20px;font-weight:900;color:#5235E8}
+.strip .ob{background:#eef2ff;color:#5235E8;padding:4px 12px;border-radius:18px;font-size:11px;font-weight:700}
+.sec-title{background:linear-gradient(90deg,#5235E8,#7C3AED);color:#fff;padding:8px 16px;font-size:12.5px;font-weight:700;letter-spacing:.4px}
+table{width:100%;border-collapse:collapse}
+td{padding:7px 16px;border-bottom:1px solid #f3f4f6;font-size:12.5px}
+tr:last-child td{border-bottom:none}
+td.lbl{color:#6b7280;width:45%}
+td.val{font-weight:700;color:#111827}
+.totals{background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:2px solid #5235E8;border-radius:14px;padding:16px 20px;margin-bottom:18px}
+.gt{display:flex;justify-content:space-between;align-items:center}
+.gt .gl{font-size:15px;font-weight:700;color:#5235E8}
+.gt .gv{font-size:24px;font-weight:900;color:#5235E8}
+.footer{text-align:center;font-size:10px;color:#9ca3af;border-top:1px dashed #e5e7eb;padding-top:12px;margin-top:4px}
+@media print{
+  @page{margin:0}
+  body{padding:1cm;background:#fff}
+  button{display:none!important}
+  .card{box-shadow:none}
+  .hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+${logoBlock}
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="co-name">${storeName}</div>
+      <div class="co-desc">${storeDescription}</div>
+    </div>
+    <span class="inv-badge">• فاتورة طلب تشغيل •</span>
+  </div>
+  <div class="info-grid">
+    <div class="ic"><div class="l">🏦 الرقم الضريبي</div><div class="v">${storeTaxNumber}</div></div>
+    <div class="ic"><div class="l">📞 التواصل</div><div class="v">${storePhone}</div><div class="v" style="font-weight:500;font-size:10px;margin-top:2px;opacity:.8">${storeEmail}</div></div>
+    <div class="ic"><div class="l">📍 العنوان</div><div class="v">${storeAddress}</div></div>
+  </div>
+</div>
+<div class="strip">
+  <div><div class="ol">رقم الطلب</div><div class="ov">${order.orderNumber}</div></div>
+  <span class="ob">طلب تشغيل</span>
+</div>
+<div class="card">
+  <div class="sec-title">بيانات العميل</div>
+  <table>
+    <tr><td class="lbl">اسم العميل</td><td class="val">${customer.name}</td></tr>
+    <tr><td class="lbl">رقم الهاتف</td><td class="val">${customer.phone || '-'}</td></tr>
+    <tr><td class="lbl">تاريخ الطلب</td><td class="val">${order.date}</td></tr>
+    <tr><td class="lbl">تاريخ التسليم</td><td class="val">${order.deliveryDate || '-'}</td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="sec-title">تفاصيل التصنيع</div>
+  <table>
+    <tr><td class="lbl">نوع المنتج</td><td class="val">${order.productType || '-'}</td></tr>
+    <tr><td class="lbl">اللون</td><td class="val">${order.color || '-'}</td></tr>
+    ${clicheRows}
+    <tr><td class="lbl">المقاس الأساسي</td><td class="val">${order.sizeWidth && order.sizeHeight ? order.sizeWidth + ' (عرض) × ' + order.sizeHeight + ' (طول) سم' : '-'}</td></tr>
+    ${extraSizes}
+    <tr><td class="lbl">سوفليهات</td><td class="val">${order.bottomEnabled ? (order.bottomSize || '-') : 'بدون سوفليهات'}</td></tr>
+    <tr><td class="lbl">السمك</td><td class="val">${order.thickness || '-'}</td></tr>
+    <tr><td class="lbl">${order.status === 'CLOSED' ? 'الصافي المسلم' : 'الكمية المطلوبة'}</td><td class="val">${qty} كجم</td></tr>
+    ${orderedQtyRow}
+  </table>
+</div>
+<div class="totals">
+  <div class="gt">
+    <span class="gl">إجمالي قيمة الفاتورة</span>
+    <span class="gv">${grandTotal.toLocaleString('ar-EG')} ج.م</span>
+  </div>
+</div>
+<div class="footer">${storeName} &mdash; نظام إدارة الطلبات والفواتير</div>
+</body>
+</html>`;
 
-                <div class="section">
-                    <div class="section-title">بيانات العميل</div>
-                    <div class="row"><span class="label">اسم العميل:</span><span class="value">${customer.name}</span></div>
-                    <div class="row"><span class="label">رقم الهاتف:</span><span class="value">${customer.phone || '-'}</span></div>
-                    <div class="row"><span class="label">تاريخ الطلب:</span><span class="value">${order.date}</span></div>
-                    <div class="row"><span class="label">تاريخ التسليم:</span><span class="value">${order.deliveryDate || '-'}</span></div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">تفاصيل التصنيع</div>
-                    <div class="row"><span class="label">نوع المنتج:</span><span class="value">${order.productType || '-'}</span></div>
-                    <div class="row"><span class="label">اللون:</span><span class="value">${order.color || '-'}</span></div>
-                    ${order.clicheEnabled ? `
-                        <div class="row"><span class="label">عدد الألوان:</span><span class="value">${order.colorCount} لون</span></div>
-                        <div class="row"><span class="label">مقاس الأكلشية:</span><span class="value">${order.clicheHeight} × ${order.clicheWidth}</span></div>
-                    ` : ''}
-                    <div class="row"><span class="label">المقاس الأساسي:</span><span class="value">${order.sizeWidth && order.sizeHeight ? order.sizeWidth + ' (عرض) × ' + order.sizeHeight + ' (طول) سم' : '-'}</span></div>
-                    ${Array.isArray(order.sizes) && order.sizes.length > 0 ? order.sizes.map((s, i) => `<div class="row"><span class="label">مقاس ${i + 2}:</span><span class="value">${s.width} (عرض) × ${s.height} (طول) سم</span></div>`).join('') : ''}
-                    <div class="row"><span class="label">سوفليهات:</span><span class="value">${order.bottomEnabled ? (order.bottomSize || '-') : 'بدون سوفليهات'}</span></div>
-                    <div class="row"><span class="label">السمك:</span><span class="value">${order.thickness || '-'}</span></div>
-                    <div class="row"><span class="label">الوزن / الكمية:</span><span class="value">${order.status === 'CLOSED' ? 'الصافي المسلم' : 'الكمية المطلوبة'}</span></div>
-                    <div class="row"><span class="label">الوزن الفعلي:</span><span class="value">${qty} كجم</span></div>
-                    ${order.status === 'CLOSED' && order.orderedQuantity ? `
-                        <div class="row"><span class="label">الكمية المطلوبة:</span><span class="value">${order.orderedQuantity} كجم</span></div>
-                    ` : ''}
-                    ${orderSupplies.length > 0 ? `
-                        <div style="padding: 10px 14px;">
-                            <div class="supply-box">
-                                <div class="supply-box-title">بيانات توريد الخامات:</div>
-                                ${orderSupplies.map(s => `
-                                    <div class="supply-row">
-                                        <span>المورد: <strong>${s.supplierName}</strong></span>
-                                        <span>رقم التوريدة: <strong>${s.supplyNumber || s.id}</strong></span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-
-                <div class="totals">
-                    <div class="grand-total">
-                        <span class="label">إجمالي قيمة الفاتورة:</span>
-                        <span class="value">${grandTotal.toLocaleString()} ج.م</span>
-                    </div>
-                </div>
-
-                <div class="footer">
-                    نظام إدارة الفاتورة &mdash; elking<br>
-                    ت: 01553448631
-                </div>
-            </body>
-            </html>
-        `;
-
-        printHtmlContent(html);
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url  = URL.createObjectURL(blob);
+        const win  = window.open(url, '_blank', 'width=900,height=700');
+        if (!win) { alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.'); URL.revokeObjectURL(url); return; }
+        win.addEventListener('load', () => {
+            setTimeout(() => { win.focus(); win.print(); URL.revokeObjectURL(url); }, 400);
+        });
     };
-
 
     // ─── Helpers ────────────────────────────────────────────
     const calculateOrderTotal = (order) => {
