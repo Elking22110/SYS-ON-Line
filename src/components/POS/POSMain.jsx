@@ -613,13 +613,25 @@ const POSMain = () => {
       const tryThermal = async () => {
         try {
           if (navigator.serial && invoiceData) {
+            const { default: thermalPrinterManager } = await import('../../utils/thermalPrinter.js');
+            const storeInfoRaw = (() => {
+              try { return JSON.parse(localStorage.getItem('storeInfo') || '{}'); } catch (_) { return {}; }
+            })();
+            const sName = storeInfoRaw.storeName || 'Ms Group Factory';
+            const sDesc = storeInfoRaw.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
+            const sTax = storeInfoRaw.taxNumber || '769337252';
+            const sAddr = storeInfoRaw.storeAddress || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
+            const sPhone = storeInfoRaw.storePhone || '01029022006-01102364000-01025171668';
+            const sEmail = storeInfoRaw.storeEmail || 'info@msgroupplast.com';
+
             const receiptData = {
-              printerSettings: printer.getPrinterSettings(),
-              storeInfo: {
-                storeName: 'Elking',
-                storeAddress: 'باسوس - القناطر الخيرية - الطريق الدائري',
-                storePhone: '01029022006'
-              },
+              printerSettings: thermalPrinterManager.getPrinterSettings(),
+              storeName: sName,
+              storeDescription: sDesc,
+              taxNumber: sTax,
+              storeAddress: sAddr,
+              storePhone: sPhone,
+              storeEmail: sEmail,
               invoiceId: invoiceData.invoiceId,
               items: invoiceData.items || [],
               subtotal: Number(invoiceData.subtotal || 0),
@@ -643,7 +655,6 @@ const POSMain = () => {
                 return m || 'غير محدد';
               })()
             };
-            const { default: thermalPrinterManager } = await import('../../utils/thermalPrinter.js');
             const ok = await thermalPrinterManager.printReceipt(receiptData);
             if (ok) {
               notifySuccess('تمت الطباعة الحرارية', 'تم إرسال أمر القطع للطابعة');
@@ -798,8 +809,12 @@ const POSMain = () => {
       <body>
         <div class="wrap">
          <div class="header">
-           <div class="store-name">${storeInfo.storeName || 'مصنع الشنط البلاستيكية الرائد - Elking'}</div>
-          <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">${storeInfo.companyPhone || '01029022006'}</div>
+           <div class="store-name">${storeInfo.storeName || 'Ms Group Factory'}</div>
+           <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">${storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف'}</div>
+           <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">الرقم الضريبي: ${storeInfo.taxNumber || '769337252'}</div>
+           <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">العنوان: ${storeInfo.storeAddress || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي'}</div>
+           <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">ت: ${storeInfo.storePhone || '01029022006-01102364000-01025171668'}</div>
+           <div class="store-info" style="font-size:10px; color:#000; margin-top:2px;">البريد: ${storeInfo.storeEmail || 'info@msgroupplast.com'}</div>
            <div style="font-weight: 800; font-size: 14px; margin-top:4px;">فاتورة البيع</div>
         </div>
         <hr style="border-top:1px dashed #000;">

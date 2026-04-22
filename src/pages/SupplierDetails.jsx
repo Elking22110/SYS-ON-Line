@@ -613,12 +613,13 @@ const SupplierDetails = () => {
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase">رقم التوريدة</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">التاريخ</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المنتج</th>
-                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الكمية</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الكمية (الأساسية)</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الصافي المسلم</th>
+                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الهالك</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">السعر / الوحدة</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الإجمالي</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المدفوع</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المتبقي</th>
-                                            <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الهالك</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">مرتبط بطلب</th>
                                             <th className="px-4 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">إجراء</th>
                                         </tr>
@@ -634,6 +635,16 @@ const SupplierDetails = () => {
                                                 <td className="px-4 py-4 text-sm text-[#006af8] font-medium text-right">{supply.date}</td>
                                                 <td className="px-4 py-4 text-sm font-bold text-slate-800 text-right">{supply.productName}</td>
                                                 <td className="px-4 py-4 text-sm text-[#ff8200] font-bold text-right">{supply.quantity.toLocaleString()} كجم</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-emerald-600 text-right">
+                                                    <span className="bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">
+                                                        {supply.netDeliveredQuantity ? `${supply.netDeliveredQuantity.toLocaleString()} كجم` : '-'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm font-bold text-red-500 text-right">
+                                                    <span className="bg-red-50 border border-red-100 px-2 py-1 rounded">
+                                                        {supply.wasteQuantity || 0} كجم
+                                                    </span>
+                                                </td>
                                                 <td className="px-4 py-4 text-sm text-slate-600 text-right">{supply.unitPrice.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-4 text-sm font-bold text-slate-900 text-right">
                                                     <span className="bg-slate-100 px-2 py-1 rounded-md bg-opacity-50">
@@ -642,11 +653,6 @@ const SupplierDetails = () => {
                                                 </td>
                                                 <td className="px-4 py-4 text-sm text-emerald-600 font-bold text-right">{supply.paidAmount.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-4 text-sm text-red-600 font-bold text-right">{supply.remainingAmount.toLocaleString()} ج.م</td>
-                                                <td className="px-4 py-4 text-sm font-bold text-red-500 text-right">
-                                                    <span className="bg-red-50 px-2 py-1 rounded">
-                                                        {supply.wasteQuantity || 0} كجم
-                                                    </span>
-                                                </td>
                                                 <td className="px-4 py-4 text-sm text-right">
                                                     {supply.linkedOrderNumber ? (
                                                         <div className="flex flex-col gap-0.5 items-end">

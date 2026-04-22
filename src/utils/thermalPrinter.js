@@ -252,6 +252,16 @@ class ThermalPrinterManager {
         await this.sendCommand(`الهاتف: ${receiptData.storePhone}\n`);
       }
 
+      // الرقم الضريبي
+      if (receiptData.taxNumber) {
+        await this.sendCommand(`الرقم الضريبي: ${receiptData.taxNumber}\n`);
+      }
+
+      // البريد الإلكتروني
+      if (receiptData.storeEmail) {
+        await this.sendCommand(`البريد: ${receiptData.storeEmail}\n`);
+      }
+
       await this.sendCommand('\n'); // سطر فارغ
       await this.printLine('-', 48);
       await this.sendCommand('\n'); // سطر فارغ
