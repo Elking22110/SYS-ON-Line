@@ -262,47 +262,86 @@ const SupplierDetails = () => {
                 <title>إيصال استلام توريدة - ${supply.supplyNumber}</title>
                 <style>
                     * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 24px; color: #111; line-height: 1.7; background: #fff; }
-                    .header { text-align: center; border-bottom: 3px solid #5235E8; padding-bottom: 16px; margin-bottom: 24px; }
-                    .header h1 { color: #5235E8; font-size: 26px; font-weight: 900; margin-bottom: 4px; }
-                    .header p { color: #555; font-size: 14px; margin-top: 4px; }
-                    .badge { display: inline-block; background: #5235E8; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 8px; }
-                    .section { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
-                    .section-title { font-weight: bold; background: #5235E8; color: #fff; padding: 8px 14px; font-size: 14px; letter-spacing: 0.5px; }
-                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 7px 14px; align-items: center; }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 28px; color: #1a1a2e; line-height: 1.6; background: #f8f9fe; }
+                    /* ====== HEADER ====== */
+                    .invoice-header { background: linear-gradient(135deg, #5235E8 0%, #7C3AED 100%); border-radius: 16px; padding: 28px 32px 22px; margin-bottom: 24px; color: #fff; position: relative; overflow: hidden; }
+                    .invoice-header::before { content: ''; position: absolute; top: -40px; left: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.07); border-radius: 50%; }
+                    .invoice-header::after  { content: ''; position: absolute; bottom: -50px; right: -30px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+                    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; position: relative; z-index: 1; }
+                    .company-name { font-size: 26px; font-weight: 900; letter-spacing: 0.5px; }
+                    .company-desc { font-size: 12px; opacity: 0.82; margin-top: 4px; }
+                    .invoice-badge { background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 6px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; backdrop-filter: blur(4px); white-space: nowrap; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
+                    .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; }
+                    .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+                    .info-card .val { font-size: 12px; font-weight: 700; word-break: break-all; }
+                    .order-strip { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(82,53,232,0.10); border-right: 5px solid #5235E8; }
+                    .order-strip .ord-label { font-size: 13px; color: #6b7280; }
+                    .order-strip .ord-value { font-size: 20px; font-weight: 900; color: #5235E8; }
+                    .order-strip .ord-badge { background: #eef2ff; color: #5235E8; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+                    /* ====== SECTIONS ====== */
+                    .section { margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+                    .section-title { font-weight: 700; background: linear-gradient(90deg, #5235E8, #7C3AED); color: #fff; padding: 9px 16px; font-size: 13px; letter-spacing: 0.5px; }
+                    .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding: 8px 16px; align-items: center; }
                     .row:last-child { border-bottom: none; }
-                    .label { color: #555; font-size: 13px; }
-                    .value { font-weight: bold; font-size: 13px; color: #111; }
-                    .totals { margin-top: 24px; background: #f0eeff; border: 2px solid #5235E8; border-radius: 10px; padding: 14px 16px; }
-                    .grand-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #c4b5fd; }
+                    .label { color: #6b7280; font-size: 12.5px; }
+                    .value { font-weight: 700; font-size: 13px; color: #111827; }
+                    /* ====== TOTALS ====== */
+                    .totals { margin-top: 20px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); border: 2px solid #5235E8; border-radius: 14px; padding: 16px 20px; }
+                    .grand-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #c4b5fd; }
                     .grand-total .label { font-size: 15px; font-weight: 700; color: #5235E8; }
-                    .grand-total .value { font-size: 20px; font-weight: 900; color: #5235E8; }
-                    .paid-row { display: flex; justify-content: space-between; padding: 5px 0; }
+                    .grand-total .value { font-size: 22px; font-weight: 900; color: #5235E8; }
+                    .paid-row { display: flex; justify-content: space-between; padding: 6px 0; }
                     .paid-row .label { font-size: 13px; color: #15803d; font-weight: 600; }
                     .paid-row .value { font-size: 14px; font-weight: 900; color: #15803d; }
-                    .remaining-row { display: flex; justify-content: space-between; padding: 5px 0; }
+                    .remaining-row { display: flex; justify-content: space-between; padding: 6px 0; }
                     .remaining-row .label { font-size: 13px; color: #dc2626; font-weight: 600; }
                     .remaining-row .value { font-size: 14px; font-weight: 900; color: #dc2626; }
-                    .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 12px; }
+                    /* ====== FOOTER ====== */
+                    .footer { text-align: center; margin-top: 28px; font-size: 11px; color: #9ca3af; border-top: 1px dashed #e5e7eb; padding-top: 14px; }
                     @media print {
                         @page { margin: 0; }
-                        body { padding: 1.5cm; }
+                        body { padding: 1.2cm; background: #fff; }
                         button { display: none !important; }
                     }
                 </style>
             </head>
             <body>
                 ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" /></div>` : ''}
-                <div class="header">
-                    <h1 style="color: #5235E8; font-size: 28px; font-weight: 900; margin-bottom: 8px;">${storeName}</h1>
-                    <p style="font-size:13px; color:#555; margin-top:4px;">${storeDescription}</p>
-                    <p style="font-size:13px; color:#555; margin-top:4px;">${storeAddress}</p>
-                    <p style="font-size:13px; color:#555; margin-top:4px;">تليفوُن: ${storePhone} | بريد إلكتروني: ${storeEmail}</p>
-                    <p style="font-size:13px; color:#555; margin-top:4px; font-weight: bold;">الرقم الضريبي: ${storeTaxNumber}</p>
-                    <div style="margin-top: 12px; margin-bottom: 8px;">
-                        <span class="badge" style="padding: 6px 24px; font-size: 14px; border-radius: 20px;">إيصال استلام بضاعة (توريدة)</span>
+
+                <!-- ===== HEADER ===== -->
+                <div class="invoice-header">
+                    <div class="header-top">
+                        <div>
+                            <div class="company-name">${storeName}</div>
+                            <div class="company-desc">${storeDescription}</div>
+                        </div>
+                        <span class="invoice-badge">• إيصال استلام بضاعة •</span>
                     </div>
-                    <p style="margin-top: 8px; color: #111; font-weight: 900; font-size: 17px;">رقم الإيصال: ${supply.supplyNumber}</p>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="lbl">📍 العنوان</div>
+                            <div class="val">${storeAddress}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="lbl">📞 التواصل</div>
+                            <div class="val">${storePhone}</div>
+                            <div class="val" style="font-weight:500; font-size:11px; margin-top:2px; opacity:.85;">${storeEmail}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="lbl">🏦 الرقم الضريبي</div>
+                            <div class="val">${storeTaxNumber}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== RECEIPT NUMBER STRIP ===== -->
+                <div class="order-strip">
+                    <div>
+                        <div class="ord-label">رقم الإيصال</div>
+                        <div class="ord-value">${supply.supplyNumber}</div>
+                    </div>
+                    <span class="ord-badge">إيصال توريدة</span>
                 </div>
 
                 <div class="section">
@@ -335,8 +374,7 @@ const SupplierDetails = () => {
                 </div>
 
                 <div class="footer">
-                    نظام إدارة الفاتورة &mdash; elking<br>
-                    ت: 01553448631
+                    ${storeName} &mdash; نظام إدارة الفواتير والتوريدات
                 </div>
             </body>
             </html>

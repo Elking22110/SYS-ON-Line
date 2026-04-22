@@ -1,5 +1,10 @@
+/**
+ * printHelper.js
+ * يفتح نافذة طباعة واحدة فقط بدون أي تكرار.
+ * الحل: نستخدم Blob URL بدلاً من about:blank لتجنّب حدث onload المزدوج.
+ */
 export const printHtmlContent = (html) => {
-    // إخفاء الأزرار عند الطباعة والتأكد من دعم الاتجاهات
+    // إضافة أنماط الطباعة إن لم تكن موجودة
     const printStyles = `
         <style>
             @media print {
@@ -9,56 +14,57 @@ export const printHtmlContent = (html) => {
             }
         </style>
     `;
-    const finalHtml = html.replace('</head>', `${printStyles}</head>`);
+    const finalHtml = html.includes('@media print')
+        ? html
+        : html.replace('</head>', `${printStyles}</head>`);
 
-    // إنشاء نافذة مؤقتة بدلاً من iframe لدعم المعاينة في Electron
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    
-    if (!printWindow) {
-        console.error('Failed to open print window. Pop-up blocker might be active.');
-        alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.');
-        return;
-    }
+    // ── الطريقة: Blob URL ──────────────────────────────────────────
+    // نحوّل الـ HTML إلى ملف مؤقت في الذاكرة ونفتحه مباشرة،
+    // فلا يمر بمرحلة about:blank ولا يطلق onload مرتين.
+    let blobUrl = null;
 
     try {
-        printWindow.document.open();
-        printWindow.document.write(finalHtml);
-        printWindow.document.close();
+        const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+        blobUrl = URL.createObjectURL(blob);
 
-        let hasPrinted = false;
-        
-        const executePrint = () => {
-            if (hasPrinted) return;
-            hasPrinted = true;
-            
+        const printWindow = window.open(blobUrl, '_blank', 'width=900,height=700');
+
+        if (!printWindow) {
+            alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.');
+            URL.revokeObjectURL(blobUrl);
+            return;
+        }
+
+        // نافذة واحدة تُطلق print() مرة واحدة بعد التحميل الكامل
+        let printed = false;
+
+        const doPrint = () => {
+            if (printed) return;
+            printed = true;
             printWindow.focus();
             printWindow.print();
-            
-            // إغلاق النافذة بعد الانتهاء أو إلغاء الطباعة
-            setTimeout(() => {
-                if (!printWindow.closed) {
-                    printWindow.close();
-                }
-            }, 500);
+            // تنظيف الـ Blob URL بعد فتح نافذة الطباعة
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
         };
 
-        // الانتظار حتى يتم تحميل المحتوى والصور
-        printWindow.onload = () => {
-            setTimeout(executePrint, 500);
-        };
+        printWindow.addEventListener('load', () => {
+            // تأخير بسيط لضمان رسم الـ CSS (الـ gradients وغيرها)
+            setTimeout(doPrint, 400);
+        });
 
-        // Fallback في حال لم يعمل onload
-        setTimeout(() => {
-            if (printWindow && !printWindow.closed) {
-                executePrint();
+        // Fallback: لو onload لم يُطلق في 4 ثواني (نادر)
+        const fallbackTimer = setTimeout(() => {
+            if (!printed && printWindow && !printWindow.closed) {
+                doPrint();
             }
-        }, 2000);
+        }, 4000);
+
+        // إلغاء الـ fallback لو onload اشتغل أولاً
+        printWindow.addEventListener('load', () => clearTimeout(fallbackTimer));
 
     } catch (e) {
-        console.error('Printing failed:', e);
-        // Fallback to blob
-        const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+        console.error('Print error:', e);
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        alert('حدث خطأ أثناء فتح نافذة الطباعة. يرجى المحاولة مرة أخرى.');
     }
 };
