@@ -404,7 +404,7 @@ const Customers = () => {
                   <span className="text-blue-300 font-medium truncate">عملاء مسجلون</span>
                 </div>
               </div>
-              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl shadow-sm">
                 <Users className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
@@ -421,7 +421,7 @@ const Customers = () => {
                   <span className="text-slate-500 font-medium truncate">عملاء مميزون</span>
                 </div>
               </div>
-              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-purple-500 to-violet-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-purple-500 to-violet-500 rounded-xl shadow-sm">
                 <Star className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
@@ -438,7 +438,7 @@ const Customers = () => {
                   <span className="text-green-300 font-medium truncate">كقيمة للمشتريات</span>
                 </div>
               </div>
-              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-sm">
                 <DollarSign className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
@@ -455,7 +455,7 @@ const Customers = () => {
                   <span className="text-orange-300 font-medium truncate">هذا الشهر</span>
                 </div>
               </div>
-              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl shadow-sm">
                 <Calendar className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
@@ -472,7 +472,7 @@ const Customers = () => {
                   <span className="text-slate-300 font-medium truncate">المسلمة للعملاء</span>
                 </div>
               </div>
-              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+              <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl shadow-sm">
                 <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
               </div>
             </div>
@@ -559,12 +559,12 @@ const Customers = () => {
               </select>
             </div>
 
-            <button className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-3 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 flex items-center border border-gray-500 border-opacity-30 hover:scale-105">
+            <button className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-3 rounded-lg hover:from-gray-700 hover:to-gray-800 flex items-center border border-gray-500 border-opacity-30">
               <Download className="h-5 w-5 mr-2" />
               تصدير
             </button>
 
-            <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 flex items-center border border-green-500 border-opacity-30 hover:scale-105">
+            <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 flex items-center border border-green-500 border-opacity-30">
               <Upload className="h-5 w-5 mr-2" />
               استيراد
             </button>
@@ -589,7 +589,7 @@ const Customers = () => {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={customer.id} className="border-b border-slate-100">
                     {/* Customer Name */}
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -679,21 +679,21 @@ const Customers = () => {
                       <div className="flex gap-2 items-center">
                         <button
                           onClick={() => { soundManager.play('openWindow'); navigate(`/customers/${customer.id}`); }}
-                          className="text-purple-400 hover:text-purple-300 hover:bg-purple-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                          className="text-purple-400 p-2 rounded-lg"
                           title="عرض الطلبات والتفاصيل"
                         >
                           <FileText className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('update'); handleEditCustomer(customer); }}
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                          className="text-blue-400 p-2 rounded-lg"
                           title="تعديل العميل"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('delete'); handleDeleteCustomer(customer.id); }}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                          className="text-red-400 p-2 rounded-lg"
                           title="حذف العميل"
                         >
                           <Trash2 className="h-4 w-4" />

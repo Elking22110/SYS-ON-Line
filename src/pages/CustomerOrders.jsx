@@ -755,10 +755,23 @@ ${logoBlock}
         const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
         const url  = URL.createObjectURL(blob);
         const win  = window.open(url, '_blank', 'width=900,height=700');
-        if (!win) { alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.'); URL.revokeObjectURL(url); return; }
-        win.addEventListener('load', () => {
-            setTimeout(() => { win.focus(); win.print(); URL.revokeObjectURL(url); }, 400);
-        });
+        if (!win) {
+            alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.');
+            URL.revokeObjectURL(url);
+            return;
+        }
+        // ضامن واحد فقط: الطباعة تحدث مرة واحدة فقط مهما
+        let _fired = false;
+        const doPrint = () => {
+            if (_fired) return;
+            _fired = true;
+            win.focus();
+            win.print();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        };
+        win.onload = doPrint;
+        // fallback بعد 3 ثواني فقط إن لم يُطلق onload
+        setTimeout(() => { if (!_fired && win && !win.closed) doPrint(); }, 3000);
     };
 
     // ─── Helpers ────────────────────────────────────────────
@@ -1293,7 +1306,7 @@ ${logoBlock}
                     {/* Static Customer Info */}
                     {/* Unified Financial Summary Area - Prominent at the top */}
                     <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-blue-500/20">
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-start gap-3">
                             <div className="bg-blue-500/20 p-2 rounded-lg">
                                 <Hash className="h-4 w-4 text-blue-600 flex-shrink-0" />
                             </div>
@@ -1303,7 +1316,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-orange-500/20">
+                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-3">
                             <div className="bg-orange-500/20 p-2 rounded-lg">
                                 <Package className="h-4 w-4 text-orange-600 flex-shrink-0" />
                             </div>
@@ -1313,7 +1326,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-emerald-500/20">
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-start gap-3">
                             <div className="bg-emerald-500/20 p-2 rounded-lg">
                                 <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                             </div>
@@ -1323,7 +1336,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className={`border rounded-xl p-3 flex items-start gap-3 transition-all hover:scale-[1.02] ${remainingBalance > 0 ? 'bg-red-500/10 border-red-500/30 shadow-red-100 shadow-sm' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+                        <div className={`border rounded-xl p-3 flex items-start gap-3 ${remainingBalance > 0 ? 'bg-red-500/10 border-red-500/30 shadow-red-100 shadow-sm' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
                             <div className={`${remainingBalance > 0 ? 'bg-red-500/20' : 'bg-emerald-500/20'} p-2 rounded-lg`}>
                                 <AlertTriangle className={`h-4 w-4 ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
                             </div>
@@ -1338,7 +1351,7 @@ ${logoBlock}
 
                     {/* Expanded Profile Details - Matching the Stat Cards style */}
                     <div className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-4">
-                        <div className="bg-amber-100 border border-amber-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-amber-200/50 shadow-sm">
+                        <div className="bg-amber-100 border border-amber-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-amber-500/20 p-2 rounded-lg">
                                 <Briefcase className="h-4 w-4 text-amber-700 flex-shrink-0" />
                             </div>
@@ -1348,7 +1361,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-indigo-100 border border-indigo-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-indigo-200/50 shadow-sm">
+                        <div className="bg-indigo-100 border border-indigo-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-indigo-500/20 p-2 rounded-lg">
                                 <Tag className="h-4 w-4 text-indigo-700 flex-shrink-0" />
                             </div>
@@ -1358,7 +1371,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-blue-100 border border-blue-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-blue-200/50 shadow-sm">
+                        <div className="bg-blue-100 border border-blue-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-blue-500/20 p-2 rounded-lg">
                                 <Hash className="h-4 w-4 text-blue-700 flex-shrink-0" />
                             </div>
@@ -1372,7 +1385,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-pink-100 border border-pink-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-pink-200/50 shadow-sm">
+                        <div className="bg-pink-100 border border-pink-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-pink-500/20 p-2 rounded-lg">
                                 <Palette className="h-4 w-4 text-pink-700 flex-shrink-0" />
                             </div>
@@ -1382,7 +1395,7 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-cyan-100 border border-cyan-200 rounded-xl p-3 flex items-start gap-3 transition-all hover:bg-cyan-200/50 shadow-sm">
+                        <div className="bg-cyan-100 border border-cyan-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-cyan-500/20 p-2 rounded-lg">
                                 <Layers className="h-4 w-4 text-cyan-700 flex-shrink-0" />
                             </div>

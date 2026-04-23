@@ -585,7 +585,6 @@ img {
 }
 
 .hover-lift:hover {
-  transform: translateY(-5px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 255, 255, 0.2);
 }
 
@@ -666,7 +665,6 @@ img {
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
 }
 
@@ -682,7 +680,6 @@ img {
 }
 
 .btn-secondary:hover {
-  transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
 }
 /* action-button: table action icons (Edit / Delete / View) */
@@ -1846,7 +1843,6 @@ img {
 }
 
 .hover-effect:hover {
-  transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
 }
 
@@ -1880,7 +1876,6 @@ img {
 }
 
 .glass-card:hover {
-  transform: translateY(-8px) scale(1.02);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.4),
     0 0 30px rgba(139, 92, 246, 0.3),
@@ -1918,13 +1913,11 @@ img {
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px) scale(1.05);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 .btn-primary:active {
-  transform: translateY(0) scale(0.98);
 }
 
 /* تأثيرات متقدمة للإدخال */
@@ -2873,8 +2866,7 @@ button,
 button:active, 
 .clickable:active,
 [role="button"]:active {
-  transform: scale(0.96) translateY(1px) !important;
-  filter: brightness(0.9);
+  transition: none;
 }
 
 /* Interactive Element Hover Glow */
@@ -3064,8 +3056,7 @@ button,
 button:active, 
 .clickable:active,
 [role="button"]:active {
-  transform: scale(0.96) translateY(1px) !important;
-  filter: brightness(0.9);
+  transition: none;
 }
 
 /* Interactive Element Hover Glow */
