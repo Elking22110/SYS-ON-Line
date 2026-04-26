@@ -72,48 +72,74 @@ const SupplierDetails = () => {
         };
     }, [id]);
 
-    const loadData = () => {
+    const loadData = React.useCallback(async () => {
         // Load Supplier Data
-        const suppliersData = JSON.parse(localStorage.getItem('suppliers') || '[]');
-        const currentSupplier = suppliersData.find(s => s.id.toString() === id);
-        if (currentSupplier) {
-            setSupplier(currentSupplier);
+        try {
+            const suppliersData = JSON.parse(localStorage.getItem('suppliers') || '[]');
+            const currentSupplier = suppliersData.find(s => s.id.toString() === id);
+            if (currentSupplier) {
+                setSupplier(currentSupplier);
+            }
+        } catch (e) { }
+
+        // Load Supplies from Supabase
+        try {
+            const cloudSupplies = await supabaseService.getSupplierSupplies(id);
+            if (cloudSupplies && cloudSupplies.length > 0) {
+                setSupplies(cloudSupplies.sort((a, b) => b.id - a.id));
+                // Update local storage
+                const allLocal = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+                const otherSupplies = allLocal.filter(s => s.supplierId?.toString() !== id.toString());
+                localStorage.setItem('supplier_supplies', JSON.stringify([...otherSupplies, ...cloudSupplies]));
+            } else {
+                const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+                const supplierSupplies = allSupplies.filter(s => s.supplierId?.toString() === id.toString());
+                setSupplies(supplierSupplies.sort((a, b) => b.id - a.id));
+            }
+        } catch (e) {
+            const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+            const supplierSupplies = allSupplies.filter(s => s.supplierId?.toString() === id.toString());
+            setSupplies(supplierSupplies.sort((a, b) => b.id - a.id));
         }
 
-        // Load Supplies
-        const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
-        const supplierSupplies = allSupplies.filter(s => s.supplierId.toString() === id);
-        setSupplies(supplierSupplies.sort((a, b) => b.id - a.id));
+        // Load Payments from Supabase
+        try {
+            const cloudPayments = await supabaseService.getSupplierPayments(id);
+            if (cloudPayments && cloudPayments.length > 0) {
+                setPayments(cloudPayments.sort((a, b) => b.id - a.id));
+                // Update local storage
+                const allLocal = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+                const otherPayments = allLocal.filter(p => p.supplierId?.toString() !== id.toString());
+                localStorage.setItem('supplier_payments', JSON.stringify([...otherPayments, ...cloudPayments]));
+            } else {
+                const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+                const supplierPayments = allPayments.filter(p => p.supplierId?.toString() === id.toString());
+                setPayments(supplierPayments.sort((a, b) => b.id - a.id));
+            }
+        } catch (e) {
+            const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+            const supplierPayments = allPayments.filter(p => p.supplierId?.toString() === id.toString());
+            setPayments(supplierPayments.sort((a, b) => b.id - a.id));
+        }
 
-        // Load Payments
-        const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
-        const supplierPayments = allPayments.filter(p => p.supplierId.toString() === id);
-        setPayments(supplierPayments.sort((a, b) => b.id - a.id));
-
-        // Load open orders for linking (Only OPEN status AND not yet linked to any supply)
+        // Load open orders for linking
         const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
         const allCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
 
-        // ORPHAN PROTECTION: Find and remove orders that belong to non-existent customers
         const validOrders = allOrders.filter(order => {
             const customerExists = allCustomers.some(c => c.id?.toString() === order.customerId?.toString());
             return customerExists;
         });
 
-        // If orphans were found, update the storage to clean up permanently
-        if (validOrders.length !== allOrders.length) {
-            localStorage.setItem('customer_orders', JSON.stringify(validOrders));
-        }
-
-        // Get IDs of all orders already linked to supplies
-        const linkedOrderIds = allSupplies.map(s => s.linkedOrderId?.toString()).filter(Boolean);
+        const allSuppliesForLink = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+        const linkedOrderIds = allSuppliesForLink.map(s => s.linkedOrderId?.toString()).filter(Boolean);
 
         const linkable = validOrders.filter(o =>
             (o.status === 'OPEN' || o.status === 'IN_PRODUCTION') &&
             !linkedOrderIds.includes(o.id?.toString())
         );
         setOpenOrders(linkable);
-    };
+    }, [id]);
 
     const calculateTotalSuppliesValue = () => {
         return supplies.reduce((total, s) => safeMath.add(total, s.totalPrice), 0);
