@@ -10,6 +10,7 @@ import {
     Package,
     Plus,
     CreditCard,
+    Edit,
     FileText,
     Trash2,
     AlertTriangle,
