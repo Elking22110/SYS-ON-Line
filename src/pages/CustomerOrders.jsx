@@ -1261,22 +1261,31 @@ ${logoBlock}
 
     // Financial Stats
     const closedOrders = orders.filter(o => o.status === 'CLOSED');
-    const totalQuantityOrdered = closedOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
+    const totalQuantityOrdered = closedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.quantity) || 0), 0);
     const totalOrdersAmount = closedOrders.reduce((sum, o) => {
         const qty = parseFloat(o.quantity) || 0;
         const productPrice = parseFloat(o.pricePerKg) || 0;
         const printing = parseFloat(o.printingCostPerKg) || 0;
         const cutting = parseFloat(o.cuttingCostPerKg) || 0;
         const margin = parseFloat(o.profitMargin) || 0;
-        const price = productPrice + printing + cutting + margin;
         
-        const subtotal = qty * price;
+        // Total price per KG
+        const totalPricePerKg = safeMath.add(
+            safeMath.add(productPrice, printing),
+            safeMath.add(cutting, margin)
+        );
+        
+        // Subtotal (QTY * Total Price Per KG)
+        const subtotal = safeMath.multiply(totalPricePerKg, qty);
+        
+        // Cliche
         const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
 
-        return sum + subtotal + cliche;
+        // Add to total
+        return safeMath.add(sum, safeMath.add(subtotal, cliche));
     }, 0);
-    const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-    const remainingBalance = totalOrdersAmount - totalPaid;
+    const totalPaid = payments.reduce((sum, p) => safeMath.add(sum, parseFloat(p.amount) || 0), 0);
+    const remainingBalance = safeMath.subtract(totalOrdersAmount, totalPaid);
 
     if (!customer) {
         return (
