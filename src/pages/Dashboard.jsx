@@ -198,23 +198,23 @@ const Dashboard = () => {
       );
 
       // 5. Revenue Calculation (POS Sales + Customer Payments)
-      const todayPOSRevenue = todayPOSSales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
-      const yesterdayPOSRevenue = yesterdayPOSSales.reduce((sum, s) => sum + (parseFloat(s.total || s.totalAmount) || 0), 0);
+      const todayPOSRevenue = todayPOSSales.reduce((sum, s) => safeMath.add(sum, parseFloat(s.total || s.totalAmount) || 0), 0);
+      const yesterdayPOSRevenue = yesterdayPOSSales.reduce((sum, s) => safeMath.add(sum, parseFloat(s.total || s.totalAmount) || 0), 0);
       
       const todayCustomerPaymentsTotal = customerPayments
          .filter(p => (p.date || '').split('T')[0] === today && validCustomerIds.has(String(p.customerId)))
-         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+         .reduce((sum, p) => safeMath.add(sum, parseFloat(p.amount) || 0), 0);
          
       const yesterdayCustomerPaymentsTotal = customerPayments
          .filter(p => (p.date || '').split('T')[0] === yesterday && validCustomerIds.has(String(p.customerId)))
-         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+         .reduce((sum, p) => safeMath.add(sum, parseFloat(p.amount) || 0), 0);
 
       // Value of Closed Orders Today
-      const todayFactoryRevenue = todayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.totalPrice) || 0), 0);
-      const yesterdayFactoryRevenue = yesterdayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.totalPrice) || 0), 0);
+      const todayFactoryRevenue = todayCLOSEDOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.totalPrice) || 0), 0);
+      const yesterdayFactoryRevenue = yesterdayCLOSEDOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.totalPrice) || 0), 0);
 
-      const totalTodayRevenue = todayPOSRevenue + todayFactoryRevenue;
-      const totalYesterdayRevenue = yesterdayPOSRevenue + yesterdayFactoryRevenue;
+      const totalTodayRevenue = safeMath.add(todayPOSRevenue, todayFactoryRevenue);
+      const totalYesterdayRevenue = safeMath.add(yesterdayPOSRevenue, yesterdayFactoryRevenue);
 
       // 6. Supplier Debt Calculation (Filter by valid supplier IDs only)
       const validSupplies = allSupplies.filter(s => validSupplierIds.has(String(s.supplierId)));
@@ -227,7 +227,7 @@ const Dashboard = () => {
         .filter(p => validSupplierIds.has(String(p.supplierId)))
         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
       
-      const totalSupplierDebt = Math.max(0, totalSuppliesValue - (totalSupplierPaymentsValue + totalPaidInSupplies));
+      const totalSupplierDebt = Math.max(0, safeMath.subtract(totalSuppliesValue, safeMath.add(totalSupplierPaymentsValue, totalPaidInSupplies)));
 
       // 7. Customer Debt Calculation - Only Closed Orders count as debt
       // 7. Customer Debt Calculation - Calculate per customer to handle credits correctly
@@ -310,8 +310,10 @@ const Dashboard = () => {
 
       // مبيعات الوردية = مبيعات POS + قيمة طلبات المصنع المغلقة (totalPrice)
       // تحصيلات المديونية (customer payments) لا تُحسب ضمن المبيعات — هي استرداد لدَيْن قائم
-      const totalSales = shiftSales.reduce((sum, sale) => safeMath.add(sum, sale.total || sale.totalAmount || 0), 0)
-                       + shiftClosedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.totalPrice) || 0), 0);
+      const totalSales = safeMath.add(
+        shiftSales.reduce((sum, sale) => safeMath.add(sum, sale.total || sale.totalAmount || 0), 0),
+        shiftClosedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.totalPrice) || 0), 0)
+      );
       // عدد الطلبات = POS فقط + طلبات المصنع المغلقة — التحصيل النقدي ليس طلباً
       const totalOrdersCount = shiftSales.length + shiftClosedOrders.length;
 
