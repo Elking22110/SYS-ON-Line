@@ -270,24 +270,24 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <label className="block text-sm font-bold text-slate-700 mb-1">الكمية (كجم) <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
-                                min="0"
                                 step="any"
                                 placeholder="500"
+                                dir="ltr"
                                 value={form.quantity}
                                 onChange={e => setForm({ ...form, quantity: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">سعر الكيلو <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
-                                min="0"
                                 step="any"
                                 placeholder="150"
+                                dir="ltr"
                                 value={form.pricePerKg}
                                 onChange={e => setForm({ ...form, pricePerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
@@ -315,24 +315,24 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     <label className="block text-sm font-bold text-slate-700 mb-1">طول الأكلشية <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
-                                        min="0"
                                         step="any"
                                         placeholder="طول"
+                                        dir="ltr"
                                         value={form.clicheHeight}
                                         onChange={e => setForm({ ...form, clicheHeight: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-1">عرض الأكلشية <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
-                                        min="0"
                                         step="any"
                                         placeholder="عرض"
+                                        dir="ltr"
                                         value={form.clicheWidth}
                                         onChange={e => setForm({ ...form, clicheWidth: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
                                     />
                                 </div>
                             </div>
@@ -341,23 +341,23 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     <label className="block text-sm font-bold text-slate-700 mb-1">عدد الألوان <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
-                                        min="1"
                                         placeholder="عدد الألوان"
+                                        dir="ltr"
                                         value={form.colorCount}
                                         onChange={e => setForm({ ...form, colorCount: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-1">سعر السنتيمتر <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
-                                        min="0"
                                         step="any"
                                         placeholder="0.85"
+                                        dir="ltr"
                                         value={form.clichePricePerCm}
                                         onChange={e => setForm({ ...form, clichePricePerCm: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right direction-ltr border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
                                     />
                                 </div>
                             </div>
@@ -382,24 +382,24 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المطبعه / كجم <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
-                                min="0"
                                 step="any"
                                 placeholder="0.00"
+                                dir="ltr"
                                 value={form.printingCostPerKg}
                                 onChange={e => setForm({ ...form, printingCostPerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المقص / كجم <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
-                                min="0"
                                 step="any"
                                 placeholder="0.00"
+                                dir="ltr"
                                 value={form.cuttingCostPerKg}
                                 onChange={e => setForm({ ...form, cuttingCostPerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
                             />
                         </div>
                     </div>
@@ -2081,11 +2081,11 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
                                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
                                     <input
                                         type="number"
-                                        min="1"
                                         placeholder="مثال: 5000"
+                                        dir="ltr"
                                         value={form.amount}
                                         onChange={e => setForm({ ...form, amount: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right direction-ltr"
+                                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right"
                                     />
                                 </div>
                             </div>
