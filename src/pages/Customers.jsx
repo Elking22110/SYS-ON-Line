@@ -406,9 +406,9 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">إجمالي العملاء</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">{customers.length}</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">{customers.length}</p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-blue-300 font-medium truncate">عملاء مسجلون</span>
+                  <span className="text-black font-medium truncate">عملاء مسجلون</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl shadow-sm">
@@ -421,11 +421,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">عملاء VIP</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
                   {customers.filter(c => c.status === 'VIP').length}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-slate-500 font-medium truncate">عملاء مميزون</span>
+                  <span className="text-black font-medium truncate">عملاء مميزون</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-purple-500 to-violet-500 rounded-xl shadow-sm">
@@ -438,11 +438,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">متوسط الشراء</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
                   ${Math.round(customers.reduce((total, c) => safeMath.add(total, c.totalSpent), 0) / (customers.length || 1))}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-green-300 font-medium truncate">كقيمة للمشتريات</span>
+                  <span className="text-black font-medium truncate">كقيمة للمشتريات</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-sm">
@@ -455,11 +455,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">عملاء جدد</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
                   {customers.filter(c => c.status === 'جديد').length}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-orange-300 font-medium truncate">هذا الشهر</span>
+                  <span className="text-black font-medium truncate">هذا الشهر</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl shadow-sm">
@@ -472,11 +472,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-[11px] font-medium text-blue-300 mb-1 uppercase tracking-wide truncate">إجمالي الكمية (كجم)</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
                   {customers.reduce((total, c) => total + (c.totalQuantity || 0), 0).toLocaleString()}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-slate-300 font-medium truncate">المسلمة للعملاء</span>
+                  <span className="text-black font-medium truncate">المسلمة للعملاء</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl shadow-sm">
@@ -489,11 +489,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-[11px] font-medium text-red-300 mb-1 uppercase tracking-wide truncate">إجمالي الهالك (كجم)</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
                   {customers.reduce((total, c) => total + (c.totalWaste || 0), 0).toLocaleString()}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-slate-300 font-medium truncate">المرتجع / الهالك</span>
+                  <span className="text-black font-medium truncate">المرتجع / الهالك</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">

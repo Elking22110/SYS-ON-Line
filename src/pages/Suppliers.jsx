@@ -344,9 +344,9 @@ const Suppliers = () => {
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
                 <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">إجمالي الموردين</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">{suppliers.length}</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">{suppliers.length}</p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-blue-300 font-medium">موردون مسجلون</span>
+                  <span className="text-black font-medium">موردون مسجلون</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -359,11 +359,11 @@ const Suppliers = () => {
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
                 <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">موردين VIP</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">
                   {suppliers.filter(c => c.status === 'VIP').length}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-slate-500 font-medium">موردون مميزون</span>
+                  <span className="text-black font-medium">موردون مميزون</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -376,11 +376,11 @@ const Suppliers = () => {
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
                 <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">متوسط قيمة المشتريات</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">
                   ${Math.round(suppliers.reduce((total, c) => safeMath.add(total, c.totalSpent), 0) / (suppliers.length || 1))}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-green-300 font-medium">متوسط المشتريات</span>
+                  <span className="text-black font-medium">متوسط المشتريات</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -393,11 +393,11 @@ const Suppliers = () => {
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
                 <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">موردون جدد هذا الشهر</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">
                   {suppliers.filter(c => c.status === 'جديد').length}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-orange-300 font-medium">موردون جدد</span>
+                  <span className="text-black font-medium">موردون جدد</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
