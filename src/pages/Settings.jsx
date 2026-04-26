@@ -1753,12 +1753,12 @@ const Settings = () => {
             <label className="block text-sm font-medium text-slate-400 mb-2">نسبة الربح الافتراضية للطلبات (%)</label>
             <input
               type="number"
-              min="0"
               step="any"
               placeholder="مثال: 10"
               value={settings.orderProfitMargin}
               onChange={(e) => handleSettingChange('orderProfitMargin', parseFloat(e.target.value) || 0)}
               className="input-modern w-full px-3 py-2 text-right"
+              dir="ltr"
             />
             <p className="text-[10px] text-emerald-400 mt-1 font-medium italic">تطبق هذه النسبة تلقائياً على جميع الطلبات الجديدة (المجموع + تكلفة الأكلشية)</p>
           </div>
