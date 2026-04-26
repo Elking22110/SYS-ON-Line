@@ -82,24 +82,32 @@ const Dashboard = () => {
       
       allOrders.forEach(o => {
         if (customerDebtMap[o.customerId] && o.status === 'CLOSED') {
-          const q = (parseFloat(o.quantity) || 0);
-          const raw = safeMath.multiply(q, parseFloat(o.pricePerKg) || 0);
-          const pt = safeMath.multiply(q, parseFloat(o.printingCostPerKg) || 0);
-          const ct = safeMath.multiply(q, parseFloat(o.cuttingCostPerKg) || 0);
-          const cl = parseFloat(o.clicheCost) || 0;
-          const profit = safeMath.multiply(q, parseFloat(o.profitMargin) || 0);
-          
-          const orderTotal = safeMath.add(
-            safeMath.add(safeMath.add(raw, pt), ct),
-            safeMath.add(cl, profit)
-          );
+          let orderTotal = 0;
+          if (o.totalPrice !== undefined && o.totalPrice !== null) {
+              orderTotal = parseFloat(o.totalPrice);
+          } else {
+              const q = parseFloat(o.quantity) || 0;
+              const pricePerKg = parseFloat(o.pricePerKg) || 0;
+              const printingCostPerKg = parseFloat(o.printingCostPerKg) || 0;
+              const cuttingCostPerKg = parseFloat(o.cuttingCostPerKg) || 0;
+              const profitMargin = parseFloat(o.profitMargin) || 0;
+              const clicheCost = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+
+              const totalPricePerKg = safeMath.add(
+                  safeMath.add(pricePerKg, printingCostPerKg),
+                  safeMath.add(cuttingCostPerKg, profitMargin)
+              );
+
+              const subtotal = safeMath.multiply(totalPricePerKg, q);
+              orderTotal = safeMath.add(subtotal, clicheCost);
+          }
           
           customerDebtMap[o.customerId].totalOrders = safeMath.add(customerDebtMap[o.customerId].totalOrders, orderTotal);
         }
       });
       allPayments.forEach(p => {
         if (customerDebtMap[p.customerId]) {
-          customerDebtMap[p.customerId].totalPayments += parseFloat(p.amount) || 0;
+          customerDebtMap[p.customerId].totalPayments = safeMath.add(customerDebtMap[p.customerId].totalPayments, parseFloat(p.amount) || 0);
         }
       });
       
@@ -237,17 +245,25 @@ const Dashboard = () => {
       customerOrders
         .filter(o => o.status === 'CLOSED' && customerBalances[o.customerId])
         .forEach(o => {
-          const q = (parseFloat(o.quantity) || 0);
-          const raw = safeMath.multiply(q, parseFloat(o.pricePerKg) || 0);
-          const pt = safeMath.multiply(q, parseFloat(o.printingCostPerKg) || 0);
-          const ct = safeMath.multiply(q, parseFloat(o.cuttingCostPerKg) || 0);
-          const cl = parseFloat(o.clicheCost) || 0;
-          const profit = safeMath.multiply(q, parseFloat(o.profitMargin) || 0);
-          
-          const orderTotal = safeMath.add(
-            safeMath.add(safeMath.add(raw, pt), ct),
-            safeMath.add(cl, profit)
-          );
+          let orderTotal = 0;
+          if (o.totalPrice !== undefined && o.totalPrice !== null) {
+              orderTotal = parseFloat(o.totalPrice);
+          } else {
+              const q = parseFloat(o.quantity) || 0;
+              const pricePerKg = parseFloat(o.pricePerKg) || 0;
+              const printingCostPerKg = parseFloat(o.printingCostPerKg) || 0;
+              const cuttingCostPerKg = parseFloat(o.cuttingCostPerKg) || 0;
+              const profitMargin = parseFloat(o.profitMargin) || 0;
+              const clicheCost = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+
+              const totalPricePerKg = safeMath.add(
+                  safeMath.add(pricePerKg, printingCostPerKg),
+                  safeMath.add(cuttingCostPerKg, profitMargin)
+              );
+
+              const subtotal = safeMath.multiply(totalPricePerKg, q);
+              orderTotal = safeMath.add(subtotal, clicheCost);
+          }
           
           customerBalances[o.customerId].orders = safeMath.add(customerBalances[o.customerId].orders, orderTotal);
         });
@@ -696,7 +712,7 @@ const Dashboard = () => {
                 }`}>
                   {order.type === 'payment' ? <DollarSign className="w-6 h-6" /> : order.type === 'factory' ? <Package className="w-6 h-6" /> : order.customer.charAt(0)}
                 </div>
-                <span className="font-bold text-slate-700 group-hover:text-indigo-900 transition-colors truncate">
+                <span className="font-bold text-black group-hover:text-indigo-900 transition-colors truncate">
                     {order.customer || 'نقدي'}
                 </span>
               </div>

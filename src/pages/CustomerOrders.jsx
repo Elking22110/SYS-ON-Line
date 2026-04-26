@@ -1257,26 +1257,13 @@ ${logoBlock}
     const closedOrders = orders.filter(o => o.status === 'CLOSED');
     const totalQuantityOrdered = closedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.quantity) || 0), 0);
     const totalOrdersAmount = closedOrders.reduce((sum, o) => {
-        const qty = parseFloat(o.quantity) || 0;
-        const productPrice = parseFloat(o.pricePerKg) || 0;
-        const printing = parseFloat(o.printingCostPerKg) || 0;
-        const cutting = parseFloat(o.cuttingCostPerKg) || 0;
-        const margin = parseFloat(o.profitMargin) || 0;
-        
-        // Total price per KG
-        const totalPricePerKg = safeMath.add(
-            safeMath.add(productPrice, printing),
-            safeMath.add(cutting, margin)
-        );
-        
-        // Subtotal (QTY * Total Price Per KG)
-        const subtotal = safeMath.multiply(totalPricePerKg, qty);
-        
-        // Cliche
-        const cliche = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
-
-        // Add to total
-        return safeMath.add(sum, safeMath.add(subtotal, cliche));
+        let orderTotal = 0;
+        if (o.totalPrice !== undefined && o.totalPrice !== null) {
+            orderTotal = parseFloat(o.totalPrice);
+        } else {
+            orderTotal = calculateOrderTotal(o);
+        }
+        return safeMath.add(sum, orderTotal);
     }, 0);
     const totalPaid = payments.reduce((sum, p) => safeMath.add(sum, parseFloat(p.amount) || 0), 0);
     const remainingBalance = safeMath.subtract(totalOrdersAmount, totalPaid);
@@ -1319,7 +1306,7 @@ ${logoBlock}
                                 <User className="h-7 w-7 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl md:text-2xl font-black text-slate-900 mb-2">{customer.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-black text-black mb-2">{customer.name}</h1>
                                 <div className="flex flex-wrap items-center gap-2 text-sm">
                                     {customer.phone && (
                                         <span className="flex items-center gap-1.5 bg-green-100 border border-green-200 text-green-700 px-4 py-1.5 rounded-full font-bold shadow-sm">

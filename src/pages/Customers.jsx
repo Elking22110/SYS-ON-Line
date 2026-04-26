@@ -90,19 +90,26 @@ const Customers = () => {
         const ordersCount = customerOrders.length; // Keep total order count for activity reference
 
         const totalSpentAmount = closedOrders.reduce((sum, o) => {
-          if (o.totalPrice) return safeMath.add(sum, parseFloat(o.totalPrice) || 0);
+          if (o.totalPrice !== undefined && o.totalPrice !== null) {
+              return safeMath.add(sum, parseFloat(o.totalPrice));
+          }
 
-          const qty = parseFloat(o.quantity) || 0;
-          const productTotal = safeMath.multiply(qty, parseFloat(o.pricePerKg) || 0);
-          const printingTotal = safeMath.multiply(qty, parseFloat(o.printingCostPerKg) || 0);
-          const cuttingTotal = safeMath.multiply(qty, parseFloat(o.cuttingCostPerKg) || 0);
-          const clicheTotal = parseFloat(o.clicheCost) || 0;
-          
-          const subtotal = safeMath.add(safeMath.add(productTotal, printingTotal), safeMath.add(cuttingTotal, clicheTotal));
-          const margin = parseFloat(o.profitMargin) || 0;
-          const profit = safeMath.multiply(qty, margin);
-          
-          return safeMath.add(sum, safeMath.add(subtotal, profit));
+          const q = parseFloat(o.quantity) || 0;
+          const pricePerKg = parseFloat(o.pricePerKg) || 0;
+          const printingCostPerKg = parseFloat(o.printingCostPerKg) || 0;
+          const cuttingCostPerKg = parseFloat(o.cuttingCostPerKg) || 0;
+          const profitMargin = parseFloat(o.profitMargin) || 0;
+          const clicheCost = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+
+          const totalPricePerKg = safeMath.add(
+              safeMath.add(pricePerKg, printingCostPerKg),
+              safeMath.add(cuttingCostPerKg, profitMargin)
+          );
+
+          const subtotal = safeMath.multiply(totalPricePerKg, q);
+          const orderTotal = safeMath.add(subtotal, clicheCost);
+
+          return safeMath.add(sum, orderTotal);
         }, 0);
 
         const lastOrder = [...customerOrders].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0];
@@ -597,7 +604,7 @@ const Customers = () => {
                           <User className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-white">{customer.name}</div>
+                          <div className="text-sm font-bold text-black">{customer.name}</div>
                           <div className="text-xs text-blue-300 bg-blue-500 bg-opacity-20 px-2 py-0.5 rounded-full inline-block mt-1">
                             انضم: {customer.joinDate}
                           </div>
