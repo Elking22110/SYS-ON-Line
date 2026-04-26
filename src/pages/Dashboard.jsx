@@ -230,9 +230,13 @@ const Dashboard = () => {
       const totalSupplierDebt = Math.max(0, totalSuppliesValue - (totalSupplierPaymentsValue + totalPaidInSupplies));
 
       // 7. Customer Debt Calculation - Only Closed Orders count as debt
-      const totalOrdersValue = customerOrders
-        .filter(o => o.status === 'CLOSED' && validCustomerIds.has(String(o.customerId)))
-        .reduce((sum, o) => {
+      // 7. Customer Debt Calculation - Calculate per customer to handle credits correctly
+      const customerBalances = {};
+      customers.forEach(c => customerBalances[c.id] = { orders: 0, payments: 0 });
+
+      customerOrders
+        .filter(o => o.status === 'CLOSED' && customerBalances[o.customerId])
+        .forEach(o => {
           const q = (parseFloat(o.quantity) || 0);
           const raw = safeMath.multiply(q, parseFloat(o.pricePerKg) || 0);
           const pt = safeMath.multiply(q, parseFloat(o.printingCostPerKg) || 0);
@@ -245,14 +249,19 @@ const Dashboard = () => {
             safeMath.add(cl, profit)
           );
           
-          return safeMath.add(sum, orderTotal);
-        }, 0);
-      
-      const totalCustomerPaymentsValue = customerPayments
-        .filter(p => validCustomerIds.has(String(p.customerId)))
-        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-      
-      const totalCustomerDebt = Math.max(0, safeMath.subtract(totalOrdersValue, totalCustomerPaymentsValue));
+          customerBalances[o.customerId].orders = safeMath.add(customerBalances[o.customerId].orders, orderTotal);
+        });
+
+      customerPayments
+        .filter(p => customerBalances[p.customerId])
+        .forEach(p => {
+          customerBalances[p.customerId].payments = safeMath.add(customerBalances[p.customerId].payments, parseFloat(p.amount) || 0);
+        });
+
+      const totalCustomerDebt = Object.values(customerBalances).reduce((sum, bal) => {
+        const debt = Math.max(0, safeMath.subtract(bal.orders, bal.payments));
+        return safeMath.add(sum, debt);
+      }, 0);
 
       // 8. Daily, Monthly and Shift Expenses Calculation
       const activeShiftForExpenses = storageOptimizer.get('activeShift', null);

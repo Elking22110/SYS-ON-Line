@@ -698,7 +698,7 @@ img {
   position: relative;
   z-index: 10;
   padding: 8px;
-  background: transparent;
+  /* background: transparent; -- Removed to allow Tailwind bg classes */
 }
 
 .action-button svg {
@@ -1317,18 +1317,6 @@ img {
 
 /* تحسينات إضافية للوضع النهاري */
 
-
-[data-theme="light"] .text-white {
-  color: var(--text-primary) !important;
-}
-
-[data-theme="light"] .text-blue-200 {
-  color: var(--text-secondary) !important;
-}
-
-[data-theme="light"] .text-purple-200 {
-  color: var(--text-secondary) !important;
-}
 
 /* أنماط الأنيميشن المحسنة */
 .animate-fadeInUp {

@@ -47,7 +47,7 @@ const ORDER_STATUSES = [
     { value: 'OPEN', label: 'مفتوح', color: 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-700/50', icon: Clock },
     { value: 'IN_PRODUCTION', label: 'في الإنتاج', color: 'bg-amber-500 text-white shadow-sm ring-1 ring-amber-600/50', icon: Loader },
     { value: 'DONE', label: 'منتهي', color: 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-700/50', icon: CheckCircle },
-    { value: 'CLOSED', label: 'مغلق', color: 'bg-slate-600 text-white shadow-sm ring-1 ring-slate-700/50', icon: XCircle },
+    { value: 'CLOSED', label: 'مغلق', color: 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-700/50', icon: XCircle },
 ];
 
 // Generate sequential order number
@@ -1689,7 +1689,7 @@ ${logoBlock}
                                                 </button>
                                                 <button
                                                     onClick={() => toggleExpand(order.id)}
-                                                    className="text-white bg-slate-700 hover:bg-slate-800 action-button shadow-md"
+                                                    className="text-white bg-emerald-600 hover:bg-emerald-700 action-button shadow-md"
                                                     title="عرض التفاصيل"
                                                 >
                                                     {isExpanded ? <ChevronUp /> : <ChevronDown />}
@@ -1698,7 +1698,8 @@ ${logoBlock}
                                                 <select
                                                     value={order.status}
                                                     onChange={(e) => handleChangeStatus(order, e.target.value)}
-                                                    className={`text-[11px] font-black h-8 px-2 rounded-lg border-none focus:outline-none cursor-pointer transition-all shadow-md appearance-none text-center min-w-[90px] ${statusInfo.color}`}
+                                                    className={`text-[11px] font-black h-8 px-2 rounded-lg border-none focus:outline-none cursor-pointer transition-all shadow-md appearance-none text-center min-w-[100px] !text-white ${statusInfo.color}`}
+                                                    style={{ color: 'white' }}
                                                 >
                                                     {ORDER_STATUSES.map(s => (
                                                         <option key={s.value} value={s.value} className="text-slate-900 bg-white font-bold">
