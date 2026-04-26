@@ -574,24 +574,24 @@ const Customers = () => {
         {/* Customers Table */}
         <div className="glass-card overflow-hidden table-enhanced">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px]">
+            <table className="w-full min-w-[950px]">
               <thead className="bg-[#f8fafc] border-b border-slate-200">
                 <tr>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">العميل</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاتصال</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden lg:table-cell">النشاط / المنتج</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden xl:table-cell">مقاس المنتج</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">الاستهلاك والهالك (كجم)</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المشتريات</th>
-                  <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden sm:table-cell">الحالة</th>
-                  <th className="px-4 md:px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider min-w-[140px]">الإجراءات</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">العميل</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden md:table-cell">الاتصال</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden xl:table-cell">النشاط / المنتج</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden 2xl:table-cell">مقاس المنتج</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden lg:table-cell">الاستهلاك والهالك (كجم)</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">المشتريات</th>
+                  <th className="px-3 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden sm:table-cell">الحالة</th>
+                  <th className="px-3 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider min-w-[130px]">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="border-b border-slate-100">
                     {/* Customer Name */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center ml-3 shadow-lg flex-shrink-0">
                           <User className="h-5 w-5 text-white" />
@@ -605,7 +605,7 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Contact */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4 whitespace-nowrap hidden md:table-cell">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1">
                           <Phone className="h-3 w-3 text-green-400 flex-shrink-0" />
@@ -620,7 +620,7 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Business Activity + Usual Product */}
-                    <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
+                    <td className="px-3 py-4 hidden xl:table-cell">
                       <div className="space-y-1">
                         {customer.businessActivity ? (
                           <div className="text-xs font-bold text-slate-700 bg-slate-200 bg-opacity-50 px-2 py-0.5 rounded-full inline-block">{customer.businessActivity}</div>
@@ -631,7 +631,7 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Product Size */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden xl:table-cell">
+                    <td className="px-3 py-4 whitespace-nowrap hidden 2xl:table-cell">
                       <div className="space-y-1">
                           <div className="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md inline-block">
                               {(() => {
@@ -654,7 +654,7 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Quantity & Waste */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4 whitespace-nowrap hidden lg:table-cell">
                       <div className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-md mb-1 border border-blue-200 shadow-sm flex items-center justify-between">
                           <span>الكمية:</span> <span>{customer.totalQuantity || 0} كجم</span>
                       </div>
@@ -663,40 +663,40 @@ const Customers = () => {
                       </div>
                     </td>
                     {/* Total Spent */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4 whitespace-nowrap">
                       <div className="text-sm font-bold text-emerald-400 bg-emerald-500 bg-opacity-20 px-3 py-1 rounded-full inline-block">
                         ${customer.totalSpent}
                       </div>
                       <div className="text-xs text-orange-400 mt-1">{customer.orders} طلب</div>
                     </td>
                     {/* Status */}
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
+                    <td className="px-3 py-4 whitespace-nowrap hidden sm:table-cell">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(customer.status)}`}>
                         {customer.status}
                       </span>
                     </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium min-w-[160px]">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium min-w-[130px]">
                       <div className="flex gap-2 items-center">
                         <button
                           onClick={() => { soundManager.play('openWindow'); navigate(`/customers/${customer.id}`); }}
-                          className="text-purple-400 p-2 rounded-lg"
+                          className="action-button text-purple-600 bg-purple-100 hover:bg-purple-200"
                           title="عرض الطلبات والتفاصيل"
                         >
-                          <FileText className="h-4 w-4" />
+                          <FileText className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('update'); handleEditCustomer(customer); }}
-                          className="text-blue-400 p-2 rounded-lg"
+                          className="action-button text-blue-600 bg-blue-100 hover:bg-blue-200"
                           title="تعديل العميل"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => { soundManager.play('delete'); handleDeleteCustomer(customer.id); }}
-                          className="text-red-400 p-2 rounded-lg"
+                          className="action-button text-red-600 bg-red-100 hover:bg-red-200"
                           title="حذف العميل"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                     </td>

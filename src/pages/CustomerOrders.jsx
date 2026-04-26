@@ -364,7 +364,13 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <div className="text-xs text-purple-600 font-bold bg-white p-2 rounded-lg border border-purple-100 flex justify-between">
                                 <span>تكلفة الأكلشية التقريبية:</span>
                                 <span>
-                                    {((parseFloat(form.clicheHeight) || 0) * (parseFloat(form.clicheWidth) || 0) * (parseFloat(form.colorCount) || 0) * (parseFloat(form.clichePricePerCm) || 0.85)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م
+                                    {safeMath.multiply(
+                                        safeMath.multiply(
+                                            safeMath.multiply(parseFloat(form.clicheHeight) || 0, parseFloat(form.clicheWidth) || 0),
+                                            parseFloat(form.colorCount) || 0
+                                        ),
+                                        parseFloat(form.clichePricePerCm) || 0.85
+                                    ).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م
                                 </span>
                             </div>
                         </div>
@@ -783,8 +789,17 @@ ${logoBlock}
         const profitMargin = parseFloat(order.profitMargin) || 0;
         const clicheCost = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
 
-        const subtotal = qty * (pricePerKg + printingCostPerKg + cuttingCostPerKg + profitMargin);
-        return subtotal + clicheCost;
+        // Total price per KG
+        const totalPricePerKg = safeMath.add(
+            safeMath.add(pricePerKg, printingCostPerKg),
+            safeMath.add(cuttingCostPerKg, profitMargin)
+        );
+
+        // Subtotal (QTY * Total Price Per KG)
+        const subtotal = safeMath.multiply(totalPricePerKg, qty);
+
+        // Final total (Subtotal + Cliche)
+        return safeMath.add(subtotal, clicheCost);
     };
 
     // ─── CRUD ────────────────────────────────────────────────
@@ -837,18 +852,42 @@ ${logoBlock}
                         cuttingCostPerKg: parseFloat(formToSave.cuttingCostPerKg) || 0,
                         clicheEnabled: formToSave.clicheEnabled || false,
                         clichePricePerCm: parseFloat(formToSave.clichePricePerCm) || 0.85,
-                        clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0,
+                        clicheCost: formToSave.clicheEnabled ? (
+                            safeMath.multiply(
+                                safeMath.multiply(
+                                    safeMath.multiply(parseFloat(formToSave.clicheHeight) || 0, parseFloat(formToSave.clicheWidth) || 0),
+                                    parseFloat(formToSave.colorCount) || 0
+                                ),
+                                parseFloat(formToSave.clichePricePerCm) || 0.85
+                            )
+                        ) : 0,
                         profitMargin: parseFloat(formToSave.profitMargin) || 0,
                         totalPrice: calculateOrderTotal({
                             ...formToSave,
-                            clicheCost: formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0
+                            clicheCost: formToSave.clicheEnabled ? (
+                                safeMath.multiply(
+                                    safeMath.multiply(
+                                        safeMath.multiply(parseFloat(formToSave.clicheHeight) || 0, parseFloat(formToSave.clicheWidth) || 0),
+                                        parseFloat(formToSave.colorCount) || 0
+                                    ),
+                                    parseFloat(formToSave.clichePricePerCm) || 0.85
+                                )
+                            ) : 0
                         })
                     }
                     : o
             );
             localStorage.setItem('customer_orders', JSON.stringify(updated));
             // Sync to Supabase
-            const finalClicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0;
+            const finalClicheCost = formToSave.clicheEnabled ? (
+                safeMath.multiply(
+                    safeMath.multiply(
+                        safeMath.multiply(parseFloat(formToSave.clicheHeight) || 0, parseFloat(formToSave.clicheWidth) || 0),
+                        parseFloat(formToSave.colorCount) || 0
+                    ),
+                    parseFloat(formToSave.clichePricePerCm) || 0.85
+                )
+            ) : 0;
             await supabaseService.updateCustomerOrder(editingOrder.id, {
                 ...formToSave,
                 clichePricePerCm: parseFloat(formToSave.clichePricePerCm) || 0.85,
@@ -859,7 +898,15 @@ ${logoBlock}
             toast.success('تم تحديث الطلب بنجاح');
         } else {
             // Create
-            const clicheCost = formToSave.clicheEnabled ? ((parseFloat(formToSave.clicheHeight) || 0) * (parseFloat(formToSave.clicheWidth) || 0) * (parseFloat(formToSave.colorCount) || 0) * (parseFloat(formToSave.clichePricePerCm) || 0.85)) : 0;
+            const clicheCost = formToSave.clicheEnabled ? (
+                safeMath.multiply(
+                    safeMath.multiply(
+                        safeMath.multiply(parseFloat(formToSave.clicheHeight) || 0, parseFloat(formToSave.clicheWidth) || 0),
+                        parseFloat(formToSave.colorCount) || 0
+                    ),
+                    parseFloat(formToSave.clichePricePerCm) || 0.85
+                )
+            ) : 0;
             const newOrder = {
                 id: Date.now(),
                 customerId: id,
@@ -1770,7 +1817,7 @@ ${logoBlock}
                                                     {order.clicheEnabled && order.clicheCost > 0 && (
                                                         <div className="flex justify-between items-center text-[15px]">
                                                             <span className="text-slate-600 font-bold flex items-center gap-2"><Layers className="h-4 w-4 text-slate-400" /> تكلفة الأكلشية:</span>
-                                                            <span className="font-black text-slate-900">${(order.clicheCost || 0).toLocaleString()}</span>
+                                                            <span className="font-black text-slate-900">${(order.clicheCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1778,29 +1825,29 @@ ${logoBlock}
                                                 {/* Totals and Profit */}
                                                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
                                                     {(() => {
-                                                        const raw = order.quantity * (order.pricePerKg || 0);
-                                                        const pr = order.quantity * (order.printingCostPerKg || 0);
-                                                        const cu = order.quantity * (order.cuttingCostPerKg || 0);
+                                                        const raw = safeMath.multiply(order.quantity, order.pricePerKg || 0);
+                                                        const pr = safeMath.multiply(order.quantity, order.printingCostPerKg || 0);
+                                                        const cu = safeMath.multiply(order.quantity, order.cuttingCostPerKg || 0);
                                                         const cl = parseFloat(order.clicheCost) || 0;
-                                                        const sub = raw + pr + cu + cl;
+                                                        const sub = safeMath.add(safeMath.add(safeMath.add(raw, pr), cu), cl);
                                                         const margin = parseFloat(order.profitMargin) || 0;
-                                                        const profit = order.quantity * margin;
-                                                        const grandTotal = sub + profit;
+                                                        const profit = safeMath.multiply(order.quantity, margin);
+                                                        const grandTotal = safeMath.add(sub, profit);
 
                                                         return (
                                                             <>
                                                                 <div className="flex justify-between items-center text-xs">
                                                                     <span className="text-slate-500 font-bold">إجمالي التكلفة:</span>
-                                                                    <span className="font-bold text-slate-700">${sub.toLocaleString()}</span>
+                                                                    <span className="font-bold text-slate-700">${sub.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                                                 </div>
                                                                 <div className="flex justify-between items-center text-xs text-emerald-600">
                                                                     <span className="font-bold">قيمة الربح ({margin} ج/كجم):</span>
-                                                                    <span className="font-bold">${profit.toLocaleString()}</span>
+                                                                    <span className="font-bold">${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                                                 </div>
                                                                 <div className="flex justify-between items-center pt-2 border-t border-slate-100">
                                                                     <span className="text-sm font-black text-[#5235E8]">الإجمالي النهائي:</span>
                                                                     <span className="text-lg font-black text-[#5235E8] px-3 py-1 bg-[#5235E8] bg-opacity-10 rounded-lg">
-                                                                        ${grandTotal.toLocaleString()}
+                                                                        ${grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                                                     </span>
                                                                 </div>
                                                             </>
