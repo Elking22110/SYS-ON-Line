@@ -636,13 +636,7 @@ const CustomerOrders = () => {
         const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
         const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
 
-        const qty      = parseFloat(order.quantity)          || 0;
-        const price    = parseFloat(order.pricePerKg)        || 0;
-        const printing = parseFloat(order.printingCostPerKg) || 0;
-        const cutting  = parseFloat(order.cuttingCostPerKg)  || 0;
-        const cliche   = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
-        const margin   = parseFloat(order.profitMargin)      || 0;
-        const grandTotal = (qty * price) + (qty * printing) + (qty * cutting) + cliche + (qty * margin);
+        const grandTotal = calculateOrderTotal(order);
 
         const logoBlock = storeLogo
             ? `<div style="text-align:center;margin-bottom:18px"><img src="${storeLogo}" style="max-height:70px;max-width:100%;object-fit:contain"/></div>`
