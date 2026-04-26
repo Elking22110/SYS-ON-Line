@@ -490,6 +490,7 @@ const ClichesInventory = () => {
                                         onChange={e => setEditForm({ ...editForm, length: e.target.value })}
                                         className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg"
                                         placeholder="طول"
+                                        dir="ltr"
                                     />
                                 </div>
                                 <div>
@@ -500,6 +501,7 @@ const ClichesInventory = () => {
                                         onChange={e => setEditForm({ ...editForm, width: e.target.value })}
                                         className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg"
                                         placeholder="عرض"
+                                        dir="ltr"
                                     />
                                 </div>
                             </div>

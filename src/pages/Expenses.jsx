@@ -409,12 +409,12 @@ const Expenses = () => {
                                     <input
                                         type="number"
                                         name="amount"
-                                        min="0"
                                         step="any"
                                         value={formData.amount}
                                         onChange={handleInputChange}
-                                        className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none direction-ltr font-bold text-xl text-right pr-12 transition-colors focus:bg-white"
+                                        className="w-full bg-slate-50 text-slate-800 rounded-xl p-3 border border-slate-300 focus:border-purple-500 outline-none font-bold text-xl text-right pr-12 transition-colors focus:bg-white"
                                         placeholder="0.00"
+                                        dir="ltr"
                                         autoComplete="off"
                                         required
                                     />

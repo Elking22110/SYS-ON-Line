@@ -893,11 +893,11 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                 </div>
                 <input
                   type="number"
-                  min="1"
                   placeholder="3"
+                  dir="ltr"
                   value={formData.colorCount}
                   onChange={(e) => setFormData({ ...formData, colorCount: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right direction-ltr border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
             </div>
@@ -914,6 +914,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                 <input
                   type="number"
                   placeholder="مثال: 30"
+                  dir="ltr"
                   value={formData.sizeWidth}
                   onChange={(e) => setFormData({ ...formData, sizeWidth: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
@@ -929,6 +930,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                 <input
                   type="number"
                   placeholder="مثال: 40"
+                  dir="ltr"
                   value={formData.sizeHeight}
                   onChange={(e) => setFormData({ ...formData, sizeHeight: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
@@ -969,6 +971,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                     <input
                       type="number"
                       placeholder="مثال: 30"
+                      dir="ltr"
                       value={size.width || ''}
                       onChange={(e) => handleSizeChange(size.id, 'width', e.target.value)}
                       className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 focus:bg-white"
@@ -979,6 +982,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                     <input
                       type="number"
                       placeholder="مثال: 40"
+                      dir="ltr"
                       value={size.length || size.height || ''}
                       onChange={(e) => handleSizeChange(size.id, 'length', e.target.value)}
                       className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 focus:bg-white"
@@ -1012,6 +1016,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                 <input
                   type="number"
                   placeholder="مثال: 60"
+                  dir="ltr"
                   value={formData.clicheWidth}
                   onChange={(e) => setFormData({ ...formData, clicheWidth: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
@@ -1027,6 +1032,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                 <input
                   type="number"
                   placeholder="مثال: 40"
+                  dir="ltr"
                   value={formData.clicheHeight}
                   onChange={(e) => setFormData({ ...formData, clicheHeight: e.target.value })}
                   className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"

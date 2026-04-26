@@ -831,9 +831,9 @@ const SupplierDetails = () => {
                                     <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">الكمية (كجم)</label>
                                     <input
                                         type="number"
-                                        min="0"
                                         step="any"
                                         placeholder="0.00"
+                                        dir="ltr"
                                         value={newSupply.quantity}
                                         onChange={(e) => setNewSupply({ ...newSupply, quantity: e.target.value })}
                                         className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold"
@@ -843,9 +843,9 @@ const SupplierDetails = () => {
                                     <label className="block text-sm font-bold text-slate-700 mb-2">سعر الكيلو</label>
                                     <input
                                         type="number"
-                                        min="0"
                                         step="any"
                                         placeholder="0.00"
+                                        dir="ltr"
                                         value={newSupply.unitPrice}
                                         onChange={(e) => setNewSupply({ ...newSupply, unitPrice: e.target.value })}
                                         className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold"
@@ -863,9 +863,9 @@ const SupplierDetails = () => {
                                     <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ المدفوع</label>
                                     <input
                                         type="number"
-                                        min="0"
                                         step="any"
                                         placeholder="0.00"
+                                        dir="ltr"
                                         value={newSupply.paidAmount}
                                         onChange={(e) => setNewSupply({ ...newSupply, paidAmount: e.target.value })}
                                         className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-right text-emerald-600 font-bold"
@@ -961,9 +961,9 @@ const SupplierDetails = () => {
                                 <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ المسدد</label>
                                 <input
                                     type="number"
-                                    min="0"
                                     step="any"
                                     placeholder="0.00"
+                                    dir="ltr"
                                     value={newPayment.amount}
                                     onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
                                     className="w-full px-4 py-4 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-right font-black text-2xl text-emerald-600"

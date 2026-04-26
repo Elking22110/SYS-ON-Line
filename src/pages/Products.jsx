@@ -1256,10 +1256,12 @@ const Products = () => {
                   <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">السعر</label>
                   <input
                     type="number"
+                    step="any"
                     value={newProduct.price}
                     onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
                     className="input-modern w-full px-3 md:px-4 py-3 md:py-4 text-base md:text-lg text-right font-medium"
                     placeholder="0.00"
+                    dir="ltr"
                   />
                 </div>
               </div>
@@ -1282,20 +1284,24 @@ const Products = () => {
                   <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">عدد البكر</label>
                   <input
                     type="number"
+                    step="any"
                     value={newProduct.stock}
                     onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
                     className="input-modern w-full px-3 md:px-4 py-3 md:py-4 text-base md:text-lg text-right font-medium"
                     placeholder="0"
+                    dir="ltr"
                   />
                 </div>
                 <div>
                   <label className="block text-sm md:text-base font-semibold text-purple-200 mb-2">الوزن الإجمالي</label>
                   <input
                     type="number"
+                    step="any"
                     value={newProduct.minStock}
                     onChange={(e) => setNewProduct({ ...newProduct, minStock: e.target.value })}
                     className="input-modern w-full px-3 md:px-4 py-3 md:py-4 text-base md:text-lg text-right font-medium"
                     placeholder="0"
+                    dir="ltr"
                   />
                 </div>
               </div>

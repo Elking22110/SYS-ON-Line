@@ -1015,11 +1015,11 @@ const Settings = () => {
           <label className="block text-sm font-medium text-slate-600 mb-2">ربح الطلب الافتراضي بالجنيه (للكيلو)</label>
           <input
             type="number"
-            min="0"
             step="any"
             value={settings.orderProfitMargin}
             onChange={(e) => handleSettingChange('orderProfitMargin', parseFloat(e.target.value) || 0)}
             className="input-modern w-full px-3 py-2 text-right"
+            dir="ltr"
           />
         </div>
       </div>

@@ -187,6 +187,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <div>
                                 <input
                                     type="number" step="any" placeholder="العرض الأساسي (سم)"
+                                    dir="ltr"
                                     value={form.sizeWidth} onChange={e => setForm({ ...form, sizeWidth: e.target.value })}
                                     className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                                 />
@@ -194,6 +195,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <div>
                                 <input
                                     type="number" step="any" placeholder="الطول الأساسي (سم)"
+                                    dir="ltr"
                                     value={form.sizeHeight} onChange={e => setForm({ ...form, sizeHeight: e.target.value })}
                                     className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                                 />
@@ -203,6 +205,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                             <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-center mt-2 relative">
                                 <input
                                     type="number" step="any" placeholder={`عرض مقاس ${idx + 2} (سم)`}
+                                    dir="ltr"
                                     value={s.width}
                                     onChange={e => {
                                         const newSizes = [...form.sizes];
@@ -213,6 +216,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 />
                                 <input
                                     type="number" step="any" placeholder={`طول مقاس ${idx + 2} (سم)`}
+                                    dir="ltr"
                                     value={s.height}
                                     onChange={e => {
                                         const newSizes = [...form.sizes];
@@ -1530,7 +1534,8 @@ ${logoBlock}
                                         <input
                                             type="number"
                                             placeholder="طول"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center"
+                                            dir="ltr"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
                                             value={clicheForm.length}
                                             onChange={e => setClicheForm({ ...clicheForm, length: e.target.value })}
                                         />
@@ -1540,7 +1545,8 @@ ${logoBlock}
                                         <input
                                             type="number"
                                             placeholder="عرض"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center"
+                                            dir="ltr"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
                                             value={clicheForm.width}
                                             onChange={e => setClicheForm({ ...clicheForm, width: e.target.value })}
                                         />
@@ -1590,7 +1596,8 @@ ${logoBlock}
                                         <input
                                             type="number"
                                             placeholder="مثال: 30"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                                            dir="ltr"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
                                             value={sizeForm.width}
                                             onChange={e => setSizeForm({ ...sizeForm, width: e.target.value })}
                                         />
@@ -1600,7 +1607,8 @@ ${logoBlock}
                                         <input
                                             type="number"
                                             placeholder="مثال: 40"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                                            dir="ltr"
+                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
                                             value={sizeForm.height}
                                             onChange={e => setSizeForm({ ...sizeForm, height: e.target.value })}
                                         />
@@ -1980,11 +1988,11 @@ ${logoBlock}
                                 <input
                                     type="number"
                                     step="any"
-                                    min="0"
                                     placeholder="مثال: 45"
+                                    dir="ltr"
                                     value={netDeliveredQuantity}
                                     onChange={(e) => setNetDeliveredQuantity(e.target.value)}
-                                    className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white direction-ltr"
+                                    className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white"
                                     autoFocus
                                 />
                                 <p className="text-xs text-slate-500 mt-2">
@@ -2000,11 +2008,11 @@ ${logoBlock}
                                         <input
                                             type="number"
                                             step="any"
-                                            min="0"
                                             placeholder="المبلغ (ج.م)"
+                                            dir="ltr"
                                             value={completionPaymentAmount}
                                             onChange={(e) => setCompletionPaymentAmount(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2.5 text-center text-lg font-bold border-2 border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50 direction-ltr"
+                                            className="w-full pl-10 pr-4 py-2.5 text-center text-lg font-bold border-2 border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50"
                                         />
                                     </div>
                                     <select
