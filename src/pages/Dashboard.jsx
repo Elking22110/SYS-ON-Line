@@ -81,14 +81,20 @@ const Dashboard = () => {
       customers.forEach(c => customerDebtMap[c.id] = { id: c.id, name: c.name, totalOrders: 0, totalPayments: 0, netDebt: 0 });
       
       allOrders.forEach(o => {
-        if (customerDebtMap[o.customerId]) {
+        if (customerDebtMap[o.customerId] && o.status === 'CLOSED') {
           const q = (parseFloat(o.quantity) || 0);
-          const raw = q * (parseFloat(o.pricePerKg) || 0);
-          const pt = q * (parseFloat(o.printingCostPerKg) || 0);
-          const ct = q * (parseFloat(o.cuttingCostPerKg) || 0);
+          const raw = safeMath.multiply(q, parseFloat(o.pricePerKg) || 0);
+          const pt = safeMath.multiply(q, parseFloat(o.printingCostPerKg) || 0);
+          const ct = safeMath.multiply(q, parseFloat(o.cuttingCostPerKg) || 0);
           const cl = parseFloat(o.clicheCost) || 0;
-          const profit = q * (parseFloat(o.profitMargin) || 0);
-          customerDebtMap[o.customerId].totalOrders += (raw + pt + ct + cl + profit);
+          const profit = safeMath.multiply(q, parseFloat(o.profitMargin) || 0);
+          
+          const orderTotal = safeMath.add(
+            safeMath.add(safeMath.add(raw, pt), ct),
+            safeMath.add(cl, profit)
+          );
+          
+          customerDebtMap[o.customerId].totalOrders = safeMath.add(customerDebtMap[o.customerId].totalOrders, orderTotal);
         }
       });
       allPayments.forEach(p => {
@@ -98,7 +104,7 @@ const Dashboard = () => {
       });
       
       const details = Object.values(customerDebtMap).map(c => {
-        c.netDebt = Math.max(0, c.totalOrders - c.totalPayments);
+        c.netDebt = Math.max(0, safeMath.subtract(c.totalOrders, c.totalPayments));
         return c;
       }).filter(c => c.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
 
@@ -228,19 +234,25 @@ const Dashboard = () => {
         .filter(o => o.status === 'CLOSED' && validCustomerIds.has(String(o.customerId)))
         .reduce((sum, o) => {
           const q = (parseFloat(o.quantity) || 0);
-          const raw = q * (parseFloat(o.pricePerKg) || 0);
-          const pt = q * (parseFloat(o.printingCostPerKg) || 0);
-          const ct = q * (parseFloat(o.cuttingCostPerKg) || 0);
+          const raw = safeMath.multiply(q, parseFloat(o.pricePerKg) || 0);
+          const pt = safeMath.multiply(q, parseFloat(o.printingCostPerKg) || 0);
+          const ct = safeMath.multiply(q, parseFloat(o.cuttingCostPerKg) || 0);
           const cl = parseFloat(o.clicheCost) || 0;
-          const profit = q * (parseFloat(o.profitMargin) || 0);
-          return sum + raw + pt + ct + cl + profit;
+          const profit = safeMath.multiply(q, parseFloat(o.profitMargin) || 0);
+          
+          const orderTotal = safeMath.add(
+            safeMath.add(safeMath.add(raw, pt), ct),
+            safeMath.add(cl, profit)
+          );
+          
+          return safeMath.add(sum, orderTotal);
         }, 0);
       
       const totalCustomerPaymentsValue = customerPayments
         .filter(p => validCustomerIds.has(String(p.customerId)))
         .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
       
-      const totalCustomerDebt = Math.max(0, totalOrdersValue - totalCustomerPaymentsValue);
+      const totalCustomerDebt = Math.max(0, safeMath.subtract(totalOrdersValue, totalCustomerPaymentsValue));
 
       // 8. Daily, Monthly and Shift Expenses Calculation
       const activeShiftForExpenses = storageOptimizer.get('activeShift', null);

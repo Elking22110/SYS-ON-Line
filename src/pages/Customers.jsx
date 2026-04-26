@@ -90,26 +90,26 @@ const Customers = () => {
         const ordersCount = customerOrders.length; // Keep total order count for activity reference
 
         const totalSpentAmount = closedOrders.reduce((sum, o) => {
-          if (o.totalPrice) return sum + (parseFloat(o.totalPrice) || 0);
+          if (o.totalPrice) return safeMath.add(sum, parseFloat(o.totalPrice) || 0);
 
           const qty = parseFloat(o.quantity) || 0;
-          const productTotal = qty * (parseFloat(o.pricePerKg) || 0);
-          const printingTotal = qty * (parseFloat(o.printingCostPerKg) || 0);
-          const cuttingTotal = qty * (parseFloat(o.cuttingCostPerKg) || 0);
+          const productTotal = safeMath.multiply(qty, parseFloat(o.pricePerKg) || 0);
+          const printingTotal = safeMath.multiply(qty, parseFloat(o.printingCostPerKg) || 0);
+          const cuttingTotal = safeMath.multiply(qty, parseFloat(o.cuttingCostPerKg) || 0);
           const clicheTotal = parseFloat(o.clicheCost) || 0;
           
-          const subtotal = productTotal + printingTotal + cuttingTotal + clicheTotal;
+          const subtotal = safeMath.add(safeMath.add(productTotal, printingTotal), safeMath.add(cuttingTotal, clicheTotal));
           const margin = parseFloat(o.profitMargin) || 0;
-          const profit = qty * margin;
+          const profit = safeMath.multiply(qty, margin);
           
-          return sum + subtotal + profit;
+          return safeMath.add(sum, safeMath.add(subtotal, profit));
         }, 0);
 
         const lastOrder = [...customerOrders].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0];
         const lastVisitDate = lastOrder ? lastOrder.date : (customer.lastVisit || null);
 
-        const totalQuantity = closedOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0);
-        const totalWaste = closedOrders.reduce((sum, o) => sum + (parseFloat(o.wasteQuantity) || 0), 0);
+        const totalQuantity = closedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.quantity) || 0), 0);
+        const totalWaste = closedOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.wasteQuantity) || 0), 0);
 
         let status = customer.status || 'جديد';
         if (totalQuantity >= 5000) status = 'VIP'; // الوصول لـ 5 طن
