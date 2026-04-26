@@ -427,6 +427,8 @@ class SupabaseService {
             { name: 'Supplier', event: EVENTS.SUPPLIERS_CHANGED, storageKey: 'suppliers' },
             { name: 'CustomerOrder', event: EVENTS.CUSTOMER_ORDERS_CHANGED, storageKey: 'customer_orders' },
             { name: 'CustomerPayment', event: EVENTS.CUSTOMER_PAYMENTS_CHANGED, storageKey: 'customer_payments' },
+            { name: 'SupplierSupply', event: EVENTS.SUPPLIER_SUPPLIES_CHANGED, storageKey: 'supplier_supplies' },
+            { name: 'SupplierPayment', event: EVENTS.SUPPLIER_PAYMENTS_CHANGED, storageKey: 'supplier_payments' },
             { name: 'Setting', event: 'settings_changed', storageKey: null }, // Handle specially
             { name: 'User', event: 'users_changed', storageKey: 'users' }
         ];
@@ -534,6 +536,9 @@ class SupabaseService {
             { name: 'الموردين', key: 'suppliers', fetch: () => this.getSuppliers() },
             { name: 'المصروفات', key: 'expenses', fetch: () => this.getExpenses() },
             { name: 'الورديات', key: 'shifts', fetch: () => this.getShifts() },
+            { name: 'الموردين', key: 'suppliers', fetch: () => this.getSuppliers() },
+            { name: 'توريدات الموردين', key: 'supplier_supplies', fetch: () => this.getAllSupplierSupplies() },
+            { name: 'مدفوعات الموردين', key: 'supplier_payments', fetch: () => this.getAllSupplierPayments() },
             { name: 'المستخدمين', key: 'users', fetch: () => this.getUsers() },
             { name: 'الإعدادات', key: 'settings', fetch: () => this.getSettings() }
         ];
@@ -1325,6 +1330,127 @@ class SupabaseService {
             return true;
         } catch (error) {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteCustomerPayment', [id]);
+            throw error;
+        }
+    }
+
+    // ─── SUPPLIER SUPPLIES ──────────────────────────────────────────────────
+    async getSupplierSupplies(supplierId) {
+        try {
+            const { data } = await supabase.from('SupplierSupply').select('*').eq('supplierId', supplierId);
+            return data || [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    async getAllSupplierSupplies() {
+        try {
+            const { data } = await supabase.from('SupplierSupply').select('*');
+            return data || [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    async addSupplierSupply(supplyData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('addSupplierSupply', [supplyData], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const payload = {
+                id: supplyData.id?.toString() || Date.now().toString(),
+                supplyNumber: supplyData.supplyNumber || '',
+                supplierId: supplyData.supplierId?.toString(),
+                supplierName: supplyData.supplierName || '',
+                date: supplyData.date || new Date().toISOString().split('T')[0],
+                productName: supplyData.productName || '',
+                quantity: sanitizeNumerical(supplyData.quantity, 0),
+                unitPrice: sanitizeNumerical(supplyData.unitPrice, 0),
+                totalPrice: sanitizeNumerical(supplyData.totalPrice, 0),
+                paidAmount: sanitizeNumerical(supplyData.paidAmount, 0),
+                remainingAmount: sanitizeNumerical(supplyData.remainingAmount, 0),
+                remainingQuantity: sanitizeNumerical(supplyData.remainingQuantity, 0),
+                wasteQuantity: sanitizeNumerical(supplyData.wasteQuantity, 0),
+                shiftId: supplyData.shiftId || null,
+                linkedOrderId: supplyData.linkedOrderId || null,
+                linkedOrderNumber: supplyData.linkedOrderNumber || null,
+                linkedCustomerName: supplyData.linkedCustomerName || null,
+                linkedCustomerId: supplyData.linkedCustomerId || null,
+                createdAt: new Date().toISOString()
+            };
+            const { data: res, error } = await supabase.from('SupplierSupply').upsert(payload).select().single();
+            if (error) throw error;
+            return res;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addSupplierSupply', [supplyData]);
+            throw error;
+        }
+    }
+
+    async deleteSupplierSupply(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteSupplierSupply', [id], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const { error } = await supabase.from('SupplierSupply').delete().eq('id', id.toString());
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteSupplierSupply', [id]);
+            throw error;
+        }
+    }
+
+    // ─── SUPPLIER PAYMENTS ──────────────────────────────────────────────────
+    async getSupplierPayments(supplierId) {
+        try {
+            const { data } = await supabase.from('SupplierPayment').select('*').eq('supplierId', supplierId);
+            return data || [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    async getAllSupplierPayments() {
+        try {
+            const { data } = await supabase.from('SupplierPayment').select('*');
+            return data || [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    async addSupplierPayment(paymentData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('addSupplierPayment', [paymentData], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const payload = {
+                id: paymentData.id?.toString() || Date.now().toString(),
+                supplierId: paymentData.supplierId?.toString(),
+                amount: sanitizeNumerical(paymentData.amount, 0),
+                date: paymentData.date || new Date().toISOString().split('T')[0],
+                paymentMethod: paymentData.paymentMethod || 'نقدي',
+                shiftId: paymentData.shiftId || null,
+                notes: paymentData.notes || '',
+                createdAt: new Date().toISOString()
+            };
+            const { data: res, error } = await supabase.from('SupplierPayment').upsert(payload).select().single();
+            if (error) throw error;
+            return res;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addSupplierPayment', [paymentData]);
+            throw error;
+        }
+    }
+
+    async deleteSupplierPayment(id, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('deleteSupplierPayment', [id], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const { error } = await supabase.from('SupplierPayment').delete().eq('id', id.toString());
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteSupplierPayment', [id]);
             throw error;
         }
     }

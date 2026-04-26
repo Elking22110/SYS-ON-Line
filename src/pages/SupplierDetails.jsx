@@ -218,10 +218,10 @@ const SupplierDetails = () => {
         localStorage.setItem('products', JSON.stringify(productsData));
         publish(EVENTS.PRODUCTS_CHANGED, { type: 'add' });
 
-        // Sync supply arrays to cloud setting
+        // Sync supply to dedicated table
         try {
-            await supabaseService.updateSetting('supplier_supplies', JSON.stringify(allSupplies));
-        } catch (e) { console.error('Failed to sync supplies list to cloud', e); }
+            await supabaseService.addSupplierSupply(supply);
+        } catch (e) { console.error('Failed to sync supply to cloud', e); }
 
         // Update supplier global stats
         updateSupplierStats(id, totalPrice);
@@ -422,8 +422,8 @@ const SupplierDetails = () => {
         localStorage.setItem('supplier_payments', JSON.stringify(allPayments));
 
         try {
-            await supabaseService.updateSetting('supplier_payments', JSON.stringify(allPayments));
-        } catch (e) { console.error('Failed to sync payments list to cloud', e); }
+            await supabaseService.addSupplierPayment(payment);
+        } catch (e) { console.error('Failed to sync payment to cloud', e); }
 
         publish(EVENTS.SUPPLIERS_CHANGED, { type: 'add_payment' });
 
@@ -443,7 +443,7 @@ const SupplierDetails = () => {
                 localStorage.setItem('supplier_supplies', JSON.stringify(filteredSupplies));
 
                 try {
-                    await supabaseService.updateSetting('supplier_supplies', JSON.stringify(filteredSupplies));
+                    await supabaseService.deleteSupplierSupply(supplyId);
                 } catch (e) { }
 
                 // Remove linked product if exists
@@ -473,7 +473,7 @@ const SupplierDetails = () => {
             localStorage.setItem('supplier_payments', JSON.stringify(filteredPayments));
 
             try {
-                await supabaseService.updateSetting('supplier_payments', JSON.stringify(filteredPayments));
+                await supabaseService.deleteSupplierPayment(paymentId);
             } catch (e) { }
 
             publish(EVENTS.SUPPLIERS_CHANGED, { type: 'delete_payment' });
