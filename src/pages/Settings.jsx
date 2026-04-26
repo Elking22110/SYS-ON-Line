@@ -88,6 +88,11 @@ const Settings = () => {
   useEffect(() => {
     loadSettingsFromSupabase();
 
+    // إضافة مستمعي التحديث اللحظي
+    const onDataUpdate = () => loadSettingsFromSupabase();
+    window.addEventListener('dataUpdated', onDataUpdate);
+    window.addEventListener('storage', onDataUpdate);
+
     // تطبيق المظهر المحفوظ
     if (settings.theme) {
       applyTheme(settings.theme);
@@ -112,6 +117,11 @@ const Settings = () => {
     if (settings.soundVolume !== undefined) {
       soundManager.setVolume(settings.soundVolume);
     }
+
+    return () => {
+      window.removeEventListener('dataUpdated', onDataUpdate);
+      window.removeEventListener('storage', onDataUpdate);
+    };
   }, []);
   const [users, setUsers] = useState([]);
 
@@ -137,6 +147,13 @@ const Settings = () => {
 
   useEffect(() => {
     loadUsersFromSupabase();
+    
+    const onUsersUpdate = () => loadUsersFromSupabase();
+    window.addEventListener('dataUpdated', onUsersUpdate);
+    
+    return () => {
+      window.removeEventListener('dataUpdated', onUsersUpdate);
+    };
   }, []);
   const [loading, setLoading] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);

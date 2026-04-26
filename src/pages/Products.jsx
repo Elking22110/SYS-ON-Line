@@ -257,6 +257,18 @@ const Products = () => {
     };
 
     loadAllData();
+
+    // إضافة مستمعي التحديث اللحظي
+    const onDataUpdate = () => loadAllData();
+    window.addEventListener('dataUpdated', onDataUpdate);
+    window.addEventListener('storage', onDataUpdate);
+    const unsubProducts = typeof subscribe === 'function' ? subscribe(EVENTS.PRODUCTS_CHANGED, onDataUpdate) : null;
+
+    return () => {
+      window.removeEventListener('dataUpdated', onDataUpdate);
+      window.removeEventListener('storage', onDataUpdate);
+      if (typeof unsubProducts === 'function') unsubProducts();
+    };
   }, []);
 
   // بذرة بيانات أساسية (حقيقية) مرة واحدة فقط إذا كانت القوائم فارغة ولم تُستورد بيانات
