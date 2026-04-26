@@ -374,7 +374,7 @@ const Dashboard = () => {
       // Distribution Calculation
       const dailySupplyQty = allSupplies
         .filter(s => (s.date || '').split('T')[0] === today)
-        .reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0);
+        .reduce((sum, s) => safeMath.add(sum, parseFloat(s.quantity) || 0), 0);
 
       const totalStockValue = products.reduce((sum, p) => {
         const price = parseFloat(p.price) || 0;
@@ -391,7 +391,7 @@ const Dashboard = () => {
         totalStockValue: totalStockValue,
         totalSupplierDebt,
         totalCustomerDebt,
-        todayNetQuantity: todayCLOSEDOrders.reduce((sum, o) => sum + (parseFloat(o.quantity) || 0), 0)
+        todayNetQuantity: todayCLOSEDOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.quantity) || 0), 0)
       });
 
       setRecentOrders(recent);
