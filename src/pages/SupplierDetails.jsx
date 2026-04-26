@@ -47,6 +47,8 @@ const SupplierDetails = () => {
         linkedOrderId: ''
     });
 
+    const [editingSupply, setEditingSupply] = useState(null);
+
     const [newPayment, setNewPayment] = useState({
         amount: '',
         paymentMethod: 'نقدي',
@@ -153,7 +155,7 @@ const SupplierDetails = () => {
 
     const totalRemaining = safeMath.subtract(calculateTotalSuppliesValue(), calculateTotalPaid());
 
-    // Handle adding a new supply
+    // Handle adding or updating a supply
     const handleAddSupply = async () => {
         if (!newSupply.productName || !newSupply.quantity || !newSupply.unitPrice) {
             alert("يرجى ملء جميع الحقول المطلوبة للتوريدة");
@@ -172,96 +174,154 @@ const SupplierDetails = () => {
         const totalPrice = safeMath.multiply(qty, price);
         const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
 
-        // Generate sequential supply number (e.g. SUP-101)
-        const generateSupplyNumber = () => {
-            const maxNum = allSupplies.reduce((max, s) => {
-                const num = parseInt((s.supplyNumber || '').replace('SUP-', '')) || 0;
-                return Math.max(max, num);
-            }, 100);
-            return `SUP-${maxNum + 1}`;
-        };
+        if (editingSupply) {
+            // UPDATE LOGIC
+            const oldPrice = editingSupply.totalPrice;
+            const diff = safeMath.subtract(totalPrice, oldPrice);
 
-        const activeShiftForSupply = JSON.parse(localStorage.getItem('activeShift') || 'null');
-        const supply = {
-            id: Date.now(),
-            supplyNumber: generateSupplyNumber(),
-            supplierId: id,
-            supplierName: supplier?.name || '',
-            date: getCurrentDate().split('T')[0],
-            productName: newSupply.productName,
-            quantity: qty,
-            unitPrice: price,
-            totalPrice: totalPrice,
-            paidAmount: paid,
-            remainingAmount: safeMath.subtract(totalPrice, paid),
-            remainingQuantity: qty,
-            wasteQuantity: 0,
-            shiftId: activeShiftForSupply?.id || null,
-            // Order linking
-            linkedOrderId: newSupply.linkedOrderId || null,
-            linkedOrderNumber: newSupply.linkedOrderId
-                ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.orderNumber || null
-                : null,
-            linkedCustomerName: newSupply.linkedOrderId
-                ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerName || null
-                : null,
-            linkedCustomerId: newSupply.linkedOrderId
-                ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerId || null
-                : null,
-        };
+            const updatedSupply = {
+                ...editingSupply,
+                productName: newSupply.productName,
+                quantity: qty,
+                unitPrice: price,
+                totalPrice: totalPrice,
+                paidAmount: paid,
+                remainingAmount: safeMath.subtract(totalPrice, paid),
+                // Note: we reset remainingQuantity to new qty for simplicity in raw material management
+                remainingQuantity: qty, 
+                linkedOrderId: newSupply.linkedOrderId || null,
+                linkedOrderNumber: newSupply.linkedOrderId
+                    ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.orderNumber || null
+                    : null,
+                linkedCustomerName: newSupply.linkedOrderId
+                    ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerName || null
+                    : null,
+                linkedCustomerId: newSupply.linkedOrderId
+                    ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerId || null
+                    : null,
+            };
 
-        allSupplies.push(supply);
-        localStorage.setItem('supplier_supplies', JSON.stringify(allSupplies));
+            const updatedAllSupplies = allSupplies.map(s => s.id === editingSupply.id ? updatedSupply : s);
+            localStorage.setItem('supplier_supplies', JSON.stringify(updatedAllSupplies));
 
-        // Auto-create Product in POS Catalog
-        const productsData = JSON.parse(localStorage.getItem('products') || '[]');
-        // We'll create a unique product per supply or update if same name exists
-        // Here, creating a new product per supply is better for the Supply Link feature, 
-        // but to avoid clutter we can also just create it with a unique ID matching the supply ID
-        const newProduct = {
-            id: `supply_${supply.id}`,
-            name: newSupply.productName,
-            price: price, // Base raw price
-            costPrice: price, // For profit calc
-            quantity: qty, // Prisma maps quantity back to stock in UI sometimes, wait, supabaseService expects 'stock' in addProduct
-            stock: qty,
-            minStock: 0,
-            category: 'خامات توريد', // default category
-            isSupplyProduct: true,
-            supplyId: supply.id,
-            supplierId: id,
-            barcode: '',
-            status: 'active'
-        };
+            // Sync to Cloud
+            try {
+                await supabaseService.updateSupplierSupply(editingSupply.id, updatedSupply);
+            } catch (e) { console.error('Failed to sync updated supply to cloud', e); }
 
-        try {
-            await supabaseService.addProduct(newProduct);
-        } catch (e) {
-            console.error('Failed to sync new supply product to supabase', e);
+            // Update associated Product
+            const productsData = JSON.parse(localStorage.getItem('products') || '[]');
+            const productIndex = productsData.findIndex(p => p.supplyId === editingSupply.id);
+            if (productIndex !== -1) {
+                productsData[productIndex] = {
+                    ...productsData[productIndex],
+                    name: updatedSupply.productName,
+                    price: price,
+                    costPrice: price,
+                    stock: qty
+                };
+                localStorage.setItem('products', JSON.stringify(productsData));
+                try {
+                    await supabaseService.updateProduct(`supply_${editingSupply.id}`, productsData[productIndex]);
+                } catch (e) { }
+            }
+
+            // Update supplier stats with DIFF
+            if (diff !== 0) {
+                updateSupplierStats(id, diff, false); 
+            }
+
+            toast.success('تم تحديث التوريدة بنجاح');
+            setEditingSupply(null);
+        } else {
+            // CREATE LOGIC
+            const generateSupplyNumber = () => {
+                const maxNum = allSupplies.reduce((max, s) => {
+                    const num = parseInt((s.supplyNumber || '').replace('SUP-', '')) || 0;
+                    return Math.max(max, num);
+                }, 100);
+                return `SUP-${maxNum + 1}`;
+            };
+
+            const activeShiftForSupply = JSON.parse(localStorage.getItem('activeShift') || 'null');
+            const supply = {
+                id: Date.now(),
+                supplyNumber: generateSupplyNumber(),
+                supplierId: id,
+                supplierName: supplier?.name || '',
+                date: getCurrentDate().split('T')[0],
+                productName: newSupply.productName,
+                quantity: qty,
+                unitPrice: price,
+                totalPrice: totalPrice,
+                paidAmount: paid,
+                remainingAmount: safeMath.subtract(totalPrice, paid),
+                remainingQuantity: qty,
+                wasteQuantity: 0,
+                shiftId: activeShiftForSupply?.id || null,
+                linkedOrderId: newSupply.linkedOrderId || null,
+                linkedOrderNumber: newSupply.linkedOrderId
+                    ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.orderNumber || null
+                    : null,
+                linkedCustomerName: newSupply.linkedOrderId
+                    ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerName || null
+                    : null,
+                linkedCustomerId: newSupply.linkedOrderId
+                    ? openOrders.find(o => o.id.toString() === newSupply.linkedOrderId.toString())?.customerId || null
+                    : null,
+            };
+
+            allSupplies.push(supply);
+            localStorage.setItem('supplier_supplies', JSON.stringify(allSupplies));
+
+            // Auto-create Product in POS Catalog
+            const productsData = JSON.parse(localStorage.getItem('products') || '[]');
+            const newProduct = {
+                id: `supply_${supply.id}`,
+                name: newSupply.productName,
+                price: price,
+                costPrice: price,
+                stock: qty,
+                minStock: 0,
+                category: 'خامات توريد',
+                supplyId: supply.id,
+                isSupplyProduct: true,
+                supplierId: id,
+                barcode: '',
+                status: 'active'
+            };
+
+            try {
+                await supabaseService.addProduct(newProduct);
+            } catch (e) {
+                console.error('Failed to sync new supply product to supabase', e);
+            }
+
+            productsData.push(newProduct);
+            localStorage.setItem('products', JSON.stringify(productsData));
+            publish(EVENTS.PRODUCTS_CHANGED, { type: 'add' });
+
+            // Sync supply to dedicated table
+            try {
+                await supabaseService.addSupplierSupply(supply);
+            } catch (e) { console.error('Failed to sync supply to cloud', e); }
+
+            // Update supplier global stats
+            updateSupplierStats(id, totalPrice, true);
+            toast.success('تم إضافة التوريدة بنجاح');
+
+            // Auto print prompt for new supply
+            setTimeout(() => {
+                if (window.confirm('تم تسجيل التوريدة بنجاح! هل تود طباعة إيصال استلام للمورد الآن؟')) {
+                    handlePrintSupply(supply);
+                }
+            }, 600);
         }
-
-        productsData.push(newProduct);
-        localStorage.setItem('products', JSON.stringify(productsData));
-        publish(EVENTS.PRODUCTS_CHANGED, { type: 'add' });
-
-        // Sync supply to dedicated table
-        try {
-            await supabaseService.addSupplierSupply(supply);
-        } catch (e) { console.error('Failed to sync supply to cloud', e); }
-
-        // Update supplier global stats
-        updateSupplierStats(id, totalPrice);
 
         soundManager.play('save');
         setShowSupplyModal(false);
         setNewSupply({ productName: '', quantity: '', unitPrice: '', paidAmount: '0', linkedOrderId: '' });
         loadData();
-        // Auto print prompt for new supply
-        setTimeout(() => {
-            if (window.confirm('تم تسجيل التوريدة بنجاح! هل تود طباعة إيصال استلام للمورد الآن؟')) {
-                handlePrintSupply(supply);
-            }
-        }, 600);
     };
 
     // Handle Printing Supply Receipt
@@ -484,7 +544,7 @@ const SupplierDetails = () => {
                 publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete' });
 
                 // Refill supplier stats (subtraction)
-                updateSupplierStats(id, -supplyToDelete.totalPrice);
+                updateSupplierStats(id, -supplyToDelete.totalPrice, true);
 
                 soundManager.play('delete');
                 loadData();
@@ -509,19 +569,21 @@ const SupplierDetails = () => {
         }
     };
 
-    const updateSupplierStats = async (supplierId, additionalSpent) => {
+    const updateSupplierStats = async (supplierId, additionalSpent, shouldChangeOrderCount = true) => {
         const suppliersData = JSON.parse(localStorage.getItem('suppliers') || '[]');
         const index = suppliersData.findIndex(s => s.id.toString() === supplierId);
         if (index !== -1) {
             const s = suppliersData[index];
-            // If positive we add an order count (+1) and add to totalSpent, 
-            // If negative we subtract an order count (-1) and subtract from totalSpent.
             s.totalSpent = Math.max(0, safeMath.add(s.totalSpent || 0, additionalSpent));
-            if (additionalSpent > 0) {
-                s.orders = (s.orders || 0) + 1;
-            } else {
-                s.orders = Math.max(0, (s.orders || 1) - 1);
+            
+            if (shouldChangeOrderCount) {
+                if (additionalSpent > 0) {
+                    s.orders = (s.orders || 0) + 1;
+                } else {
+                    s.orders = Math.max(0, (s.orders || 1) - 1);
+                }
             }
+            
             suppliersData[index] = s;
             localStorage.setItem('suppliers', JSON.stringify(suppliersData));
 
@@ -529,10 +591,22 @@ const SupplierDetails = () => {
                 await supabaseService.updateSupplier(s.id, s);
             } catch (e) { console.error('Failed to update supplier stats to cloud', e); }
 
-            // Update local state supplier and trigger event
             setSupplier(s);
             publish(EVENTS.SUPPLIERS_CHANGED, { type: 'update' });
         }
+    };
+
+    const handleEditSupply = (supply) => {
+        setEditingSupply(supply);
+        setNewSupply({
+            productName: supply.productName,
+            quantity: supply.quantity.toString(),
+            unitPrice: supply.unitPrice.toString(),
+            paidAmount: (supply.paidAmount || 0).toString(),
+            linkedOrderId: supply.linkedOrderId ? supply.linkedOrderId.toString() : ''
+        });
+        setShowSupplyModal(true);
+        soundManager.play('openWindow');
     };
 
     if (!supplier) {
@@ -651,7 +725,12 @@ const SupplierDetails = () => {
                     </div>
                     <div className="flex space-x-3 rtl:space-x-reverse">
                         <button
-                            onClick={() => { soundManager.play('openWindow'); setShowSupplyModal(true); }}
+                            onClick={() => { 
+                                setEditingSupply(null);
+                                setNewSupply({ productName: '', quantity: '', unitPrice: '', paidAmount: '0', linkedOrderId: '' });
+                                setShowSupplyModal(true); 
+                                soundManager.play('openWindow'); 
+                            }}
                             className="btn-primary flex items-center px-4 py-2"
                         >
                             <Plus className="h-5 w-5 ml-2" />
@@ -747,6 +826,13 @@ const SupplierDetails = () => {
                                                             <Printer className="h-4 w-4" />
                                                         </button>
                                                         <button
+                                                            onClick={() => handleEditSupply(supply)}
+                                                            className="text-blue-500 hover:text-blue-400 hover:bg-blue-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                                                            title="تعديل التوريدة"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleDeleteSupply(supply.id)}
                                                             className="text-red-400 hover:text-red-300 hover:bg-red-500 hover:bg-opacity-20 p-2 rounded-lg transition-colors"
                                                             title="حذف التوريدة"
@@ -830,15 +916,22 @@ const SupplierDetails = () => {
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <Package className="h-6 w-6 text-[#5235E8]" />
-                                إضافة توريدة جديدة
+                                {editingSupply ? `تعديل توريدة: ${editingSupply.supplyNumber}` : 'إضافة توريدة جديدة'}
                             </h2>
                             <button
-                                onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); }}
+                                onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); setEditingSupply(null); }}
                                 className="text-slate-400 hover:text-slate-600 transition-colors"
                             >
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
+
+                        {editingSupply && (
+                            <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl text-blue-700 text-xs font-bold mb-4 flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                تنبيه: تعديل التوريدة سيؤثر على مديونية المورد وتكلفة المنتج المرتبط.
+                            </div>
+                        )}
 
                         <div className="space-y-5">
                             <div>
@@ -941,9 +1034,9 @@ const SupplierDetails = () => {
                                 )}
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                             <div className="flex gap-3 pt-4">
                                 <button
-                                    onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); }}
+                                    onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); setEditingSupply(null); }}
                                     className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
                                 >
                                     إلغاء
@@ -952,7 +1045,7 @@ const SupplierDetails = () => {
                                     onClick={handleAddSupply}
                                     className="flex-[2] px-4 py-3 rounded-xl bg-[#5235E8] text-white font-bold hover:bg-[#4329c3] shadow-lg shadow-[#5235E8]/20 transition-all"
                                 >
-                                    حفظ التوريدة
+                                    {editingSupply ? 'حفظ التعديلات' : 'إضافة التوريدة'}
                                 </button>
                             </div>
                         </div>

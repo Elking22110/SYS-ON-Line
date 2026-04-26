@@ -1387,6 +1387,33 @@ class SupabaseService {
         }
     }
 
+    async updateSupplierSupply(id, supplyData, options = {}) {
+        const offlineResult = await this.handleOfflineOperation('updateSupplierSupply', [id, supplyData], options);
+        if (offlineResult) return offlineResult;
+        try {
+            const payload = {
+                productName: supplyData.productName,
+                quantity: sanitizeNumerical(supplyData.quantity, 0),
+                unitPrice: sanitizeNumerical(supplyData.unitPrice, 0),
+                totalPrice: sanitizeNumerical(supplyData.totalPrice, 0),
+                paidAmount: sanitizeNumerical(supplyData.paidAmount, 0),
+                remainingAmount: sanitizeNumerical(supplyData.remainingAmount, 0),
+                remainingQuantity: sanitizeNumerical(supplyData.remainingQuantity, 0),
+                wasteQuantity: sanitizeNumerical(supplyData.wasteQuantity, 0),
+                linkedOrderId: supplyData.linkedOrderId || null,
+                linkedOrderNumber: supplyData.linkedOrderNumber || null,
+                linkedCustomerName: supplyData.linkedCustomerName || null,
+                linkedCustomerId: supplyData.linkedCustomerId || null,
+            };
+            const { data: res, error } = await supabase.from('SupplierSupply').update(payload).eq('id', id.toString()).select().single();
+            if (error) throw error;
+            return res;
+        } catch (error) {
+            if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'updateSupplierSupply', [id, supplyData]);
+            throw error;
+        }
+    }
+
     async deleteSupplierSupply(id, options = {}) {
         const offlineResult = await this.handleOfflineOperation('deleteSupplierSupply', [id], options);
         if (offlineResult) return offlineResult;
