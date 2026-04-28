@@ -374,7 +374,7 @@ const SupplierDetails = () => {
                     .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
                     .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; }
                     .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-                    .info-card .val { font-size: 12px; font-weight: 700; word-break: break-all; }
+                    .info-card .val { font-size: 12px; font-weight: 700; white-space: pre-line; line-height: 1.6; word-break: break-word; }
                     .order-strip { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(82,53,232,0.10); border-right: 5px solid #5235E8; }
                     .order-strip .ord-label { font-size: 13px; color: #6b7280; }
                     .order-strip .ord-value { font-size: 20px; font-weight: 900; color: #5235E8; }
@@ -425,8 +425,8 @@ const SupplierDetails = () => {
                         </div>
                         <div class="info-card">
                             <div class="lbl">📞 التواصل</div>
-                            <div class="val">${storePhone}</div>
-                            <div class="val" style="font-weight:500; font-size:11px; margin-top:2px; opacity:.85;">${storeEmail}</div>
+                            <div class="val">${storePhone.replace(/-/g,'\n')}</div>
+                            <div class="val" style="font-weight:500; font-size:11px; margin-top:4px; opacity:.85;">${storeEmail}</div>
                         </div>
                         <div class="info-card">
                             <div class="lbl">🏦 الرقم الضريبي</div>
