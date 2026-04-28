@@ -638,7 +638,7 @@ const CustomerOrders = () => {
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const storeName     = storeInfo.storeName     || 'Ms Group Factory';
         const storePhone    = storeInfo.storePhone    || storeInfo.phone    || '01029022006\n01102364000\n01025171668';
-        const storeAddress  = storeInfo.storeAddress  || storeInfo.address  || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
+        const storeAddress  = storeInfo.storeAddress  || storeInfo.address  || 'عزبة رستم\nبجوار هايبر مصر\nشارع عرفة الدسوقي';
         const storeLogo     = storeInfo.logo          || '';
         const storeEmail    = storeInfo.storeEmail    || 'info@msgroupplast.com';
         const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
@@ -698,9 +698,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2ff;color:#1a1a2e;p
 .co-desc{font-size:11px;opacity:.82;margin-top:3px}
 .inv-badge{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);padding:5px 18px;border-radius:50px;font-size:12px;font-weight:700;white-space:nowrap}
 .info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
-.ic{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:9px 12px}
-.ic .l{font-size:9px;opacity:.72;margin-bottom:2px;letter-spacing:.4px}
-.ic .v{font-size:11px;font-weight:700;white-space:pre-line;line-height:1.6;word-break:break-word}
+.ic{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:10px 14px;min-height:72px;display:flex;flex-direction:column;justify-content:flex-start}
+.ic .l{font-size:9px;opacity:.72;margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase}
+.ic .v{font-size:11px;font-weight:700;white-space:pre-line;line-height:1.7;word-break:break-word}
 .strip{background:#fff;border-radius:12px;padding:12px 18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(82,53,232,.1);border-right:5px solid #5235E8}
 .strip .ol{font-size:12px;color:#6b7280}
 .strip .ov{font-size:20px;font-weight:900;color:#5235E8}
@@ -738,7 +738,7 @@ ${logoBlock}
   <div class="info-grid">
     <div class="ic"><div class="l">🏦 الرقم الضريبي</div><div class="v">${storeTaxNumber}</div></div>
     <div class="ic"><div class="l">📞 التواصل</div><div class="v">${storePhone.replace(/-/g,'\n')}</div><div class="v" style="font-weight:500;font-size:10px;margin-top:4px;opacity:.8">${storeEmail}</div></div>
-    <div class="ic"><div class="l">📍 العنوان</div><div class="v">${storeAddress}</div></div>
+    <div class="ic"><div class="l">📍 العنوان</div><div class="v">${storeAddress.replace(/-/g,'\n')}</div></div>
   </div>
 </div>
 <div class="strip">
