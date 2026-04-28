@@ -644,12 +644,33 @@ const CustomerOrders = () => {
         const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
         const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
 
+        const grandTotal = parseFloat(order.pricePerKg || 0) + parseFloat(order.printingCostPerKg || 0) + parseFloat(order.cuttingCostPerKg || 0) + parseFloat(order.profitMargin || 0);
+        const qty = parseFloat(order.quantity) || 0;
+
+        const logoBlock = storeLogo
+            ? `<div style="text-align:center;margin-bottom:18px"><img src="${storeLogo}" style="max-height:70px;max-width:100%;object-fit:contain"/></div>`
+            : '';
+
+        const clicheRows = order.clicheEnabled
+            ? `<tr><td class="lbl">عدد الألوان</td><td class="val">${order.colorCount} لون</td></tr>
+               <tr><td class="lbl">مقاس الأكلشية</td><td class="val">${order.clicheHeight} × ${order.clicheWidth}</td></tr>`
+            : '';
+
+        const extraSizes = Array.isArray(order.sizes) && order.sizes.length > 0
+            ? order.sizes.map((s, i) => `<tr><td class="lbl">مقاس ${i + 2}</td><td class="val">${s.width} (عرض) × ${s.height} (طول) سم</td></tr>`).join('')
+            : '';
+
+        const orderedQtyRow = (order.status === 'CLOSED' && order.orderedQuantity)
+            ? `<tr><td class="lbl">الكمية المطلوبة</td><td class="val">${order.orderedQuantity} كجم</td></tr>`
+            : '';
+
         const pricePerKg = parseFloat(order.pricePerKg) || 0;
         const printingCostPerKg = parseFloat(order.printingCostPerKg) || 0;
         const cuttingCostPerKg = parseFloat(order.cuttingCostPerKg) || 0;
         const profitMarginPerKg = parseFloat(order.profitMargin) || 0;
         const finalPricePerKg = pricePerKg + printingCostPerKg + cuttingCostPerKg + profitMarginPerKg;
         const clicheCost = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
+        const totalGrand = (finalPricePerKg * qty) + clicheCost;
 
         const priceBreakdownRows = `
           <tr><td class="lbl">سعر الخامة / كجم</td><td class="val">${pricePerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</td></tr>
@@ -756,7 +777,7 @@ ${logoBlock}
 <div class="totals">
   <div class="gt">
     <span class="gl">إجمالي قيمة الفاتورة</span>
-    <span class="gv">${grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</span>
+    <span class="gv">${totalGrand.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</span>
   </div>
 </div>
 <div class="footer">${storeName} &mdash; نظام إدارة الطلبات والفواتير</div>
