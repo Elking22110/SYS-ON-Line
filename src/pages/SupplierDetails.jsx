@@ -345,7 +345,7 @@ const SupplierDetails = () => {
         const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
         const storeName = storeInfo.storeName || 'Ms Group Factory';
         const storePhone = storeInfo.storePhone || storeInfo.phone || '01029022006-01102364000-01025171668';
-        const storeAddress = storeInfo.storeAddress || storeInfo.address || 'عزبة رستم-بجوار هايبر مصر-شارع عرفة الدسوقي';
+        const storeAddress = storeInfo.storeAddress || storeInfo.address || 'عزبة رستم\nبجوار هايبر مصر\nشارع عرفة الدسوقي';
         const storeLogo = storeInfo.logo || '';
         const storeEmail = storeInfo.storeEmail || 'info@msgroupplast.com';
         const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
@@ -372,9 +372,9 @@ const SupplierDetails = () => {
                     .company-desc { font-size: 12px; opacity: 0.82; margin-top: 4px; }
                     .invoice-badge { background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 6px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; backdrop-filter: blur(4px); white-space: nowrap; }
                     .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
-                    .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; }
-                    .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-                    .info-card .val { font-size: 12px; font-weight: 700; white-space: pre-line; line-height: 1.6; word-break: break-word; }
+                    .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; min-height: 76px; display: flex; flex-direction: column; justify-content: flex-start; }
+                    .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+                    .info-card .val { font-size: 12px; font-weight: 700; white-space: pre-line; line-height: 1.7; word-break: break-word; }
                     .order-strip { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(82,53,232,0.10); border-right: 5px solid #5235E8; }
                     .order-strip .ord-label { font-size: 13px; color: #6b7280; }
                     .order-strip .ord-value { font-size: 20px; font-weight: 900; color: #5235E8; }
@@ -421,7 +421,7 @@ const SupplierDetails = () => {
                     <div class="info-grid">
                         <div class="info-card">
                             <div class="lbl">📍 العنوان</div>
-                            <div class="val">${storeAddress}</div>
+                            <div class="val">${storeAddress.replace(/-/g,'\n')}</div>
                         </div>
                         <div class="info-card">
                             <div class="lbl">📞 التواصل</div>
