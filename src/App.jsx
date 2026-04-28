@@ -20,6 +20,8 @@ import UserProfile from "./components/UserProfile";
 import LoginForm from "./components/LoginForm"; // Added LoginForm
 import TitleBar from "./components/TitleBar"; // Added TitleBar
 import ClichesInventory from "./pages/ClichesInventory";
+import InkSuppliers from "./pages/InkSuppliers";
+import ClicheSuppliers from "./pages/ClicheSuppliers";
 import { observerManager } from "./utils/observerManager"; // إضافة مدير المراقبين
 import { DataValidator, StorageMonitor } from "./utils/dataValidation"; // إضافة نظام التحقق
 import DataLoader from "./components/DataLoader"; // إضافة محمل البيانات
@@ -352,6 +354,16 @@ function App() {
                   <Route path="/suppliers/:id" element={
                     <ProtectedRoute requiredPermission="manage_customers">
                       <SupplierDetails />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/ink-suppliers" element={
+                    <ProtectedRoute requiredPermission="manage_customers">
+                      <InkSuppliers />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cliche-suppliers" element={
+                    <ProtectedRoute requiredPermission="manage_customers">
+                      <ClicheSuppliers />
                     </ProtectedRoute>
                   } />
                   <Route path="/shifts" element={

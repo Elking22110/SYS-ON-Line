@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Plus, Trash2, User, Phone, Mail, FileText, Search,
-  ChevronDown, ChevronUp, Edit, Save, X, Droplets, DollarSign, Package
+  ChevronDown, ChevronUp, Edit, Save, X, Droplets, DollarSign, Package, Layers
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -141,6 +141,22 @@ const InkSuppliers = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="relative z-10 p-4 md:p-6 space-y-4">
+
+        {/* Supplier Type Tabs */}
+        <div className="flex gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-slate-200 w-fit">
+          <button onClick={() => navigate('/suppliers')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-100">
+            <Package className="h-4 w-4" /> موردو الخامات
+          </button>
+          <button onClick={() => navigate('/ink-suppliers')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all bg-cyan-600 text-white shadow">
+            <Droplets className="h-4 w-4" /> موردو الأحبار
+          </button>
+          <button onClick={() => navigate('/cliche-suppliers')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-100">
+            <Layers className="h-4 w-4 text-purple-600" /> موردو الأكلشيهات
+          </button>
+        </div>
 
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
