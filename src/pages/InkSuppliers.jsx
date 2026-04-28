@@ -203,12 +203,13 @@ const InkSuppliers = () => {
                 <div key={supplier.id} className="glass-card overflow-hidden">
                   {/* Card Header */}
                   <div className="p-4 flex flex-col md:flex-row justify-between items-start gap-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/ink-suppliers/${supplier.id}`)}
+>
                       <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center shadow">
                         <Droplets className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800">{supplier.name}</p>
+                        <p className="font-bold text-slate-800 hover:text-cyan-600 transition-colors">{supplier.name}</p>
                         <p className="text-xs text-slate-500">{supplier.phone}</p>
                       </div>
                     </div>

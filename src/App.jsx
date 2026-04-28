@@ -22,6 +22,8 @@ import TitleBar from "./components/TitleBar"; // Added TitleBar
 import ClichesInventory from "./pages/ClichesInventory";
 import InkSuppliers from "./pages/InkSuppliers";
 import ClicheSuppliers from "./pages/ClicheSuppliers";
+import InkSupplierDetails from "./pages/InkSupplierDetails";
+import ClicheSupplierDetails from "./pages/ClicheSupplierDetails";
 import { observerManager } from "./utils/observerManager"; // إضافة مدير المراقبين
 import { DataValidator, StorageMonitor } from "./utils/dataValidation"; // إضافة نظام التحقق
 import DataLoader from "./components/DataLoader"; // إضافة محمل البيانات
@@ -364,6 +366,16 @@ function App() {
                   <Route path="/cliche-suppliers" element={
                     <ProtectedRoute requiredPermission="manage_customers">
                       <ClicheSuppliers />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/ink-suppliers/:id" element={
+                    <ProtectedRoute requiredPermission="manage_customers">
+                      <InkSupplierDetails />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cliche-suppliers/:id" element={
+                    <ProtectedRoute requiredPermission="manage_customers">
+                      <ClicheSupplierDetails />
                     </ProtectedRoute>
                   } />
                   <Route path="/shifts" element={
