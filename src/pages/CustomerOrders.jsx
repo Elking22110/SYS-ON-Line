@@ -99,9 +99,11 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     clichePricePerCm: editingOrder.clichePricePerCm !== undefined ? parseFloat(editingOrder.clichePricePerCm) : 0.85
                 });
             } else {
-                // Fetch default profit margin from settings
+                // Fetch defaults from settings
                 const savedSettings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
                 const defaultMargin = savedSettings.orderProfitMargin !== undefined && savedSettings.orderProfitMargin !== '' ? savedSettings.orderProfitMargin : 10;
+                const defaultPrinting = savedSettings.defaultPrintingCost !== undefined && savedSettings.defaultPrintingCost !== '' ? savedSettings.defaultPrintingCost : '';
+                const defaultCutting = savedSettings.defaultCuttingCost !== undefined && savedSettings.defaultCuttingCost !== '' ? savedSettings.defaultCuttingCost : '';
 
                 const today = new Date().toISOString().split('T')[0];
                 const delivery = addDays(today, 10).split('T')[0];
@@ -109,7 +111,9 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
 
                 setForm({
                     ...emptyFormTemplate,
-                    profitMargin: defaultMargin,
+                    profitMargin: String(defaultMargin),
+                    printingCostPerKg: String(defaultPrinting),
+                    cuttingCostPerKg: String(defaultCutting),
                     deliveryDate: delivery,
                     reminderDate: reminder
                 });
@@ -640,24 +644,21 @@ const CustomerOrders = () => {
         const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
         const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
 
-        const grandTotal = calculateOrderTotal(order);
+        const pricePerKg = parseFloat(order.pricePerKg) || 0;
+        const printingCostPerKg = parseFloat(order.printingCostPerKg) || 0;
+        const cuttingCostPerKg = parseFloat(order.cuttingCostPerKg) || 0;
+        const profitMarginPerKg = parseFloat(order.profitMargin) || 0;
+        const finalPricePerKg = pricePerKg + printingCostPerKg + cuttingCostPerKg + profitMarginPerKg;
+        const clicheCost = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
 
-        const logoBlock = storeLogo
-            ? `<div style="text-align:center;margin-bottom:18px"><img src="${storeLogo}" style="max-height:70px;max-width:100%;object-fit:contain"/></div>`
-            : '';
-
-        const clicheRows = order.clicheEnabled
-            ? `<tr><td class="lbl">عدد الألوان</td><td class="val">${order.colorCount} لون</td></tr>
-               <tr><td class="lbl">مقاس الأكلشية</td><td class="val">${order.clicheHeight} × ${order.clicheWidth}</td></tr>`
-            : '';
-
-        const extraSizes = Array.isArray(order.sizes) && order.sizes.length > 0
-            ? order.sizes.map((s, i) => `<tr><td class="lbl">مقاس ${i + 2}</td><td class="val">${s.width} (عرض) × ${s.height} (طول) سم</td></tr>`).join('')
-            : '';
-
-        const orderedQtyRow = (order.status === 'CLOSED' && order.orderedQuantity)
-            ? `<tr><td class="lbl">الكمية المطلوبة</td><td class="val">${order.orderedQuantity} كجم</td></tr>`
-            : '';
+        const priceBreakdownRows = `
+          <tr><td class="lbl">سعر الخامة / كجم</td><td class="val">${pricePerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</td></tr>
+          ${printingCostPerKg > 0 ? `<tr><td class="lbl">تكلفة المطبعة / كجم</td><td class="val">${printingCostPerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</td></tr>` : ''}
+          ${cuttingCostPerKg > 0 ? `<tr><td class="lbl">تكلفة المقص / كجم</td><td class="val">${cuttingCostPerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</td></tr>` : ''}
+          ${profitMarginPerKg > 0 ? `<tr><td class="lbl">هامش الربح / كجم</td><td class="val">${profitMarginPerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</td></tr>` : ''}
+          <tr style="background:#eef2ff"><td class="lbl" style="font-weight:900;color:#5235E8">✅ سعر الكيلو النهائي</td><td class="val" style="font-weight:900;color:#5235E8;font-size:15px">${finalPricePerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م / كجم</td></tr>
+          ${clicheCost > 0 ? `<tr><td class="lbl">تكلفة الأكلشية (إجمالي)</td><td class="val">${clicheCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</td></tr>` : ''}
+        `;
 
         const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -746,36 +747,23 @@ ${logoBlock}
     ${orderedQtyRow}
   </table>
 </div>
+<div class="card">
+  <div class="sec-title">تفاصيل التسعيرة والتكاليف</div>
+  <table>
+    ${priceBreakdownRows}
+  </table>
+</div>
 <div class="totals">
   <div class="gt">
     <span class="gl">إجمالي قيمة الفاتورة</span>
-    <span class="gv">${grandTotal.toLocaleString('ar-EG')} ج.م</span>
+    <span class="gv">${grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</span>
   </div>
 </div>
 <div class="footer">${storeName} &mdash; نظام إدارة الطلبات والفواتير</div>
 </body>
 </html>`;
 
-        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-        const url  = URL.createObjectURL(blob);
-        const win  = window.open(url, '_blank', 'width=900,height=700');
-        if (!win) {
-            alert('يرجى السماح بالنوافذ المنبثقة لتمكين الطباعة.');
-            URL.revokeObjectURL(url);
-            return;
-        }
-        // ضامن واحد فقط: الطباعة تحدث مرة واحدة فقط مهما
-        let _fired = false;
-        const doPrint = () => {
-            if (_fired) return;
-            _fired = true;
-            win.focus();
-            win.print();
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
-        };
-        win.onload = doPrint;
-        // fallback بعد 3 ثواني فقط إن لم يُطلق onload
-        setTimeout(() => { if (!_fired && win && !win.closed) doPrint(); }, 3000);
+        printHtmlContent(html);
     };
 
     // ─── Helpers ────────────────────────────────────────────
@@ -1824,35 +1812,43 @@ ${logoBlock}
                                                 {/* Totals and Profit */}
                                                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
                                                     {(() => {
-                                                        const raw = safeMath.multiply(order.quantity, order.pricePerKg || 0);
-                                                        const pr = safeMath.multiply(order.quantity, order.printingCostPerKg || 0);
-                                                        const cu = safeMath.multiply(order.quantity, order.cuttingCostPerKg || 0);
-                                                        const cl = parseFloat(order.clicheCost) || 0;
-                                                        const sub = safeMath.add(safeMath.add(safeMath.add(raw, pr), cu), cl);
-                                                        const margin = parseFloat(order.profitMargin) || 0;
-                                                        const profit = safeMath.multiply(order.quantity, margin);
-                                                        const grandTotal = safeMath.add(sub, profit);
+                                                        const qty = parseFloat(order.quantity) || 0;
+                                                        const rawPricePerKg = parseFloat(order.pricePerKg) || 0;
+                                                        const printPerKg = parseFloat(order.printingCostPerKg) || 0;
+                                                        const cutPerKg = parseFloat(order.cuttingCostPerKg) || 0;
+                                                        const marginPerKg = parseFloat(order.profitMargin) || 0;
+                                                        const finalPricePerKg = rawPricePerKg + printPerKg + cutPerKg + marginPerKg;
+                                                        const cl = order.clicheEnabled ? (parseFloat(order.clicheCost) || 0) : 0;
+                                                        const grandTotal = safeMath.add(safeMath.multiply(finalPricePerKg, qty), cl);
 
                                                         return (
                                                             <>
-                                                                <div className="flex justify-between items-center text-xs">
-                                                                    <span className="text-slate-500 font-bold">إجمالي التكلفة:</span>
-                                                                    <span className="font-bold text-slate-700">${sub.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                                                {/* Final price per kg - highlighted */}
+                                                                <div className="flex justify-between items-center bg-[#5235E8]/5 border border-[#5235E8]/20 rounded-lg px-3 py-2">
+                                                                    <span className="text-xs font-black text-[#5235E8] flex items-center gap-1">
+                                                                        💰 سعر الكيلو النهائي:
+                                                                    </span>
+                                                                    <span className="font-black text-[#5235E8] text-sm">
+                                                                        {finalPricePerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م/كجم
+                                                                    </span>
                                                                 </div>
-                                                                <div className="flex justify-between items-center text-xs text-emerald-600">
-                                                                    <span className="font-bold">قيمة الربح ({margin} ج/كجم):</span>
-                                                                    <span className="font-bold">${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                                                                </div>
+                                                                {cl > 0 && (
+                                                                    <div className="flex justify-between items-center text-xs text-purple-600">
+                                                                        <span className="font-bold">تكلفة الأكلشية (مضاف):</span>
+                                                                        <span className="font-bold">{cl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</span>
+                                                                    </div>
+                                                                )}
                                                                 <div className="flex justify-between items-center pt-2 border-t border-slate-100">
                                                                     <span className="text-sm font-black text-[#5235E8]">الإجمالي النهائي:</span>
                                                                     <span className="text-lg font-black text-[#5235E8] px-3 py-1 bg-[#5235E8] bg-opacity-10 rounded-lg">
-                                                                        ${grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                                                        {grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م
                                                                     </span>
                                                                 </div>
                                                             </>
                                                         );
                                                     })()}
                                                 </div>
+
                                             </div>
                                         </div>
                                     </div>

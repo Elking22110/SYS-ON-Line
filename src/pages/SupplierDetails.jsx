@@ -105,19 +105,32 @@ const SupplierDetails = () => {
             setSupplies(supplierSupplies.sort((a, b) => b.id - a.id));
         }
 
-        // Load Payments from Supabase
+        // Load Payments - always merge cloud + local to avoid data loss
         try {
             const cloudPayments = await supabaseService.getSupplierPayments(id);
+            const allLocal = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+            const localForThisSupplier = allLocal.filter(p => p.supplierId?.toString() === id.toString());
+            
             if (cloudPayments && cloudPayments.length > 0) {
-                setPayments(cloudPayments.sort((a, b) => b.id - a.id));
-                // Update local storage
-                const allLocal = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+                // Merge: start with local, override with cloud, keep local-only entries
+                const merged = localForThisSupplier.map(lp => {
+                    const cp = cloudPayments.find(c => c.id?.toString() === lp.id?.toString());
+                    return cp ? { ...lp, ...cp } : lp;
+                });
+                // Add cloud-only entries not in local
+                cloudPayments.forEach(cp => {
+                    if (!merged.find(m => m.id?.toString() === cp.id?.toString())) {
+                        merged.push(cp);
+                    }
+                });
+                const sorted = merged.sort((a, b) => b.id - a.id);
+                setPayments(sorted);
+                // Update localStorage with merged result
                 const otherPayments = allLocal.filter(p => p.supplierId?.toString() !== id.toString());
-                localStorage.setItem('supplier_payments', JSON.stringify([...otherPayments, ...cloudPayments]));
+                localStorage.setItem('supplier_payments', JSON.stringify([...otherPayments, ...sorted]));
             } else {
-                const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
-                const supplierPayments = allPayments.filter(p => p.supplierId?.toString() === id.toString());
-                setPayments(supplierPayments.sort((a, b) => b.id - a.id));
+                // No cloud data - use local only
+                setPayments(localForThisSupplier.sort((a, b) => b.id - a.id));
             }
         } catch (e) {
             const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
