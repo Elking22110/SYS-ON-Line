@@ -105,4 +105,10 @@ class StorageOptimizer {
 // إنشاء instance واحد للنظام
 const storageOptimizer = new StorageOptimizer();
 
+// الاستماع لأحداث التغيير لتصفير الذاكرة المؤقتة وضمان دقة البيانات
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', () => storageOptimizer.clearCache());
+  window.addEventListener('dataUpdated', () => storageOptimizer.clearCache());
+}
+
 export default storageOptimizer;
