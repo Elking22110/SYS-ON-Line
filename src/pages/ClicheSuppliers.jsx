@@ -66,7 +66,7 @@ const ClicheSuppliers = () => {
   };
 
   // ── Supplier CRUD ──
-  const handleSaveSupplier = () => {
+  const handleSaveSupplier = async () => {
     if (!form.name || !form.phone) { toast.error('اسم ورقم الهاتف مطلوبان'); return; }
     const sData = { ...form, type: 'CLICHE' };
     try {
