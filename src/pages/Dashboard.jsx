@@ -399,7 +399,7 @@ const Dashboard = () => {
 
       // Distribution Calculation
       const dailySupplyQty = allSupplies
-        .filter(s => (s.date || '').split('T')[0] === today)
+        .filter(s => (s.date || '').split('T')[0] === today && validSupplierIds.has(String(s.supplierId)))
         .reduce((sum, s) => safeMath.add(sum, parseFloat(s.quantity) || 0), 0);
 
       const totalStockValue = products.reduce((sum, p) => {

@@ -100,6 +100,16 @@ const ClicheSuppliers = () => {
       const updated = suppliers.filter(s => s.id !== id && String(s.id) !== String(id));
       setSuppliers(updated);
       localStorage.setItem(CLICHE_SUPPLIERS_KEY, JSON.stringify(updated));
+
+      // Cleanup Ghost Data locally
+      const updatedSupplies = supplies.filter(s => String(s.supplierId) !== String(id));
+      setSupplies(updatedSupplies);
+      localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify(updatedSupplies));
+
+      const updatedPayments = payments.filter(p => String(p.supplierId) !== String(id));
+      setPayments(updatedPayments);
+      localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify(updatedPayments));
+
       soundManager.play('delete');
       toast.success('تم حذف المورد');
     } catch (e) {

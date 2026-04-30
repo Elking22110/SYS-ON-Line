@@ -247,9 +247,30 @@ const Suppliers = () => {
       try {
         setLoading(true);
         await supabaseService.deleteSupplier(id).catch(err => console.error('Supabase delete error:', err));
+        
+        // Remove supplier
         const updatedSuppliers = suppliers.filter(c => c.id !== id);
         setSuppliers(updatedSuppliers);
         localStorage.setItem('suppliers', JSON.stringify(updatedSuppliers));
+
+        // Cleanup Ghost Data (Supplies & Payments) locally
+        const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+        const orphanedSupplies = allSupplies.filter(s => String(s.supplierId) === String(id));
+        const filteredSupplies = allSupplies.filter(s => String(s.supplierId) !== String(id));
+        localStorage.setItem('supplier_supplies', JSON.stringify(filteredSupplies));
+
+        const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+        const filteredPayments = allPayments.filter(p => String(p.supplierId) !== String(id));
+        localStorage.setItem('supplier_payments', JSON.stringify(filteredPayments));
+
+        // Remove linked products
+        if (orphanedSupplies.length > 0) {
+            const productsData = JSON.parse(localStorage.getItem('products') || '[]');
+            const orphanedSupplyIds = new Set(orphanedSupplies.map(s => String(s.id)));
+            const filteredProducts = productsData.filter(p => !p.supplyId || !orphanedSupplyIds.has(String(p.supplyId)));
+            localStorage.setItem('products', JSON.stringify(filteredProducts));
+            publish(EVENTS.PRODUCTS_CHANGED, { type: 'delete_supplier_products' });
+        }
 
         publish(EVENTS.SUPPLIERS_CHANGED, {
           type: 'delete',
