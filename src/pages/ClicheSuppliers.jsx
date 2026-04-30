@@ -65,16 +65,21 @@ const ClicheSuppliers = () => {
     return safeMath.multiply(area, p);
   };
 
-  // ── Supplier CRUD ──
   const handleSaveSupplier = async () => {
     if (!form.name || !form.phone) { toast.error('اسم ورقم الهاتف مطلوبان'); return; }
     const sData = { ...form, type: 'CLICHE' };
     try {
       if (editingSupplier) {
-        await supabaseService.updateSupplier(editingSupplier.id, sData);
+        const res = await supabaseService.updateSupplier(editingSupplier.id, sData);
+        const updated = suppliers.map(s => s.id === editingSupplier.id ? { ...s, ...res } : s);
+        setSuppliers(updated);
+        localStorage.setItem(CLICHE_SUPPLIERS_KEY, JSON.stringify(updated));
         toast.success('تم تحديث المورد');
       } else {
-        await supabaseService.addSupplier(sData);
+        const res = await supabaseService.addSupplier(sData);
+        const updated = [...suppliers, { ...sData, ...res }];
+        setSuppliers(updated);
+        localStorage.setItem(CLICHE_SUPPLIERS_KEY, JSON.stringify(updated));
         toast.success('تم إضافة مورد الأكلشيهات');
       }
       soundManager.play('save');
@@ -82,6 +87,7 @@ const ClicheSuppliers = () => {
       setEditingSupplier(null);
       setForm({ name: '', phone: '', email: '', address: '' });
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء الحفظ');
     }
   };
@@ -90,8 +96,14 @@ const ClicheSuppliers = () => {
     if (!window.confirm('حذف هذا المورد؟')) return;
     try {
       await supabaseService.deleteSupplier(id);
+      // Update local state immediately
+      const updated = suppliers.filter(s => s.id !== id && String(s.id) !== String(id));
+      setSuppliers(updated);
+      localStorage.setItem(CLICHE_SUPPLIERS_KEY, JSON.stringify(updated));
       soundManager.play('delete');
+      toast.success('تم حذف المورد');
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء الحذف');
     }
   };
@@ -125,12 +137,16 @@ const ClicheSuppliers = () => {
       metadata: { clicheName, width: clicheWidth, height: clicheHeight, pricePerCm }
     };
     try {
-      await supabaseService.addSupplierSupply(newSupply);
+      const res = await supabaseService.addSupplierSupply(newSupply);
+      const updated = [...supplies, { ...newSupply, ...res }];
+      setSupplies(updated);
+      localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify(updated));
       toast.success('تم تسجيل التوريدة');
       soundManager.play('save');
       setShowSupplyModal(false);
       resetSupplyForm();
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء الحفظ');
     }
   };
@@ -149,12 +165,16 @@ const ClicheSuppliers = () => {
       type: 'CLICHE'
     };
     try {
-      await supabaseService.addSupplierPayment(newPay);
+      const res = await supabaseService.addSupplierPayment(newPay);
+      const updated = [...payments, { ...newPay, ...res }];
+      setPayments(updated);
+      localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify(updated));
       toast.success('تم تسجيل الدفعة');
       soundManager.play('save');
       setShowPayModal(false);
       setPayAmount(''); setPayNote('');
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء تسجيل الدفعة');
     }
   };

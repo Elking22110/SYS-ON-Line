@@ -58,10 +58,16 @@ const InkSuppliers = () => {
     const sData = { ...form, type: 'INK' };
     try {
       if (editingSupplier) {
-        await supabaseService.updateSupplier(editingSupplier.id, sData);
+        const res = await supabaseService.updateSupplier(editingSupplier.id, sData);
+        const updated = suppliers.map(s => s.id === editingSupplier.id ? { ...s, ...res } : s);
+        setSuppliers(updated);
+        localStorage.setItem(INK_SUPPLIERS_KEY, JSON.stringify(updated));
         toast.success('تم تحديث المورد');
       } else {
-        await supabaseService.addSupplier(sData);
+        const res = await supabaseService.addSupplier(sData);
+        const updated = [...suppliers, { ...sData, ...res }];
+        setSuppliers(updated);
+        localStorage.setItem(INK_SUPPLIERS_KEY, JSON.stringify(updated));
         toast.success('تم إضافة مورد الأحبار');
       }
       soundManager.play('save');
@@ -69,6 +75,7 @@ const InkSuppliers = () => {
       setEditingSupplier(null);
       setForm({ name: '', phone: '', email: '', address: '' });
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء الحفظ');
     }
   };
@@ -115,13 +122,17 @@ const InkSuppliers = () => {
     };
     
     try {
-      await supabaseService.addSupplierSupply(newSupply);
+      const res = await supabaseService.addSupplierSupply(newSupply);
+      const updated = [...supplies, { ...newSupply, ...res }];
+      setSupplies(updated);
+      localStorage.setItem(INK_SUPPLIES_KEY, JSON.stringify(updated));
       toast.success('تم تسجيل التوريدة');
       soundManager.play('save');
       setShowSupplyModal(false);
       setSupplyColors([emptyColor()]);
       setSupplyPaid('');
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء الحفظ');
     }
   };
@@ -140,13 +151,17 @@ const InkSuppliers = () => {
       type: 'INK'
     };
     try {
-      await supabaseService.addSupplierPayment(newPay);
+      const res = await supabaseService.addSupplierPayment(newPay);
+      const updated = [...payments, { ...newPay, ...res }];
+      setPayments(updated);
+      localStorage.setItem(INK_PAYMENTS_KEY, JSON.stringify(updated));
       toast.success('تم تسجيل الدفعة');
       soundManager.play('save');
       setShowPayModal(false);
       setPayAmount('');
       setPayNote('');
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء تسجيل الدفعة');
     }
   };
