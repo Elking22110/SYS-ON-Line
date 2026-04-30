@@ -44,89 +44,95 @@ const Dashboard = () => {
   const [lastSync, setLastSync] = useState(new Date().toLocaleTimeString('ar-EG'));
   const [auditModal, setAuditModal] = useState({ isOpen: false, title: '', type: '', data: [] });
 
+  const calculateSupplierDebts = () => {
+    const rawSuppliers = storageOptimizer.get('suppliers', []) || [];
+    const inkSuppliers = storageOptimizer.get('ink_suppliers', []) || [];
+    const clicheSuppliers = storageOptimizer.get('cliche_suppliers', []) || [];
+    const suppliers = [...rawSuppliers, ...inkSuppliers, ...clicheSuppliers];
+    
+    const rawSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+    const inkSupplies = storageOptimizer.get('ink_supplies', []) || [];
+    const clicheSupplies = storageOptimizer.get('cliche_supplies', []) || [];
+    const allSupplies = [...rawSupplies, ...inkSupplies, ...clicheSupplies];
+    
+    const rawPayments = storageOptimizer.get('supplier_payments', []) || [];
+    const inkPayments = storageOptimizer.get('ink_payments', []) || [];
+    const clichePayments = storageOptimizer.get('cliche_payments', []) || [];
+    const allPayments = [...rawPayments, ...inkPayments, ...clichePayments];
+    
+    const supplierDebtMap = {};
+    suppliers.forEach(s => supplierDebtMap[s.id] = { id: s.id, name: s.name, totalSupplies: 0, totalPayments: 0, netDebt: 0 });
+    
+    allSupplies.forEach(s => {
+      if (supplierDebtMap[s.supplierId]) {
+        supplierDebtMap[s.supplierId].totalSupplies += parseFloat(s.totalPrice) || 0;
+        supplierDebtMap[s.supplierId].totalPayments += parseFloat(s.paidAmount) || 0;
+      }
+    });
+    allPayments.forEach(p => {
+      if (supplierDebtMap[p.supplierId]) {
+        supplierDebtMap[p.supplierId].totalPayments += parseFloat(p.amount) || 0;
+      }
+    });
+    
+    return Object.values(supplierDebtMap).map(s => {
+      s.netDebt = Math.max(0, s.totalSupplies - s.totalPayments);
+      return s;
+    }).filter(s => s.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
+  };
+
+  const calculateCustomerDebts = () => {
+    const customers = storageOptimizer.get('customers', []) || [];
+    const allOrders = storageOptimizer.get('customer_orders', []) || [];
+    const allPayments = storageOptimizer.get('customer_payments', []) || [];
+    
+    const customerDebtMap = {};
+    customers.forEach(c => customerDebtMap[c.id] = { id: c.id, name: c.name, totalOrders: 0, totalPayments: 0, netDebt: 0 });
+    
+    allOrders.forEach(o => {
+      if (customerDebtMap[o.customerId] && o.status === 'CLOSED') {
+        let orderTotal = 0;
+        if (o.totalPrice !== undefined && o.totalPrice !== null) {
+            orderTotal = parseFloat(o.totalPrice);
+        } else {
+            const q = parseFloat(o.quantity) || 0;
+            const pricePerKg = parseFloat(o.pricePerKg) || 0;
+            const printingCostPerKg = parseFloat(o.printingCostPerKg) || 0;
+            const cuttingCostPerKg = parseFloat(o.cuttingCostPerKg) || 0;
+            const profitMargin = parseFloat(o.profitMargin) || 0;
+            const clicheCost = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
+
+            const totalPricePerKg = safeMath.add(
+                safeMath.add(pricePerKg, printingCostPerKg),
+                safeMath.add(cuttingCostPerKg, profitMargin)
+            );
+
+            const subtotal = safeMath.multiply(totalPricePerKg, q);
+            orderTotal = safeMath.add(subtotal, clicheCost);
+        }
+        
+        customerDebtMap[o.customerId].totalOrders = safeMath.add(customerDebtMap[o.customerId].totalOrders, orderTotal);
+      }
+    });
+    allPayments.forEach(p => {
+      if (customerDebtMap[p.customerId]) {
+        customerDebtMap[p.customerId].totalPayments = safeMath.add(customerDebtMap[p.customerId].totalPayments, parseFloat(p.amount) || 0);
+      }
+    });
+    
+    return Object.values(customerDebtMap).map(c => {
+      c.netDebt = Math.max(0, safeMath.subtract(c.totalOrders, c.totalPayments));
+      return c;
+    }).filter(c => c.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
+  };
+
   const openAuditModal = (type) => {
     soundManager.play('openWindow');
     if (type === 'supplier_debts') {
-      const rawSuppliers = storageOptimizer.get('suppliers', []) || [];
-      const inkSuppliers = storageOptimizer.get('ink_suppliers', []) || [];
-      const clicheSuppliers = storageOptimizer.get('cliche_suppliers', []) || [];
-      const suppliers = [...rawSuppliers, ...inkSuppliers, ...clicheSuppliers];
-      
-      const rawSupplies = storageOptimizer.get('supplier_supplies', []) || [];
-      const inkSupplies = storageOptimizer.get('ink_supplies', []) || [];
-      const clicheSupplies = storageOptimizer.get('cliche_supplies', []) || [];
-      const allSupplies = [...rawSupplies, ...inkSupplies, ...clicheSupplies];
-      
-      const rawPayments = storageOptimizer.get('supplier_payments', []) || [];
-      const inkPayments = storageOptimizer.get('ink_payments', []) || [];
-      const clichePayments = storageOptimizer.get('cliche_payments', []) || [];
-      const allPayments = [...rawPayments, ...inkPayments, ...clichePayments];
-      
-      const supplierDebtMap = {};
-      suppliers.forEach(s => supplierDebtMap[s.id] = { id: s.id, name: s.name, totalSupplies: 0, totalPayments: 0, netDebt: 0 });
-      
-      allSupplies.forEach(s => {
-        if (supplierDebtMap[s.supplierId]) {
-          supplierDebtMap[s.supplierId].totalSupplies += parseFloat(s.totalPrice) || 0;
-          supplierDebtMap[s.supplierId].totalPayments += parseFloat(s.paidAmount) || 0;
-        }
-      });
-      allPayments.forEach(p => {
-        if (supplierDebtMap[p.supplierId]) {
-          supplierDebtMap[p.supplierId].totalPayments += parseFloat(p.amount) || 0;
-        }
-      });
-      
-      const details = Object.values(supplierDebtMap).map(s => {
-        s.netDebt = Math.max(0, s.totalSupplies - s.totalPayments);
-        return s;
-      }).filter(s => s.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
-
+      const details = calculateSupplierDebts();
       setAuditModal({ isOpen: true, title: 'تفاصيل ديون الموردين', type: 'supplier', data: details });
     } else if (type === 'customer_debts') {
-      const customers = storageOptimizer.get('customers', []) || [];
-      const allOrders = storageOptimizer.get('customer_orders', []) || [];
-      const allPayments = storageOptimizer.get('customer_payments', []) || [];
-      
-      const customerDebtMap = {};
-      customers.forEach(c => customerDebtMap[c.id] = { id: c.id, name: c.name, totalOrders: 0, totalPayments: 0, netDebt: 0 });
-      
-      allOrders.forEach(o => {
-        if (customerDebtMap[o.customerId] && o.status === 'CLOSED') {
-          let orderTotal = 0;
-          if (o.totalPrice !== undefined && o.totalPrice !== null) {
-              orderTotal = parseFloat(o.totalPrice);
-          } else {
-              const q = parseFloat(o.quantity) || 0;
-              const pricePerKg = parseFloat(o.pricePerKg) || 0;
-              const printingCostPerKg = parseFloat(o.printingCostPerKg) || 0;
-              const cuttingCostPerKg = parseFloat(o.cuttingCostPerKg) || 0;
-              const profitMargin = parseFloat(o.profitMargin) || 0;
-              const clicheCost = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
-
-              const totalPricePerKg = safeMath.add(
-                  safeMath.add(pricePerKg, printingCostPerKg),
-                  safeMath.add(cuttingCostPerKg, profitMargin)
-              );
-
-              const subtotal = safeMath.multiply(totalPricePerKg, q);
-              orderTotal = safeMath.add(subtotal, clicheCost);
-          }
-          
-          customerDebtMap[o.customerId].totalOrders = safeMath.add(customerDebtMap[o.customerId].totalOrders, orderTotal);
-        }
-      });
-      allPayments.forEach(p => {
-        if (customerDebtMap[p.customerId]) {
-          customerDebtMap[p.customerId].totalPayments = safeMath.add(customerDebtMap[p.customerId].totalPayments, parseFloat(p.amount) || 0);
-        }
-      });
-      
-      const details = Object.values(customerDebtMap).map(c => {
-        c.netDebt = Math.max(0, safeMath.subtract(c.totalOrders, c.totalPayments));
-        return c;
-      }).filter(c => c.netDebt > 0).sort((a,b) => b.netDebt - a.netDebt);
-
+      const details = calculateCustomerDebts();
       setAuditModal({ isOpen: true, title: 'تفاصيل مستحقات العملاء', type: 'customer', data: details });
     }
   };
@@ -174,6 +180,17 @@ const Dashboard = () => {
   const customersChange = calcChange(todayStats.customers, yesterdayStats.customers);
 
   const analyzeRealData = () => {
+    // Auto-update modal if it is already open
+    setAuditModal(prev => {
+      if (!prev.isOpen) return prev;
+      if (prev.type === 'supplier') {
+        return { ...prev, data: calculateSupplierDebts() };
+      } else if (prev.type === 'customer') {
+        return { ...prev, data: calculateCustomerDebts() };
+      }
+      return prev;
+    });
+
     try {
       // 1. Core Data
       const posSales = storageOptimizer.get('sales', []) || [];
