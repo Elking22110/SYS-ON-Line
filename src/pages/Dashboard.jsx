@@ -345,7 +345,7 @@ const Dashboard = () => {
       let shiftClosedOrders = [];
       let shiftCustomerPayments = [];
       if (activeShift && activeShift.id) {
-        shiftSales = allSales.filter(s => s.shiftId === activeShift.id);
+        shiftSales = posSales.filter(s => s.shiftId === activeShift.id);
         shiftClosedOrders = customerOrders.filter(o => o.status === 'CLOSED' && o.shiftId === activeShift.id);
         shiftCustomerPayments = customerPayments.filter(p => p.shiftId === activeShift.id);
       }
