@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
+import supabaseService from '../utils/supabaseService.js';
+import { observerManager } from '../utils/observerManager.js';
 
 const CLICHE_SUPPLIERS_KEY = 'cliche_suppliers';
 const CLICHE_SUPPLIES_KEY = 'cliche_supplies';
@@ -44,7 +46,13 @@ const ClicheSuppliers = () => {
     setPayments(JSON.parse(localStorage.getItem(CLICHE_PAYMENTS_KEY) || '[]'));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    const unsubSuppliers = observerManager.subscribe('cliche_suppliers_changed', load);
+    const unsubSupplies = observerManager.subscribe('cliche_supplies_changed', load);
+    const unsubPayments = observerManager.subscribe('cliche_payments_changed', load);
+    return () => { unsubSuppliers(); unsubSupplies(); unsubPayments(); };
+  }, []);
 
   const save = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
@@ -59,29 +67,32 @@ const ClicheSuppliers = () => {
   // ── Supplier CRUD ──
   const handleSaveSupplier = () => {
     if (!form.name || !form.phone) { toast.error('اسم ورقم الهاتف مطلوبان'); return; }
-    let updated;
-    if (editingSupplier) {
-      updated = suppliers.map(s => s.id === editingSupplier.id ? { ...s, ...form } : s);
-      toast.success('تم تحديث المورد');
-    } else {
-      const newS = { ...form, id: Date.now().toString(), joinDate: getCurrentDate().split('T')[0], status: 'جديد' };
-      updated = [...suppliers, newS];
-      toast.success('تم إضافة مورد الأكلشيهات');
+    const sData = { ...form, type: 'CLICHE' };
+    try {
+      if (editingSupplier) {
+        await supabaseService.updateSupplier(editingSupplier.id, sData);
+        toast.success('تم تحديث المورد');
+      } else {
+        await supabaseService.addSupplier(sData);
+        toast.success('تم إضافة مورد الأكلشيهات');
+      }
+      soundManager.play('save');
+      setShowAddModal(false);
+      setEditingSupplier(null);
+      setForm({ name: '', phone: '', email: '', address: '' });
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحفظ');
     }
-    setSuppliers(updated);
-    save(CLICHE_SUPPLIERS_KEY, updated);
-    soundManager.play('save');
-    setShowAddModal(false);
-    setEditingSupplier(null);
-    setForm({ name: '', phone: '', email: '', address: '' });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('حذف هذا المورد؟')) return;
-    const updated = suppliers.filter(s => s.id !== id);
-    setSuppliers(updated);
-    save(CLICHE_SUPPLIERS_KEY, updated);
-    soundManager.play('delete');
+    try {
+      await supabaseService.deleteSupplier(id);
+      soundManager.play('delete');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   // ── Supply ──
@@ -91,7 +102,7 @@ const ClicheSuppliers = () => {
     setSupplyDate(getCurrentDate().split('T')[0]);
   };
 
-  const handleAddSupply = () => {
+  const handleAddSupply = async () => {
     if (!clicheName || !pricePerCm) { toast.error('أدخل اسم الأكلشية وسعر السنتيمتر'); return; }
     const total = calcTotal();
     const paid = parseFloat(supplyPaid) || 0;
@@ -108,19 +119,23 @@ const ClicheSuppliers = () => {
       remainingAmount: safeMath.subtract(total, paid),
       note: supplyNote,
       date: supplyDate,
-      supplyNumber: `CLICHE-${Date.now().toString().slice(-6)}`
+      supplyNumber: `CLICHE-${Date.now().toString().slice(-6)}`,
+      type: 'CLICHE',
+      metadata: { clicheName, width: clicheWidth, height: clicheHeight, pricePerCm }
     };
-    const updated = [...supplies, newSupply];
-    setSupplies(updated);
-    save(CLICHE_SUPPLIES_KEY, updated);
-    toast.success('تم تسجيل التوريدة');
-    soundManager.play('save');
-    setShowSupplyModal(false);
-    resetSupplyForm();
+    try {
+      await supabaseService.addSupplierSupply(newSupply);
+      toast.success('تم تسجيل التوريدة');
+      soundManager.play('save');
+      setShowSupplyModal(false);
+      resetSupplyForm();
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحفظ');
+    }
   };
 
   // ── Payment ──
-  const handleAddPayment = () => {
+  const handleAddPayment = async () => {
     const amount = parseFloat(payAmount);
     if (!amount || amount <= 0) { toast.error('أدخل مبلغاً صحيحاً'); return; }
     const newPay = {
@@ -129,15 +144,18 @@ const ClicheSuppliers = () => {
       supplierName: selectedSupplier.name,
       amount,
       note: payNote,
-      date: getCurrentDate().split('T')[0]
+      date: getCurrentDate().split('T')[0],
+      type: 'CLICHE'
     };
-    const updated = [...payments, newPay];
-    setPayments(updated);
-    save(CLICHE_PAYMENTS_KEY, updated);
-    toast.success('تم تسجيل الدفعة');
-    soundManager.play('save');
-    setShowPayModal(false);
-    setPayAmount(''); setPayNote('');
+    try {
+      await supabaseService.addSupplierPayment(newPay);
+      toast.success('تم تسجيل الدفعة');
+      soundManager.play('save');
+      setShowPayModal(false);
+      setPayAmount(''); setPayNote('');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء تسجيل الدفعة');
+    }
   };
 
   const getStats = (sId) => {
@@ -263,10 +281,10 @@ const ClicheSuppliers = () => {
                                 <span className="text-xs text-slate-400">{sup.date}</span>
                               </div>
                               <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                                <div><span className="text-slate-500">الأكلشية:</span> <span className="font-bold text-slate-800">{sup.clicheName}</span></div>
-                                <div><span className="text-slate-500">المقاس:</span> <span className="font-bold text-slate-800">{sup.clicheWidth} × {sup.clicheHeight} سم</span></div>
-                                <div><span className="text-slate-500">سعر السم:</span> <span className="font-bold text-slate-800">{sup.pricePerCm} ج.م</span></div>
-                                <div><span className="text-slate-500">المساحة:</span> <span className="font-bold text-slate-800">{(sup.clicheWidth * sup.clicheHeight).toFixed(2)} سم²</span></div>
+                                <div><span className="text-slate-500">الأكلشية:</span> <span className="font-bold text-slate-800">{sup.clicheName || sup.metadata?.clicheName}</span></div>
+                                <div><span className="text-slate-500">المقاس:</span> <span className="font-bold text-slate-800">{sup.clicheWidth || sup.metadata?.width} × {sup.clicheHeight || sup.metadata?.height} سم</span></div>
+                                <div><span className="text-slate-500">سعر السم:</span> <span className="font-bold text-slate-800">{sup.pricePerCm || sup.metadata?.pricePerCm} ج.م</span></div>
+                                <div><span className="text-slate-500">المساحة:</span> <span className="font-bold text-slate-800">{((sup.clicheWidth || sup.metadata?.width) * (sup.clicheHeight || sup.metadata?.height)).toFixed(2)} سم²</span></div>
                               </div>
                               {sup.note && <p className="text-xs text-slate-400 mb-1">ملاحظة: {sup.note}</p>}
                               <div className="flex justify-between pt-2 border-t border-slate-100 text-xs font-bold">

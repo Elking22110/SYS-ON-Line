@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
+import supabaseService from '../utils/supabaseService.js';
+import { observerManager } from '../utils/observerManager.js';
 
 const CLICHE_SUPPLIERS_KEY = 'cliche_suppliers';
 const CLICHE_SUPPLIES_KEY = 'cliche_supplies';
@@ -40,7 +42,13 @@ const ClicheSupplierDetails = () => {
     setPayments(allPay.filter(p => p.supplierId === id).sort((a, b) => b.id - a.id));
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { 
+    load(); 
+    const unsubSuppliers = observerManager.subscribe('cliche_suppliers_changed', load);
+    const unsubSupplies = observerManager.subscribe('cliche_supplies_changed', load);
+    const unsubPayments = observerManager.subscribe('cliche_payments_changed', load);
+    return () => { unsubSuppliers(); unsubSupplies(); unsubPayments(); };
+  }, [id]);
 
   const calcTotal = () => (parseFloat(clicheWidth) || 0) * (parseFloat(clicheHeight) || 0) * (parseFloat(pricePerCm) || 0);
 
@@ -53,38 +61,42 @@ const ClicheSupplierDetails = () => {
       clicheName, clicheWidth: parseFloat(clicheWidth) || 0, clicheHeight: parseFloat(clicheHeight) || 0,
       pricePerCm: parseFloat(pricePerCm) || 0, totalPrice: total, paidAmount: paid,
       remainingAmount: safeMath.subtract(total, paid), note: supplyNote, date: supplyDate,
-      supplyNumber: `CLICHE-${Date.now().toString().slice(-6)}`
+      supplyNumber: `CLICHE-${Date.now().toString().slice(-6)}`,
+      type: 'CLICHE', metadata: { clicheName, width: clicheWidth, height: clicheHeight, pricePerCm }
     };
-    const all = JSON.parse(localStorage.getItem(CLICHE_SUPPLIES_KEY) || '[]');
-    localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify([...all, newSup]));
+    supabaseService.addSupplierSupply(newSup);
     toast.success('تم تسجيل التوريدة'); soundManager.play('save');
     setShowSupplyModal(false);
     setClicheName(''); setClicheWidth(''); setClicheHeight(''); setPricePerCm(''); setSupplyPaid(''); setSupplyNote('');
-    load();
   };
 
-  const handleDeleteSupply = (supId) => {
+  const handleDeleteSupply = async (supId) => {
     if (!window.confirm('حذف هذه التوريدة؟')) return;
-    const all = JSON.parse(localStorage.getItem(CLICHE_SUPPLIES_KEY) || '[]');
-    localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify(all.filter(s => s.id !== supId)));
-    soundManager.play('delete'); load();
+    try {
+      await supabaseService.deleteSupplierSupply(supId);
+      soundManager.play('delete');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   const handleAddPayment = () => {
     const amount = parseFloat(payAmount);
     if (!amount || amount <= 0) { toast.error('أدخل مبلغاً صحيحاً'); return; }
-    const newPay = { id: Date.now().toString(), supplierId: id, supplierName: supplier.name, amount, note: payNote, date: getCurrentDate().split('T')[0] };
-    const all = JSON.parse(localStorage.getItem(CLICHE_PAYMENTS_KEY) || '[]');
-    localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify([...all, newPay]));
+    const newPay = { id: Date.now().toString(), supplierId: id, supplierName: supplier.name, amount, note: payNote, date: getCurrentDate().split('T')[0], type: 'CLICHE' };
+    supabaseService.addSupplierPayment(newPay);
     toast.success('تم تسجيل الدفعة'); soundManager.play('save');
-    setShowPayModal(false); setPayAmount(''); setPayNote(''); load();
+    setShowPayModal(false); setPayAmount(''); setPayNote('');
   };
 
-  const handleDeletePayment = (pId) => {
+  const handleDeletePayment = async (pId) => {
     if (!window.confirm('حذف هذه الدفعة؟')) return;
-    const all = JSON.parse(localStorage.getItem(CLICHE_PAYMENTS_KEY) || '[]');
-    localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify(all.filter(p => p.id !== pId)));
-    soundManager.play('delete'); load();
+    try {
+      await supabaseService.deleteSupplierPayment(pId);
+      soundManager.play('delete');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   const totalSpent = supplies.reduce((a, s) => safeMath.add(a, s.totalPrice || 0), 0);
@@ -174,10 +186,10 @@ const ClicheSupplierDetails = () => {
                       <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">{sup.supplyNumber}</span>
                       <span className="text-xs text-slate-400">{sup.date}</span>
                     </div>
-                    <p className="font-bold text-slate-800">{sup.clicheName}</p>
+                    <p className="font-bold text-slate-800">{sup.clicheName || sup.metadata?.clicheName}</p>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      {sup.clicheWidth} × {sup.clicheHeight} سم · {sup.pricePerCm} ج.م/سم²
-                      <span className="mr-2 text-slate-400">مساحة: {(sup.clicheWidth * sup.clicheHeight).toFixed(2)} سم²</span>
+                      {sup.clicheWidth || sup.metadata?.width} × {sup.clicheHeight || sup.metadata?.height} سم · {sup.pricePerCm || sup.metadata?.pricePerCm} ج.م/سم²
+                      <span className="mr-2 text-slate-400">مساحة: {((sup.clicheWidth || sup.metadata?.width) * (sup.clicheHeight || sup.metadata?.height)).toFixed(2)} سم²</span>
                     </p>
                     {sup.note && <p className="text-xs text-slate-400 mt-0.5">{sup.note}</p>}
                   </div>

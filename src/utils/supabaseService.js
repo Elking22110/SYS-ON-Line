@@ -425,11 +425,11 @@ class SupabaseService {
             { name: 'Category', event: EVENTS.CATEGORIES_CHANGED, storageKey: 'categories' },
             { name: 'Expense', event: EVENTS.EXPENSES_CHANGED, storageKey: 'expenses' },
             { name: 'Supplier', event: EVENTS.SUPPLIERS_CHANGED, storageKey: 'suppliers' },
-            { name: 'CustomerOrder', event: EVENTS.CUSTOMER_ORDERS_CHANGED, storageKey: 'customer_orders' },
-            { name: 'CustomerPayment', event: EVENTS.CUSTOMER_PAYMENTS_CHANGED, storageKey: 'customer_payments' },
             { name: 'SupplierSupply', event: EVENTS.SUPPLIER_SUPPLIES_CHANGED, storageKey: 'supplier_supplies' },
             { name: 'SupplierPayment', event: EVENTS.SUPPLIER_PAYMENTS_CHANGED, storageKey: 'supplier_payments' },
-            { name: 'Setting', event: 'settings_changed', storageKey: null }, // Handle specially
+            { name: 'CustomerOrder', event: EVENTS.CUSTOMER_ORDERS_CHANGED, storageKey: 'customer_orders' },
+            { name: 'CustomerPayment', event: EVENTS.CUSTOMER_PAYMENTS_CHANGED, storageKey: 'customer_payments' },
+            { name: 'Setting', event: 'settings_changed', storageKey: null },
             { name: 'User', event: 'users_changed', storageKey: 'users' }
         ];
 
@@ -466,8 +466,29 @@ class SupabaseService {
                 return;
             }
 
-            // Update local storage instantly for regular tables
-            const storageKey = tableInfo.storageKey;
+            // Route to correct storage key based on type if applicable
+            const data = payload.new || payload.old;
+            const type = data.type || 'RAW';
+            let storageKey = tableInfo.storageKey;
+
+            // Specialized routing for Supplier-related tables
+            if (['Supplier', 'SupplierSupply', 'SupplierPayment'].includes(tableInfo.name)) {
+                if (type === 'INK') {
+                    if (tableInfo.name === 'Supplier') storageKey = 'ink_suppliers';
+                    else if (tableInfo.name === 'SupplierSupply') storageKey = 'ink_supplies';
+                    else if (tableInfo.name === 'SupplierPayment') storageKey = 'ink_payments';
+                } else if (type === 'CLICHE') {
+                    if (tableInfo.name === 'Supplier') storageKey = 'cliche_suppliers';
+                    else if (tableInfo.name === 'SupplierSupply') storageKey = 'cliche_supplies';
+                    else if (tableInfo.name === 'SupplierPayment') storageKey = 'cliche_payments';
+                } else {
+                    // RAW or default
+                    if (tableInfo.name === 'Supplier') storageKey = 'suppliers';
+                    else if (tableInfo.name === 'SupplierSupply') storageKey = 'supplier_supplies';
+                    else if (tableInfo.name === 'SupplierPayment') storageKey = 'supplier_payments';
+                }
+            }
+
             if (storageKey) {
                 const currentData = JSON.parse(localStorage.getItem(storageKey) || '[]');
                 let updatedData = [...currentData];
@@ -479,7 +500,6 @@ class SupabaseService {
                 } else if (payload.eventType === 'UPDATE') {
                     updatedData = updatedData.map(item => {
                         if (item.id == payload.new.id) {
-                            // Safe merge: only apply cloud values that are non-null and non-empty
                             const safeCloudUpdate = {};
                             Object.keys(payload.new).forEach(key => {
                                 const val = payload.new[key];
@@ -496,20 +516,23 @@ class SupabaseService {
                 }
 
                 localStorage.setItem(storageKey, JSON.stringify(updatedData));
+            }
 
-                // Special: Update activeShift if a shift is marked as active
-                if (tableInfo.name === 'Shift') {
-                    const active = updatedData.find(s => s.status === 'active');
-                    if (active) {
-                        localStorage.setItem('activeShift', JSON.stringify(active));
-                    } else if (payload.eventType === 'UPDATE' && payload.new.status === 'ended') {
-                         // Clear active shift if this update was ending it
-                         localStorage.removeItem('activeShift');
-                    }
+            // Route event based on type for specific tables
+            let eventToPublish = tableInfo.event;
+            if (['Supplier', 'SupplierSupply', 'SupplierPayment'].includes(tableInfo.name)) {
+                if (type === 'INK') {
+                    if (tableInfo.name === 'Supplier') eventToPublish = 'ink_suppliers_changed';
+                    else if (tableInfo.name === 'SupplierSupply') eventToPublish = 'ink_supplies_changed';
+                    else if (tableInfo.name === 'SupplierPayment') eventToPublish = 'ink_payments_changed';
+                } else if (type === 'CLICHE') {
+                    if (tableInfo.name === 'Supplier') eventToPublish = 'cliche_suppliers_changed';
+                    else if (tableInfo.name === 'SupplierSupply') eventToPublish = 'cliche_supplies_changed';
+                    else if (tableInfo.name === 'SupplierPayment') eventToPublish = 'cliche_payments_changed';
                 }
             }
 
-            publish(tableInfo.event, {
+            publish(eventToPublish, {
                 type: 'remote_sync',
                 action: payload.eventType,
                 data: payload.new || payload.old
@@ -533,12 +556,17 @@ class SupabaseService {
             { name: 'الطلبات', key: 'customer_orders', fetch: () => this.getAllCustomerOrders() },
             { name: 'المبيعات', key: 'sales', fetch: () => this.getSales() },
             { name: 'الفئات', key: 'productCategories', fetch: () => this.getCategories() },
-            { name: 'الموردين', key: 'suppliers', fetch: () => this.getSuppliers() },
+            { name: 'الموردين', key: 'suppliers', fetch: () => this.getSuppliers('RAW') },
+            { name: 'موردي الأحبار', key: 'ink_suppliers', fetch: () => this.getSuppliers('INK') },
+            { name: 'موردي الأكلشيهات', key: 'cliche_suppliers', fetch: () => this.getSuppliers('CLICHE') },
             { name: 'المصروفات', key: 'expenses', fetch: () => this.getExpenses() },
             { name: 'الورديات', key: 'shifts', fetch: () => this.getShifts() },
-            { name: 'الموردين', key: 'suppliers', fetch: () => this.getSuppliers() },
-            { name: 'توريدات الموردين', key: 'supplier_supplies', fetch: () => this.getAllSupplierSupplies() },
-            { name: 'مدفوعات الموردين', key: 'supplier_payments', fetch: () => this.getAllSupplierPayments() },
+            { name: 'توريدات الموردين', key: 'supplier_supplies', fetch: () => this.getAllSupplierSupplies('RAW') },
+            { name: 'توريدات الأحبار', key: 'ink_supplies', fetch: () => this.getAllSupplierSupplies('INK') },
+            { name: 'توريدات الأكلشيهات', key: 'cliche_supplies', fetch: () => this.getAllSupplierSupplies('CLICHE') },
+            { name: 'مدفوعات الموردين', key: 'supplier_payments', fetch: () => this.getAllSupplierPayments('RAW') },
+            { name: 'مدفوعات الأحبار', key: 'ink_payments', fetch: () => this.getAllSupplierPayments('INK') },
+            { name: 'مدفوعات الأكلشيهات', key: 'cliche_payments', fetch: () => this.getAllSupplierPayments('CLICHE') },
             { name: 'المستخدمين', key: 'users', fetch: () => this.getUsers() },
             { name: 'الإعدادات', key: 'settings', fetch: () => this.getSettings() }
         ];
@@ -1099,26 +1127,43 @@ class SupabaseService {
     }
 
     // SUPPLIERS
-    async getSuppliers() {
+    async getSuppliers(type = 'RAW') {
         try {
-            if (dbApi) {
-                return await dbApi.getSuppliers();
+            let query = supabase.from('Supplier').select('*');
+            if (type === 'RAW') {
+                query = query.or(`type.eq.${type},type.is.null`);
+            } else {
+                query = query.eq('type', type);
             }
-            return [];
+            const { data } = await query;
+            return data || [];
         } catch (error) {
             return [];
         }
     }
 
     async addSupplier(data, options = {}) {
+        const type = data.type || 'RAW';
         const offlineResult = await this.handleOfflineOperation('addSupplier', [data], options);
         if (offlineResult) return offlineResult;
 
         try {
-            if (dbApi) {
-                // Pass all data through — dbApi handles allowed-column filtering
-                return await dbApi.addSupplier(data);
-            }
+            const payload = {
+                id: data.id?.toString() || Date.now().toString(),
+                name: data.name,
+                phone: data.phone || data.contact || '',
+                contact: data.phone || data.contact || '',
+                email: data.email || '',
+                address: data.address || '',
+                joinDate: data.joinDate || new Date().toISOString(),
+                status: data.status || 'active',
+                totalSpent: sanitizeNumerical(data.totalSpent, 0),
+                orders: sanitizeNumerical(data.orders, 0),
+                type: type
+            };
+            const { data: res, error } = await supabase.from('Supplier').upsert(payload).select().single();
+            if (error) throw error;
+            return res;
         } catch (error) {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addSupplier', [data]);
             throw error;
@@ -1130,16 +1175,20 @@ class SupabaseService {
         if (offlineResult) return offlineResult;
 
         try {
-            if (dbApi) {
-                return await dbApi.updateSupplier(id, {
-                    name: data.name,
-                    contact: data.contact || null,
-                    totalSpent: parseFloat(data.totalSpent) || 0,
-                    orders: parseInt(data.orders) || 0,
-                    lastVisit: data.lastVisit ? new Date(data.lastVisit).toISOString() : null,
-                    joinDate: data.joinDate ? new Date(data.joinDate).toISOString() : new Date().toISOString()
-                });
-            }
+            const payload = {
+                name: data.name,
+                phone: data.phone,
+                contact: data.phone || data.contact,
+                email: data.email,
+                address: data.address,
+                totalSpent: sanitizeNumerical(data.totalSpent, 0),
+                orders: sanitizeNumerical(data.orders, 0),
+                lastVisit: data.lastVisit ? new Date(data.lastVisit).toISOString() : null,
+                status: data.status
+            };
+            const { data: res, error } = await supabase.from('Supplier').update(payload).eq('id', id.toString()).select().single();
+            if (error) throw error;
+            return res;
         } catch (error) {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'updateSupplier', [id, data]);
             throw error;
@@ -1344,9 +1393,15 @@ class SupabaseService {
         }
     }
 
-    async getAllSupplierSupplies() {
+    async getAllSupplierSupplies(type = 'RAW') {
         try {
-            const { data } = await supabase.from('SupplierSupply').select('*');
+            let query = supabase.from('SupplierSupply').select('*');
+            if (type === 'RAW') {
+                query = query.or(`type.eq.${type},type.is.null`);
+            } else {
+                query = query.eq('type', type);
+            }
+            const { data } = await query;
             return data || [];
         } catch (error) {
             return [];
@@ -1373,10 +1428,8 @@ class SupabaseService {
                 wasteQuantity: sanitizeNumerical(supplyData.wasteQuantity, 0),
                 shiftId: supplyData.shiftId || null,
                 linkedOrderId: supplyData.linkedOrderId || null,
-                linkedOrderNumber: supplyData.linkedOrderNumber || null,
-                linkedCustomerName: supplyData.linkedCustomerName || null,
-                linkedCustomerId: supplyData.linkedCustomerId || null,
-                createdAt: new Date().toISOString()
+                type: supplyData.type || 'RAW',
+                metadata: supplyData.metadata || supplyData.colors || {} 
             };
             const { data: res, error } = await supabase.from('SupplierSupply').upsert(payload).select().single();
             if (error) throw error;
@@ -1437,9 +1490,15 @@ class SupabaseService {
         }
     }
 
-    async getAllSupplierPayments() {
+    async getAllSupplierPayments(type = 'RAW') {
         try {
-            const { data } = await supabase.from('SupplierPayment').select('*');
+            let query = supabase.from('SupplierPayment').select('*');
+            if (type === 'RAW') {
+                query = query.or(`type.eq.${type},type.is.null`);
+            } else {
+                query = query.eq('type', type);
+            }
+            const { data } = await query;
             return data || [];
         } catch (error) {
             return [];
@@ -1458,7 +1517,7 @@ class SupabaseService {
                 paymentMethod: paymentData.paymentMethod || 'نقدي',
                 shiftId: paymentData.shiftId || null,
                 notes: paymentData.notes || '',
-                createdAt: new Date().toISOString()
+                type: paymentData.type || 'RAW'
             };
             const { data: res, error } = await supabase.from('SupplierPayment').upsert(payload).select().single();
             if (error) throw error;

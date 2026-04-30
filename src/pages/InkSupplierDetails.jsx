@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
+import supabaseService from '../utils/supabaseService.js';
+import { observerManager } from '../utils/observerManager.js';
 
 const INK_SUPPLIERS_KEY = 'ink_suppliers';
 const INK_SUPPLIES_KEY = 'ink_supplies';
@@ -36,7 +38,13 @@ const InkSupplierDetails = () => {
     setPayments(allPay.filter(p => p.supplierId === id).sort((a, b) => b.id - a.id));
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { 
+    load(); 
+    const unsubSuppliers = observerManager.subscribe('ink_suppliers_changed', load);
+    const unsubSupplies = observerManager.subscribe('ink_supplies_changed', load);
+    const unsubPayments = observerManager.subscribe('ink_payments_changed', load);
+    return () => { unsubSuppliers(); unsubSupplies(); unsubPayments(); };
+  }, [id]);
 
   const totalSupply = (colors) => colors.reduce((s, c) => safeMath.add(s, parseFloat(c.cost) || 0), 0);
 
@@ -49,37 +57,41 @@ const InkSupplierDetails = () => {
       id: Date.now().toString(), supplierId: id, supplierName: supplier.name,
       colors: valid, totalPrice: total, paidAmount: paid,
       remainingAmount: safeMath.subtract(total, paid),
-      date: supplyDate, supplyNumber: `INK-${Date.now().toString().slice(-6)}`
+      date: supplyDate, supplyNumber: `INK-${Date.now().toString().slice(-6)}`,
+      type: 'INK', metadata: { colors: valid }
     };
-    const all = JSON.parse(localStorage.getItem(INK_SUPPLIES_KEY) || '[]');
-    localStorage.setItem(INK_SUPPLIES_KEY, JSON.stringify([...all, newSup]));
+    supabaseService.addSupplierSupply(newSup);
     toast.success('تم تسجيل التوريدة'); soundManager.play('save');
     setShowSupplyModal(false); setSupplyColors([emptyColor()]); setSupplyPaid('');
-    load();
   };
 
-  const handleDeleteSupply = (supId) => {
+  const handleDeleteSupply = async (supId) => {
     if (!window.confirm('حذف هذه التوريدة؟')) return;
-    const all = JSON.parse(localStorage.getItem(INK_SUPPLIES_KEY) || '[]');
-    localStorage.setItem(INK_SUPPLIES_KEY, JSON.stringify(all.filter(s => s.id !== supId)));
-    soundManager.play('delete'); load();
+    try {
+      await supabaseService.deleteSupplierSupply(supId);
+      soundManager.play('delete');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   const handleAddPayment = () => {
     const amount = parseFloat(payAmount);
     if (!amount || amount <= 0) { toast.error('أدخل مبلغاً صحيحاً'); return; }
-    const newPay = { id: Date.now().toString(), supplierId: id, supplierName: supplier.name, amount, note: payNote, date: getCurrentDate().split('T')[0] };
-    const all = JSON.parse(localStorage.getItem(INK_PAYMENTS_KEY) || '[]');
-    localStorage.setItem(INK_PAYMENTS_KEY, JSON.stringify([...all, newPay]));
+    const newPay = { id: Date.now().toString(), supplierId: id, supplierName: supplier.name, amount, note: payNote, date: getCurrentDate().split('T')[0], type: 'INK' };
+    supabaseService.addSupplierPayment(newPay);
     toast.success('تم تسجيل الدفعة'); soundManager.play('save');
-    setShowPayModal(false); setPayAmount(''); setPayNote(''); load();
+    setShowPayModal(false); setPayAmount(''); setPayNote('');
   };
 
-  const handleDeletePayment = (pId) => {
+  const handleDeletePayment = async (pId) => {
     if (!window.confirm('حذف هذه الدفعة؟')) return;
-    const all = JSON.parse(localStorage.getItem(INK_PAYMENTS_KEY) || '[]');
-    localStorage.setItem(INK_PAYMENTS_KEY, JSON.stringify(all.filter(p => p.id !== pId)));
-    soundManager.play('delete'); load();
+    try {
+      await supabaseService.deleteSupplierPayment(pId);
+      soundManager.play('delete');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   const totalSpent = supplies.reduce((a, s) => safeMath.add(a, s.totalPrice || 0), 0);
@@ -187,7 +199,7 @@ const InkSupplierDetails = () => {
                 </div>
                 {expandedSupply === sup.id && (
                   <div className="mt-3 bg-slate-50 rounded-xl p-3 space-y-1.5">
-                    {sup.colors?.map((c, i) => (
+                    {(sup.colors || sup.metadata?.colors)?.map((c, i) => (
                       <div key={i} className="flex justify-between items-center text-sm bg-white rounded-lg px-3 py-2 shadow-sm">
                         <div className="flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-cyan-400 inline-block"></span>

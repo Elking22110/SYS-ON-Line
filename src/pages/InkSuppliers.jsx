@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
+import supabaseService from '../utils/supabaseService.js';
+import { observerManager } from '../utils/observerManager.js';
 
 const INK_SUPPLIERS_KEY = 'ink_suppliers';
 const INK_SUPPLIES_KEY = 'ink_supplies';
@@ -40,42 +42,51 @@ const InkSuppliers = () => {
     setPayments(JSON.parse(localStorage.getItem(INK_PAYMENTS_KEY) || '[]'));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    const unsubSuppliers = observerManager.subscribe('ink_suppliers_changed', load);
+    const unsubSupplies = observerManager.subscribe('ink_supplies_changed', load);
+    const unsubPayments = observerManager.subscribe('ink_payments_changed', load);
+    return () => { unsubSuppliers(); unsubSupplies(); unsubPayments(); };
+  }, []);
 
   const save = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
   // ── Supplier CRUD ──
-  const handleSaveSupplier = () => {
+  const handleSaveSupplier = async () => {
     if (!form.name || !form.phone) { toast.error('اسم ورقم الهاتف مطلوبان'); return; }
-    let updated;
-    if (editingSupplier) {
-      updated = suppliers.map(s => s.id === editingSupplier.id ? { ...s, ...form } : s);
-      toast.success('تم تحديث المورد');
-    } else {
-      const newS = { ...form, id: Date.now().toString(), joinDate: getCurrentDate().split('T')[0], status: 'جديد' };
-      updated = [...suppliers, newS];
-      toast.success('تم إضافة مورد الأحبار');
+    const sData = { ...form, type: 'INK' };
+    try {
+      if (editingSupplier) {
+        await supabaseService.updateSupplier(editingSupplier.id, sData);
+        toast.success('تم تحديث المورد');
+      } else {
+        await supabaseService.addSupplier(sData);
+        toast.success('تم إضافة مورد الأحبار');
+      }
+      soundManager.play('save');
+      setShowAddModal(false);
+      setEditingSupplier(null);
+      setForm({ name: '', phone: '', email: '', address: '' });
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحفظ');
     }
-    setSuppliers(updated);
-    save(INK_SUPPLIERS_KEY, updated);
-    soundManager.play('save');
-    setShowAddModal(false);
-    setEditingSupplier(null);
-    setForm({ name: '', phone: '', email: '', address: '' });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('حذف هذا المورد؟')) return;
-    const updated = suppliers.filter(s => s.id !== id);
-    setSuppliers(updated);
-    save(INK_SUPPLIERS_KEY, updated);
-    soundManager.play('delete');
+    try {
+      await supabaseService.deleteSupplier(id);
+      soundManager.play('delete');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   // ── Supply ──
   const totalSupply = (colors) => colors.reduce((s, c) => safeMath.add(s, parseFloat(c.cost) || 0), 0);
 
-  const handleAddSupply = () => {
+  const handleAddSupply = async () => {
     const validColors = supplyColors.filter(c => c.color && c.cost);
     if (!validColors.length) { toast.error('أضف لون واحد على الأقل'); return; }
     const total = totalSupply(validColors);
@@ -89,20 +100,25 @@ const InkSuppliers = () => {
       paidAmount: paid,
       remainingAmount: safeMath.subtract(total, paid),
       date: supplyDate,
-      supplyNumber: `INK-${Date.now().toString().slice(-6)}`
+      supplyNumber: `INK-${Date.now().toString().slice(-6)}`,
+      type: 'INK',
+      metadata: { colors: validColors }
     };
-    const updated = [...supplies, newSupply];
-    setSupplies(updated);
-    save(INK_SUPPLIES_KEY, updated);
-    toast.success('تم تسجيل التوريدة');
-    soundManager.play('save');
-    setShowSupplyModal(false);
-    setSupplyColors([emptyColor()]);
-    setSupplyPaid('');
+    
+    try {
+      await supabaseService.addSupplierSupply(newSupply);
+      toast.success('تم تسجيل التوريدة');
+      soundManager.play('save');
+      setShowSupplyModal(false);
+      setSupplyColors([emptyColor()]);
+      setSupplyPaid('');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء الحفظ');
+    }
   };
 
   // ── Payment ──
-  const handleAddPayment = () => {
+  const handleAddPayment = async () => {
     const amount = parseFloat(payAmount);
     if (!amount || amount <= 0) { toast.error('أدخل مبلغاً صحيحاً'); return; }
     const newPay = {
@@ -111,16 +127,19 @@ const InkSuppliers = () => {
       supplierName: selectedSupplier.name,
       amount,
       note: payNote,
-      date: getCurrentDate().split('T')[0]
+      date: getCurrentDate().split('T')[0],
+      type: 'INK'
     };
-    const updated = [...payments, newPay];
-    setPayments(updated);
-    save(INK_PAYMENTS_KEY, updated);
-    toast.success('تم تسجيل الدفعة');
-    soundManager.play('save');
-    setShowPayModal(false);
-    setPayAmount('');
-    setPayNote('');
+    try {
+      await supabaseService.addSupplierPayment(newPay);
+      toast.success('تم تسجيل الدفعة');
+      soundManager.play('save');
+      setShowPayModal(false);
+      setPayAmount('');
+      setPayNote('');
+    } catch (e) {
+      toast.error('حدث خطأ أثناء تسجيل الدفعة');
+    }
   };
 
   const getStats = (sId) => {
@@ -203,8 +222,7 @@ const InkSuppliers = () => {
                 <div key={supplier.id} className="glass-card overflow-hidden">
                   {/* Card Header */}
                   <div className="p-4 flex flex-col md:flex-row justify-between items-start gap-3">
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/ink-suppliers/${supplier.id}`)}
->
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/ink-suppliers/${supplier.id}`)}>
                       <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center shadow">
                         <Droplets className="h-5 w-5 text-white" />
                       </div>
@@ -260,7 +278,7 @@ const InkSuppliers = () => {
                                 <span className="text-xs text-slate-400">{sup.date}</span>
                               </div>
                               <div className="space-y-1">
-                                {sup.colors?.map((c, i) => (
+                                {(sup.colors || sup.metadata?.colors)?.map((c, i) => (
                                   <div key={i} className="flex justify-between text-sm">
                                     <span className="font-medium text-slate-700">🎨 {c.color} — {c.quantity} كجم</span>
                                     <span className="font-bold text-slate-900">{parseFloat(c.cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
