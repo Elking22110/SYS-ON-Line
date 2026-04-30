@@ -1149,20 +1149,20 @@ class SupabaseService {
 
         try {
             const payload = {
-                id: data.id?.toString() || Date.now().toString(),
+                id: data.id?.toString() || Date.now().toString() + Math.random().toString(36).substr(2, 5),
                 name: data.name,
-                phone: data.phone || data.contact || '',
-                contact: data.phone || data.contact || '',
+                phone: data.phone || '',
                 email: data.email || '',
                 address: data.address || '',
-                joinDate: data.joinDate || new Date().toISOString(),
-                status: data.status || 'active',
-                totalSpent: sanitizeNumerical(data.totalSpent, 0),
-                orders: sanitizeNumerical(data.orders, 0),
                 type: type
             };
+            // Remove undefined fields to avoid Supabase column errors
+            Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
             const { data: res, error } = await supabase.from('Supplier').upsert(payload).select().single();
-            if (error) throw error;
+            if (error) {
+                console.error('addSupplier Supabase error:', error);
+                throw error;
+            }
             return res;
         } catch (error) {
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'addSupplier', [data]);
