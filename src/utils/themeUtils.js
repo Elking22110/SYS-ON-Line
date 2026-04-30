@@ -46,6 +46,12 @@ export const applyPrimaryColor = (color) => {
     // تطبيق متغيرات CSS الجذرية
     root.style.setProperty('--primary-color', color);
     root.style.setProperty('--primary-500', color);
+    
+    if (color.toLowerCase() === '#ec4899') {
+        root.classList.add('theme-pink');
+    } else {
+        root.classList.remove('theme-pink');
+    }
     root.style.setProperty('--primary-600', adjustColor(color, -20));
     root.style.setProperty('--primary-400', adjustColor(color, 20));
     root.style.setProperty('--primary-300', adjustColor(color, 40));

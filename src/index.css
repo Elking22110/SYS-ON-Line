@@ -3100,3 +3100,109 @@ button svg, .btn svg, a svg, label svg { pointer-events: none !important; }
 button:active, .btn:active, [role="button"]:active { transition: none; }
 button, .btn, [role="button"], input[type="submit"], input[type="button"] { cursor: pointer !important; }
 td button { position: relative; z-index: 5; }
+
+/* -------------------------------------
+   PINK THEME OVERRIDES (Aggressive)
+   Applied when user selects the Pink primary color (#ec4899)
+   ------------------------------------- */
+
+.theme-pink {
+  --primary-color: #ec4899 !important;
+  --primary-500: #ec4899 !important;
+  /* Make sure pink themes are vibrant */
+  --bg-primary: #fdf2f8 !important; /* pink-50 */
+}
+
+/* Light mode backgrounds for pink theme */
+.theme-pink:not(.dark) {
+  --bg-primary: #fdf2f8 !important; /* pink-50 */
+  --bg-secondary: #fbcfe8 !important; /* pink-200 */
+}
+
+/* Dark mode backgrounds for pink theme */
+.theme-pink.dark {
+  --bg-primary: #4f1833 !important; /* Very dark pink */
+  --bg-secondary: #831843 !important; /* Tailwind pink-900 */
+}
+
+/* Aggressively override common primary-like utility colors to Pink */
+.theme-pink .bg-purple-500,
+.theme-pink .bg-indigo-500,
+.theme-pink .bg-blue-500,
+.theme-pink .bg-purple-600,
+.theme-pink .bg-indigo-600,
+.theme-pink .bg-blue-600,
+.theme-pink .bg-emerald-500,
+.theme-pink .bg-emerald-600,
+.theme-pink .bg-cyan-500,
+.theme-pink .bg-cyan-600 {
+  background-color: #ec4899 !important;
+}
+
+.theme-pink .text-purple-500,
+.theme-pink .text-indigo-500,
+.theme-pink .text-blue-500,
+.theme-pink .text-purple-600,
+.theme-pink .text-indigo-600,
+.theme-pink .text-blue-600,
+.theme-pink .text-cyan-600 {
+  color: #ec4899 !important;
+}
+
+.theme-pink .border-purple-500,
+.theme-pink .border-indigo-500,
+.theme-pink .border-blue-500,
+.theme-pink .border-purple-600,
+.theme-pink .border-indigo-600,
+.theme-pink .border-blue-600 {
+  border-color: #ec4899 !important;
+}
+
+/* Sidebar and active items */
+.theme-pink .nav-item-active,
+.theme-pink .sidebar-item.active {
+  background-color: rgba(236, 72, 153, 0.15) !important;
+  border-right-color: #ec4899 !important;
+  color: #ec4899 !important;
+}
+
+/* Gradients */
+.theme-pink .bg-gradient-to-r,
+.theme-pink .bg-gradient-to-br,
+.theme-pink .bg-gradient-primary {
+  background-image: linear-gradient(135deg, #f472b6 0%, #be185d 100%) !important;
+}
+
+/* Glass cards tinting */
+.theme-pink:not(.dark) .glass-card {
+  background: rgba(253, 242, 248, 0.85) !important;
+  border-color: rgba(236, 72, 153, 0.3) !important;
+}
+
+.theme-pink.dark .glass-card {
+  background: rgba(131, 24, 67, 0.6) !important;
+  border-color: rgba(236, 72, 153, 0.4) !important;
+}
+
+/* Primary buttons */
+.theme-pink .btn-primary {
+  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%) !important;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3) !important;
+}
+
+.theme-pink .btn-primary:hover {
+  box-shadow: 0 6px 16px rgba(236, 72, 153, 0.5) !important;
+}
+
+/* Background gradient overrides for body */
+.theme-pink:not(.dark) body::before {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(244, 114, 182, 0.1) 0%, transparent 50%) !important;
+}
+
+.theme-pink.dark body::before {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(190, 24, 93, 0.05) 0%, transparent 50%) !important;
+}
