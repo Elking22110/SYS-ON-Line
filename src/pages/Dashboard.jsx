@@ -268,59 +268,13 @@ const Dashboard = () => {
       const totalYesterdayRevenue = safeMath.add(yesterdayPOSRevenue, yesterdayFactoryRevenue);
 
       // 6. Supplier Debt Calculation (Filter by valid supplier IDs only)
-      const validSupplies = allSupplies.filter(s => validSupplierIds.has(String(s.supplierId)));
-      
-      const totalSuppliesValue = validSupplies.reduce((sum, s) => sum + (parseFloat(s.totalPrice) || 0), 0);
-      
-      const totalPaidInSupplies = validSupplies.reduce((sum, s) => sum + (parseFloat(s.paidAmount) || 0), 0);
-      
-      const totalSupplierPaymentsValue = allSupplierPayments
-        .filter(p => validSupplierIds.has(String(p.supplierId)))
-        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-      
-      const totalSupplierDebt = Math.max(0, safeMath.subtract(totalSuppliesValue, safeMath.add(totalSupplierPaymentsValue, totalPaidInSupplies)));
+      // Use the exact same logic as the modal to prevent negative balances from hiding actual debts
+      const supplierDebtsList = calculateSupplierDebts();
+      const totalSupplierDebt = supplierDebtsList.reduce((sum, s) => safeMath.add(sum, s.netDebt), 0);
 
-      // 7. Customer Debt Calculation - Only Closed Orders count as debt
       // 7. Customer Debt Calculation - Calculate per customer to handle credits correctly
-      const customerBalances = {};
-      customers.forEach(c => customerBalances[c.id] = { orders: 0, payments: 0 });
-
-      customerOrders
-        .filter(o => o.status === 'CLOSED' && customerBalances[o.customerId])
-        .forEach(o => {
-          let orderTotal = 0;
-          if (o.totalPrice !== undefined && o.totalPrice !== null) {
-              orderTotal = parseFloat(o.totalPrice);
-          } else {
-              const q = parseFloat(o.quantity) || 0;
-              const pricePerKg = parseFloat(o.pricePerKg) || 0;
-              const printingCostPerKg = parseFloat(o.printingCostPerKg) || 0;
-              const cuttingCostPerKg = parseFloat(o.cuttingCostPerKg) || 0;
-              const profitMargin = parseFloat(o.profitMargin) || 0;
-              const clicheCost = o.clicheEnabled ? (parseFloat(o.clicheCost) || 0) : 0;
-
-              const totalPricePerKg = safeMath.add(
-                  safeMath.add(pricePerKg, printingCostPerKg),
-                  safeMath.add(cuttingCostPerKg, profitMargin)
-              );
-
-              const subtotal = safeMath.multiply(totalPricePerKg, q);
-              orderTotal = safeMath.add(subtotal, clicheCost);
-          }
-          
-          customerBalances[o.customerId].orders = safeMath.add(customerBalances[o.customerId].orders, orderTotal);
-        });
-
-      customerPayments
-        .filter(p => customerBalances[p.customerId])
-        .forEach(p => {
-          customerBalances[p.customerId].payments = safeMath.add(customerBalances[p.customerId].payments, parseFloat(p.amount) || 0);
-        });
-
-      const totalCustomerDebt = Object.values(customerBalances).reduce((sum, bal) => {
-        const debt = Math.max(0, safeMath.subtract(bal.orders, bal.payments));
-        return safeMath.add(sum, debt);
-      }, 0);
+      const customerDebtsList = calculateCustomerDebts();
+      const totalCustomerDebt = customerDebtsList.reduce((sum, c) => safeMath.add(sum, c.netDebt), 0);
 
       // 8. Daily, Monthly and Shift Expenses Calculation
       const activeShiftForExpenses = storageOptimizer.get('activeShift', null);
