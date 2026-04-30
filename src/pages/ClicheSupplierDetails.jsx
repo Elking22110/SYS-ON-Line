@@ -50,7 +50,13 @@ const ClicheSupplierDetails = () => {
     return () => { unsubSuppliers(); unsubSupplies(); unsubPayments(); };
   }, [id]);
 
-  const calcTotal = () => (parseFloat(clicheWidth) || 0) * (parseFloat(clicheHeight) || 0) * (parseFloat(pricePerCm) || 0);
+  const calcTotal = () => {
+    const w = parseFloat(clicheWidth) || 0;
+    const h = parseFloat(clicheHeight) || 0;
+    const p = parseFloat(pricePerCm) || 0;
+    const area = safeMath.multiply(w, h);
+    return safeMath.multiply(area, p);
+  };
 
   const handleAddSupply = () => {
     if (!clicheName || !pricePerCm) { toast.error('أدخل اسم الأكلشية وسعر السنتيمتر'); return; }

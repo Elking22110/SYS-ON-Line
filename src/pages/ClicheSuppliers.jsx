@@ -61,7 +61,8 @@ const ClicheSuppliers = () => {
     const w = parseFloat(clicheWidth) || 0;
     const h = parseFloat(clicheHeight) || 0;
     const p = parseFloat(pricePerCm) || 0;
-    return w * h * p;
+    const area = safeMath.multiply(w, h);
+    return safeMath.multiply(area, p);
   };
 
   // ── Supplier CRUD ──

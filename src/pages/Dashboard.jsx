@@ -47,9 +47,20 @@ const Dashboard = () => {
   const openAuditModal = (type) => {
     soundManager.play('openWindow');
     if (type === 'supplier_debts') {
-      const suppliers = storageOptimizer.get('suppliers', []) || [];
-      const allSupplies = storageOptimizer.get('supplier_supplies', []) || [];
-      const allPayments = storageOptimizer.get('supplier_payments', []) || [];
+      const rawSuppliers = storageOptimizer.get('suppliers', []) || [];
+      const inkSuppliers = storageOptimizer.get('ink_suppliers', []) || [];
+      const clicheSuppliers = storageOptimizer.get('cliche_suppliers', []) || [];
+      const suppliers = [...rawSuppliers, ...inkSuppliers, ...clicheSuppliers];
+      
+      const rawSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+      const inkSupplies = storageOptimizer.get('ink_supplies', []) || [];
+      const clicheSupplies = storageOptimizer.get('cliche_supplies', []) || [];
+      const allSupplies = [...rawSupplies, ...inkSupplies, ...clicheSupplies];
+      
+      const rawPayments = storageOptimizer.get('supplier_payments', []) || [];
+      const inkPayments = storageOptimizer.get('ink_payments', []) || [];
+      const clichePayments = storageOptimizer.get('cliche_payments', []) || [];
+      const allPayments = [...rawPayments, ...inkPayments, ...clichePayments];
       
       const supplierDebtMap = {};
       suppliers.forEach(s => supplierDebtMap[s.id] = { id: s.id, name: s.name, totalSupplies: 0, totalPayments: 0, netDebt: 0 });
@@ -165,17 +176,32 @@ const Dashboard = () => {
   const analyzeRealData = () => {
     try {
       // 1. Core Data
-      const allSales = storageOptimizer.get('sales', []) || [];
+      const posSales = storageOptimizer.get('sales', []) || [];
       const products = storageOptimizer.get('products', []) || [];
       const customers = storageOptimizer.get('customers', []) || [];
-      const suppliers = storageOptimizer.get('suppliers', []) || [];
+      
+      // Suppliers Aggregation
+      const rawSuppliers = storageOptimizer.get('suppliers', []) || [];
+      const inkSuppliers = storageOptimizer.get('ink_suppliers', []) || [];
+      const clicheSuppliers = storageOptimizer.get('cliche_suppliers', []) || [];
+      const suppliers = [...rawSuppliers, ...inkSuppliers, ...clicheSuppliers];
       
       const customerOrders = storageOptimizer.get('customer_orders', []) || [];
       const customerPayments = storageOptimizer.get('customer_payments', []) || [];
-      const allSupplies = storageOptimizer.get('supplier_supplies', []) || [];
-      const allSupplierPayments = storageOptimizer.get('supplier_payments', []) || [];
+      
+      // Supplies Aggregation
+      const rawSupplies = storageOptimizer.get('supplier_supplies', []) || [];
+      const inkSupplies = storageOptimizer.get('ink_supplies', []) || [];
+      const clicheSupplies = storageOptimizer.get('cliche_supplies', []) || [];
+      const allSupplies = [...rawSupplies, ...inkSupplies, ...clicheSupplies];
+      
+      // Payments Aggregation
+      const rawSupplierPayments = storageOptimizer.get('supplier_payments', []) || [];
+      const inkSupplierPayments = storageOptimizer.get('ink_payments', []) || [];
+      const clicheSupplierPayments = storageOptimizer.get('cliche_payments', []) || [];
+      const allSupplierPayments = [...rawSupplierPayments, ...inkSupplierPayments, ...clicheSupplierPayments];
 
-      setAllTimeSales(allSales);
+      setAllTimeSales(posSales);
 
       // Map IDs for strict filtering to avoid "Ghost Data" (Orphan records)
       const validCustomerIds = new Set(customers.map(c => String(c.id)));
@@ -189,8 +215,8 @@ const Dashboard = () => {
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
       // 3. Today's POS Sales
-      const todayPOSSales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === today);
-      const yesterdayPOSSales = allSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === yesterday);
+      const todayPOSSales = posSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === today);
+      const yesterdayPOSSales = posSales.filter(s => (s.date || s.createdAt || '').split('T')[0] === yesterday);
 
       // 4. Today's Customer Orders (Advanced) - Only count CLOSED ones as Sales
       const todayCLOSEDOrders = customerOrders.filter(o => 
@@ -315,7 +341,7 @@ const Dashboard = () => {
 
       // 9. Active Shift Stats
       const activeShift = storageOptimizer.get('activeShift', null);
-      let shiftSales = allSales;
+      let shiftSales = posSales;
       let shiftClosedOrders = [];
       let shiftCustomerPayments = [];
       if (activeShift && activeShift.id) {
@@ -465,15 +491,28 @@ const Dashboard = () => {
         }
       }
 
-      // مزامنة التوريدات والمدفوعات (من جداول Setting)
-      const settings = await supabaseService.getSettings();
-      if (settings && settings.length > 0) {
-        const suppliesRecord = settings.find(s => s.key === 'supplier_supplies');
-        if (suppliesRecord) localStorage.setItem('supplier_supplies', suppliesRecord.value);
+      // ─── SUPPLIER SYNC ───
+      const [
+        rawSups, inkSups, clicheSups,
+        rawSupplies, inkSupplies, clicheSupplies,
+        rawPayments, inkPayments, clichePayments
+      ] = await Promise.all([
+        supabaseService.getSuppliers('RAW'), supabaseService.getSuppliers('INK'), supabaseService.getSuppliers('CLICHE'),
+        supabaseService.getAllSupplierSupplies('RAW'), supabaseService.getAllSupplierSupplies('INK'), supabaseService.getAllSupplierSupplies('CLICHE'),
+        supabaseService.getAllSupplierPayments('RAW'), supabaseService.getAllSupplierPayments('INK'), supabaseService.getAllSupplierPayments('CLICHE')
+      ]);
 
-        const paymentsRecord = settings.find(s => s.key === 'supplier_payments');
-        if (paymentsRecord) localStorage.setItem('supplier_payments', paymentsRecord.value);
-      }
+      if (rawSups?.length) localStorage.setItem('suppliers', JSON.stringify(rawSups));
+      if (inkSups?.length) localStorage.setItem('ink_suppliers', JSON.stringify(inkSups));
+      if (clicheSups?.length) localStorage.setItem('cliche_suppliers', JSON.stringify(clicheSups));
+
+      if (rawSupplies?.length) localStorage.setItem('supplier_supplies', JSON.stringify(rawSupplies));
+      if (inkSupplies?.length) localStorage.setItem('ink_supplies', JSON.stringify(inkSupplies));
+      if (clicheSupplies?.length) localStorage.setItem('cliche_supplies', JSON.stringify(clicheSupplies));
+
+      if (rawPayments?.length) localStorage.setItem('supplier_payments', JSON.stringify(rawPayments));
+      if (inkPayments?.length) localStorage.setItem('ink_payments', JSON.stringify(inkPayments));
+      if (clichePayments?.length) localStorage.setItem('cliche_payments', JSON.stringify(clichePayments));
 
       analyzeRealData();
     } catch (error) {
