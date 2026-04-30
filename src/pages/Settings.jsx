@@ -209,7 +209,7 @@ const Settings = () => {
 
       // إعدادات المظهر
       theme: savedSettings.theme || 'light',
-      primaryColor: savedSettings.primaryColor || '#8B5CF6',
+      primaryColor: savedSettings.primaryColor || '#5235E8',
       sidebarCollapsed: savedSettings.sidebarCollapsed !== undefined ? savedSettings.sidebarCollapsed : false,
 
       // إعدادات الأصوات
@@ -325,7 +325,7 @@ const Settings = () => {
       // إعادة تعيين الإعدادات للألوان الأساسية
       const defaultSettings = {
         theme: 'dark',
-        primaryColor: '#8B5CF6',
+        primaryColor: '#5235E8',
         sidebarCollapsed: false
       };
 
@@ -1499,10 +1499,10 @@ const Settings = () => {
               <div className="h-24 mb-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col gap-2 p-2 group-hover:scale-105 transition-transform">
                  <div className="h-3 w-3/4 bg-slate-800 rounded"></div>
                  <div className="h-3 w-1/2 bg-slate-700 rounded"></div>
-                 <div className="mt-auto h-4 w-full bg-[#8B5CF6]/40 rounded"></div>
+                 <div className="mt-auto h-4 w-full bg-[#5235E8]/40 rounded"></div>
               </div>
-              <span className={`text-sm font-bold block text-center ${settings.theme === 'dark' ? 'text-[#8B5CF6]' : 'text-slate-400'}`}>وضع داكن</span>
-              {settings.theme === 'dark' && <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#8B5CF6]" />}
+              <span className={`text-sm font-bold block text-center ${settings.theme === 'dark' ? 'text-[#5235E8]' : 'text-slate-400'}`}>وضع داكن</span>
+              {settings.theme === 'dark' && <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#5235E8]" />}
             </button>
           </div>
         </div>
@@ -1513,7 +1513,7 @@ const Settings = () => {
           </label>
           <div className="grid grid-cols-5 gap-3 mb-6">
             {[
-              { color: '#8B5CF6', name: 'بنفسجي' },
+              { color: '#5235E8', name: 'بنفسجي' },
               { color: '#3B82F6', name: 'أزرق' },
               { color: '#10B981', name: 'زمردي' },
               { color: '#F59E0B', name: 'برتقالي' },
