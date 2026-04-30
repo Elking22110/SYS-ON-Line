@@ -1162,7 +1162,19 @@ class SupabaseService {
             };
             // Remove undefined fields to avoid Supabase column errors
             Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
-            const { data: res, error } = await supabase.from('Supplier').upsert(payload).select().single();
+            
+            let { data: res, error } = await supabase.from('Supplier').upsert(payload).select().single();
+            
+            // Fallback: If 400 Bad Request, the schema might not have email/address
+            if (error && error.code === 'PGRST204' || error?.message?.includes('column') || error?.status === 400 || error?.code === '42703') {
+                console.warn('addSupplier: Schema mismatch detected. Retrying without email/address...');
+                delete payload.email;
+                delete payload.address;
+                const fallbackResult = await supabase.from('Supplier').upsert(payload).select().single();
+                res = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+
             if (error) {
                 console.error('addSupplier Supabase error:', error);
                 throw error;
@@ -1190,7 +1202,17 @@ class SupabaseService {
                 lastVisit: data.lastVisit ? new Date(data.lastVisit).toISOString() : null,
                 status: data.status
             };
-            const { data: res, error } = await supabase.from('Supplier').update(payload).eq('id', id.toString()).select().single();
+            let { data: res, error } = await supabase.from('Supplier').update(payload).eq('id', id.toString()).select().single();
+            
+            if (error && (error.code === 'PGRST204' || error?.message?.includes('column') || error?.status === 400 || error?.code === '42703')) {
+                console.warn('updateSupplier: Schema mismatch detected. Retrying without email/address...');
+                delete payload.email;
+                delete payload.address;
+                const fallbackResult = await supabase.from('Supplier').update(payload).eq('id', id.toString()).select().single();
+                res = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+
             if (error) throw error;
             return res;
         } catch (error) {
@@ -1436,7 +1458,17 @@ class SupabaseService {
                 wasteQuantity: sanitizeNumerical(supplyData.wasteQuantity, 0),
                 type: supplyData.type || 'RAW'
             };
-            const { data: res, error } = await supabase.from('SupplierSupply').upsert(payload).select().single();
+            let { data: res, error } = await supabase.from('SupplierSupply').upsert(payload).select().single();
+            
+            if (error && (error.code === 'PGRST204' || error?.message?.includes('column') || error?.status === 400 || error?.code === '42703')) {
+                console.warn('addSupplierSupply: Schema mismatch detected. Retrying without type/wasteQuantity...');
+                delete payload.type;
+                delete payload.wasteQuantity;
+                const fallbackResult = await supabase.from('SupplierSupply').upsert(payload).select().single();
+                res = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+
             if (error) {
                 console.error('addSupplierSupply Supabase error:', error);
                 throw error;
@@ -1469,7 +1501,18 @@ class SupabaseService {
                 linkedCustomerName: supplyData.linkedCustomerName || null,
                 linkedCustomerId: supplyData.linkedCustomerId || null,
             };
-            const { data: res, error } = await supabase.from('SupplierSupply').update(payload).eq('id', id.toString()).select().single();
+            let { data: res, error } = await supabase.from('SupplierSupply').update(payload).eq('id', id.toString()).select().single();
+            
+            if (error && (error.code === 'PGRST204' || error?.message?.includes('column') || error?.status === 400 || error?.code === '42703')) {
+                console.warn('updateSupplierSupply: Schema mismatch detected. Retrying without type/wasteQuantity/linkedCustomerId...');
+                delete payload.type;
+                delete payload.wasteQuantity;
+                delete payload.linkedCustomerId;
+                const fallbackResult = await supabase.from('SupplierSupply').update(payload).eq('id', id.toString()).select().single();
+                res = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+
             if (error) throw error;
             return res;
         } catch (error) {

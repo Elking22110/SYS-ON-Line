@@ -430,13 +430,8 @@ const Dashboard = () => {
         }
       }
 
-      if (customers !== null && customers !== undefined) {
-        localStorage.setItem('customers', JSON.stringify(customers));
-      }
-
-      if (sales !== null && sales !== undefined) {
-        localStorage.setItem('sales', JSON.stringify(sales));
-      }
+      safeMerge('customers', customers);
+      safeMerge('sales', sales);
 
       if (categories && categories.length > 0) {
         let finalCategories = [...categories];
@@ -473,17 +468,40 @@ const Dashboard = () => {
         supabaseService.getAllSupplierPayments('RAW'), supabaseService.getAllSupplierPayments('INK'), supabaseService.getAllSupplierPayments('CLICHE')
       ]);
 
-      if (rawSups !== null && rawSups !== undefined) localStorage.setItem('suppliers', JSON.stringify(rawSups));
-      if (inkSups !== null && inkSups !== undefined) localStorage.setItem('ink_suppliers', JSON.stringify(inkSups));
-      if (clicheSups !== null && clicheSups !== undefined) localStorage.setItem('cliche_suppliers', JSON.stringify(clicheSups));
+      const safeMerge = (key, cloudData) => {
+        if (cloudData === null || cloudData === undefined) return;
+        const localData = JSON.parse(localStorage.getItem(key) || '[]');
+        const cloudIds = new Set(cloudData.map(item => String(item.id)));
+        const localOnly = localData.filter(item => item && item.id && !cloudIds.has(String(item.id)));
+        
+        // Preserve unsynced local items and merge them with cloud items
+        const safeMerged = cloudData.map(co => {
+            const lo = localData.find(l => l && String(l.id) === String(co.id));
+            if (!lo) return co;
+            const mergedItem = { ...lo };
+            Object.keys(co).forEach(k => {
+                if (co[k] !== null && co[k] !== undefined && co[k] !== '') {
+                    mergedItem[k] = co[k];
+                }
+            });
+            return mergedItem;
+        });
+        
+        const merged = [...safeMerged, ...localOnly];
+        localStorage.setItem(key, JSON.stringify(merged));
+      };
 
-      if (rawSupplies !== null && rawSupplies !== undefined) localStorage.setItem('supplier_supplies', JSON.stringify(rawSupplies));
-      if (inkSupplies !== null && inkSupplies !== undefined) localStorage.setItem('ink_supplies', JSON.stringify(inkSupplies));
-      if (clicheSupplies !== null && clicheSupplies !== undefined) localStorage.setItem('cliche_supplies', JSON.stringify(clicheSupplies));
+      safeMerge('suppliers', rawSups);
+      safeMerge('ink_suppliers', inkSups);
+      safeMerge('cliche_suppliers', clicheSups);
 
-      if (rawPayments !== null && rawPayments !== undefined) localStorage.setItem('supplier_payments', JSON.stringify(rawPayments));
-      if (inkPayments !== null && inkPayments !== undefined) localStorage.setItem('ink_payments', JSON.stringify(inkPayments));
-      if (clichePayments !== null && clichePayments !== undefined) localStorage.setItem('cliche_payments', JSON.stringify(clichePayments));
+      safeMerge('supplier_supplies', rawSupplies);
+      safeMerge('ink_supplies', inkSupplies);
+      safeMerge('cliche_supplies', clicheSupplies);
+
+      safeMerge('supplier_payments', rawPayments);
+      safeMerge('ink_payments', inkPayments);
+      safeMerge('cliche_payments', clichePayments);
 
       analyzeRealData();
     } catch (error) {
