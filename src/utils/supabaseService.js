@@ -1384,6 +1384,17 @@ class SupabaseService {
         }
     }
 
+    async getAllCustomerPayments() {
+        try {
+            const { data, error } = await supabase.from('CustomerPayment').select('*');
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('Error fetching all customer payments:', error);
+            return null;
+        }
+    }
+
     async addCustomerPayment(paymentData, options = {}) {
         const offlineResult = await this.handleOfflineOperation('addCustomerPayment', [paymentData], options);
         if (offlineResult) return offlineResult;

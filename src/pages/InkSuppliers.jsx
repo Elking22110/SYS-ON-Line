@@ -36,10 +36,31 @@ const InkSuppliers = () => {
   const [payAmount, setPayAmount] = useState('');
   const [payNote, setPayNote] = useState('');
 
-  const load = () => {
-    setSuppliers(JSON.parse(localStorage.getItem(INK_SUPPLIERS_KEY) || '[]'));
-    setSupplies(JSON.parse(localStorage.getItem(INK_SUPPLIES_KEY) || '[]'));
-    setPayments(JSON.parse(localStorage.getItem(INK_PAYMENTS_KEY) || '[]'));
+  const load = async () => {
+    try {
+      const [onlineSuppliers, onlineSupplies, onlinePayments] = await Promise.all([
+          supabaseService.getSuppliers('INK'),
+          supabaseService.getAllSupplierSupplies('INK'),
+          supabaseService.getAllSupplierPayments('INK')
+      ]);
+      
+      const allSuppliers = onlineSuppliers || JSON.parse(localStorage.getItem(INK_SUPPLIERS_KEY) || '[]');
+      const allSupplies = onlineSupplies || JSON.parse(localStorage.getItem(INK_SUPPLIES_KEY) || '[]');
+      const allPayments = onlinePayments || JSON.parse(localStorage.getItem(INK_PAYMENTS_KEY) || '[]');
+      
+      if (onlineSuppliers) localStorage.setItem(INK_SUPPLIERS_KEY, JSON.stringify(onlineSuppliers));
+      if (onlineSupplies) localStorage.setItem(INK_SUPPLIES_KEY, JSON.stringify(onlineSupplies));
+      if (onlinePayments) localStorage.setItem(INK_PAYMENTS_KEY, JSON.stringify(onlinePayments));
+
+      setSuppliers(allSuppliers);
+      setSupplies(allSupplies);
+      setPayments(allPayments);
+    } catch (e) {
+      console.error('Error loading ink suppliers data:', e);
+      setSuppliers(JSON.parse(localStorage.getItem(INK_SUPPLIERS_KEY) || '[]'));
+      setSupplies(JSON.parse(localStorage.getItem(INK_SUPPLIES_KEY) || '[]'));
+      setPayments(JSON.parse(localStorage.getItem(INK_PAYMENTS_KEY) || '[]'));
+    }
   };
 
   useEffect(() => { 

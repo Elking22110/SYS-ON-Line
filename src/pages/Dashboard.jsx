@@ -368,9 +368,10 @@ const Dashboard = () => {
         .sort((a, b) => b.date - a.date)
         .slice(0, 5);
 
-      // Distribution Calculation
-      const dailySupplyQty = allSupplies
-        .filter(s => (s.date || '').split('T')[0] === today && validSupplierIds.has(String(s.supplierId)))
+      const validRawSupplierIds = new Set(rawSuppliers.map(s => String(s.id)));
+      
+      const dailySupplyQty = rawSupplies
+        .filter(s => (s.date || '').split('T')[0] === today && validRawSupplierIds.has(String(s.supplierId)))
         .reduce((sum, s) => safeMath.add(sum, parseFloat(s.quantity) || 0), 0);
 
       const totalStockValue = products.reduce((sum, p) => {
@@ -408,11 +409,13 @@ const Dashboard = () => {
 
   const syncWithSupabase = async () => {
     try {
-      const [products, customers, sales, categories] = await Promise.all([
+      const [products, customers, sales, categories, customerOrders, customerPayments] = await Promise.all([
         supabaseService.getProducts(),
         supabaseService.getCustomers(),
         supabaseService.getSales(),
-        supabaseService.getCategories()
+        supabaseService.getCategories(),
+        supabaseService.getAllCustomerOrders(),
+        supabaseService.getAllCustomerPayments()
       ]);
 
       const safeMerge = (key, cloudData) => {
@@ -455,6 +458,8 @@ const Dashboard = () => {
 
       safeMerge('customers', customers);
       safeMerge('sales', sales);
+      safeMerge('customer_orders', customerOrders);
+      safeMerge('customer_payments', customerPayments);
 
       if (categories && categories.length > 0) {
         let finalCategories = [...categories];

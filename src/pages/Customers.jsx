@@ -78,8 +78,26 @@ const Customers = () => {
         })
         : localCustomers;
 
-      const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-      const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+      let allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+      let allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+
+      // Try fetching from Supabase for accurate calculations
+      try {
+        const [cloudOrders, cloudPayments] = await Promise.all([
+           supabaseService.getAllCustomerOrders(),
+           supabaseService.getAllCustomerPayments()
+        ]);
+        if (cloudOrders) {
+           allOrders = cloudOrders;
+           localStorage.setItem('customer_orders', JSON.stringify(cloudOrders));
+        }
+        if (cloudPayments) {
+           allPayments = cloudPayments;
+           localStorage.setItem('customer_payments', JSON.stringify(cloudPayments));
+        }
+      } catch (err) {
+        console.error("Failed to load customer orders/payments from cloud:", err);
+      }
 
       const updatedCustomers = mergedCustomers.map(customer => {
         const customerIdStr = customer.id?.toString();

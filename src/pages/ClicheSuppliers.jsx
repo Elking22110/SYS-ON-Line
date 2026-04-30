@@ -40,10 +40,31 @@ const ClicheSuppliers = () => {
   const [supplyPaid, setSupplyPaid] = useState('');
   const [supplyNote, setSupplyNote] = useState('');
 
-  const load = () => {
-    setSuppliers(JSON.parse(localStorage.getItem(CLICHE_SUPPLIERS_KEY) || '[]'));
-    setSupplies(JSON.parse(localStorage.getItem(CLICHE_SUPPLIES_KEY) || '[]'));
-    setPayments(JSON.parse(localStorage.getItem(CLICHE_PAYMENTS_KEY) || '[]'));
+  const load = async () => {
+    try {
+      const [onlineSuppliers, onlineSupplies, onlinePayments] = await Promise.all([
+          supabaseService.getSuppliers('CLICHE'),
+          supabaseService.getAllSupplierSupplies('CLICHE'),
+          supabaseService.getAllSupplierPayments('CLICHE')
+      ]);
+      
+      const allSuppliers = onlineSuppliers || JSON.parse(localStorage.getItem(CLICHE_SUPPLIERS_KEY) || '[]');
+      const allSupplies = onlineSupplies || JSON.parse(localStorage.getItem(CLICHE_SUPPLIES_KEY) || '[]');
+      const allPayments = onlinePayments || JSON.parse(localStorage.getItem(CLICHE_PAYMENTS_KEY) || '[]');
+      
+      if (onlineSuppliers) localStorage.setItem(CLICHE_SUPPLIERS_KEY, JSON.stringify(onlineSuppliers));
+      if (onlineSupplies) localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify(onlineSupplies));
+      if (onlinePayments) localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify(onlinePayments));
+
+      setSuppliers(allSuppliers);
+      setSupplies(allSupplies);
+      setPayments(allPayments);
+    } catch (e) {
+      console.error('Error loading cliche suppliers data:', e);
+      setSuppliers(JSON.parse(localStorage.getItem(CLICHE_SUPPLIERS_KEY) || '[]'));
+      setSupplies(JSON.parse(localStorage.getItem(CLICHE_SUPPLIES_KEY) || '[]'));
+      setPayments(JSON.parse(localStorage.getItem(CLICHE_PAYMENTS_KEY) || '[]'));
+    }
   };
 
   useEffect(() => { 
