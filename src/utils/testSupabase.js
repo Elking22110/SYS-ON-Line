@@ -5,25 +5,16 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
-    console.log("Fetching today's supplies...");
-    const todayStr = '2026-04-30'; // Today's date based on context
+    const todayStr = '2026-04-30';
+    const { data: rawSupplies } = await supabase.from('SupplierSupply').select('*').or('type.eq.RAW,type.is.null').eq('date', todayStr);
+    const { data: rawSuppliers } = await supabase.from('Supplier').select('id, name');
     
-    const { data: rawSupplies, error: e1 } = await supabase.from('SupplierSupply').select('*').or('type.eq.RAW,type.is.null').eq('date', todayStr);
-    const { data: inkSupplies, error: e2 } = await supabase.from('SupplierSupply').select('*').eq('type', 'INK').eq('date', todayStr);
-    const { data: clicheSupplies, error: e3 } = await supabase.from('SupplierSupply').select('*').eq('type', 'CLICHE').eq('date', todayStr);
+    console.log("Valid Supplier IDs in DB:", rawSuppliers.map(s => s.id));
     
-    console.log("RAW Today:", rawSupplies ? rawSupplies.map(s => ({ productName: s.productName, quantity: s.quantity, supplierId: s.supplierId })) : e1);
-    console.log("INK Today:", inkSupplies ? inkSupplies.map(s => ({ productName: s.productName, quantity: s.quantity, supplierId: s.supplierId })) : e2);
-    console.log("CLICHE Today:", clicheSupplies ? clicheSupplies.map(s => ({ productName: s.productName, quantity: s.quantity, supplierId: s.supplierId })) : e3);
-    
-    const totalRaw = (rawSupplies || []).reduce((sum, s) => sum + Number(s.quantity), 0);
-    const totalInk = (inkSupplies || []).reduce((sum, s) => sum + Number(s.quantity), 0);
-    const totalCliche = (clicheSupplies || []).reduce((sum, s) => sum + Number(s.quantity), 0);
-    
-    console.log(`Total Quantity RAW: ${totalRaw}`);
-    console.log(`Total Quantity INK: ${totalInk}`);
-    console.log(`Total Quantity CLICHE: ${totalCliche}`);
-    console.log(`Grand Total Today: ${totalRaw + totalInk + totalCliche}`);
+    rawSupplies.forEach(s => {
+        const isValid = rawSuppliers.find(sup => sup.id === s.supplierId);
+        console.log(`Supply ${s.productName} (${s.quantity}) with supplierId ${s.supplierId} - Valid in DB? ${!!isValid}`);
+    });
 }
 
 test();
