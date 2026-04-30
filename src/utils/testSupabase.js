@@ -5,21 +5,25 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
-    console.log("Fetching all supplies...");
-    const supplies = await supabase.from('SupplierSupply').select('*');
-    console.log("Supplies:", supplies.data ? supplies.data.length : supplies.error);
+    console.log("Fetching today's supplies...");
+    const todayStr = '2026-04-30'; // Today's date based on context
     
-    if (supplies.error) {
-        console.error("Supplies error:", supplies.error);
-    }
+    const { data: rawSupplies, error: e1 } = await supabase.from('SupplierSupply').select('*').or('type.eq.RAW,type.is.null').eq('date', todayStr);
+    const { data: inkSupplies, error: e2 } = await supabase.from('SupplierSupply').select('*').eq('type', 'INK').eq('date', todayStr);
+    const { data: clicheSupplies, error: e3 } = await supabase.from('SupplierSupply').select('*').eq('type', 'CLICHE').eq('date', todayStr);
     
-    if (supplies.data && supplies.data.length > 0) {
-        console.log("Sample supply:", supplies.data[0]);
-    }
-
-    console.log("Fetching supplies with type=RAW...");
-    const rawSupplies = await supabase.from('SupplierSupply').select('*').or('type.eq.RAW,type.is.null');
-    console.log("Raw Supplies:", rawSupplies.data ? rawSupplies.data.length : rawSupplies.error);
+    console.log("RAW Today:", rawSupplies ? rawSupplies.map(s => ({ productName: s.productName, quantity: s.quantity, supplierId: s.supplierId })) : e1);
+    console.log("INK Today:", inkSupplies ? inkSupplies.map(s => ({ productName: s.productName, quantity: s.quantity, supplierId: s.supplierId })) : e2);
+    console.log("CLICHE Today:", clicheSupplies ? clicheSupplies.map(s => ({ productName: s.productName, quantity: s.quantity, supplierId: s.supplierId })) : e3);
+    
+    const totalRaw = (rawSupplies || []).reduce((sum, s) => sum + Number(s.quantity), 0);
+    const totalInk = (inkSupplies || []).reduce((sum, s) => sum + Number(s.quantity), 0);
+    const totalCliche = (clicheSupplies || []).reduce((sum, s) => sum + Number(s.quantity), 0);
+    
+    console.log(`Total Quantity RAW: ${totalRaw}`);
+    console.log(`Total Quantity INK: ${totalInk}`);
+    console.log(`Total Quantity CLICHE: ${totalCliche}`);
+    console.log(`Grand Total Today: ${totalRaw + totalInk + totalCliche}`);
 }
 
 test();
