@@ -24,6 +24,7 @@ import safeMath from '../utils/safeMath.js';
 import { printHtmlContent } from '../utils/printHelper.js';
 import { publish, subscribe, EVENTS } from '../utils/observerManager';
 import supabaseService from '../utils/supabaseService';
+import toast from 'react-hot-toast';
 
 const SupplierDetails = () => {
     const { id } = useParams();

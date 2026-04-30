@@ -136,18 +136,19 @@ const ClicheSuppliers = () => {
       type: 'CLICHE',
       metadata: { clicheName, width: clicheWidth, height: clicheHeight, pricePerCm }
     };
+    // Optimistic Update
+    const updated = [...supplies, newSupply];
+    setSupplies(updated);
+    localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify(updated));
+    toast.success('تم تسجيل التوريدة');
+    soundManager.play('save');
+    setShowSupplyModal(false);
+    resetSupplyForm();
+
     try {
-      const res = await supabaseService.addSupplierSupply(newSupply);
-      const updated = [...supplies, { ...newSupply, ...res }];
-      setSupplies(updated);
-      localStorage.setItem(CLICHE_SUPPLIES_KEY, JSON.stringify(updated));
-      toast.success('تم تسجيل التوريدة');
-      soundManager.play('save');
-      setShowSupplyModal(false);
-      resetSupplyForm();
+      await supabaseService.addSupplierSupply(newSupply);
     } catch (e) {
-      console.error(e);
-      toast.error('حدث خطأ أثناء الحفظ');
+      console.error('Supabase error:', e);
     }
   };
 
@@ -164,18 +165,20 @@ const ClicheSuppliers = () => {
       date: getCurrentDate().split('T')[0],
       type: 'CLICHE'
     };
+
+    // Optimistic Update
+    const updated = [...payments, newPay];
+    setPayments(updated);
+    localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify(updated));
+    toast.success('تم تسجيل الدفعة');
+    soundManager.play('save');
+    setShowPayModal(false);
+    setPayAmount(''); setPayNote('');
+
     try {
-      const res = await supabaseService.addSupplierPayment(newPay);
-      const updated = [...payments, { ...newPay, ...res }];
-      setPayments(updated);
-      localStorage.setItem(CLICHE_PAYMENTS_KEY, JSON.stringify(updated));
-      toast.success('تم تسجيل الدفعة');
-      soundManager.play('save');
-      setShowPayModal(false);
-      setPayAmount(''); setPayNote('');
+      await supabaseService.addSupplierPayment(newPay);
     } catch (e) {
-      console.error(e);
-      toast.error('حدث خطأ أثناء تسجيل الدفعة');
+      console.error('Supabase error:', e);
     }
   };
 

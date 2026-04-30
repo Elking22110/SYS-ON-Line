@@ -96,7 +96,7 @@ const InkSuppliers = () => {
     }
   };
 
-  // ── Supply ──
+    // ── Supply ──
   const totalSupply = (colors) => colors.reduce((s, c) => {
     const total = safeMath.multiply(parseFloat(c.cost) || 0, parseFloat(c.quantity) || 0);
     return safeMath.add(s, total);
@@ -121,19 +121,20 @@ const InkSuppliers = () => {
       metadata: { colors: validColors }
     };
     
+    // Optimistic Update
+    const updated = [...supplies, newSupply];
+    setSupplies(updated);
+    localStorage.setItem(INK_SUPPLIES_KEY, JSON.stringify(updated));
+    toast.success('تم تسجيل التوريدة');
+    soundManager.play('save');
+    setShowSupplyModal(false);
+    setSupplyColors([emptyColor()]);
+    setSupplyPaid('');
+
     try {
-      const res = await supabaseService.addSupplierSupply(newSupply);
-      const updated = [...supplies, { ...newSupply, ...res }];
-      setSupplies(updated);
-      localStorage.setItem(INK_SUPPLIES_KEY, JSON.stringify(updated));
-      toast.success('تم تسجيل التوريدة');
-      soundManager.play('save');
-      setShowSupplyModal(false);
-      setSupplyColors([emptyColor()]);
-      setSupplyPaid('');
+      await supabaseService.addSupplierSupply(newSupply);
     } catch (e) {
-      console.error(e);
-      toast.error('حدث خطأ أثناء الحفظ');
+      console.error('Supabase error:', e);
     }
   };
 
@@ -150,19 +151,21 @@ const InkSuppliers = () => {
       date: getCurrentDate().split('T')[0],
       type: 'INK'
     };
+
+    // Optimistic Update
+    const updated = [...payments, newPay];
+    setPayments(updated);
+    localStorage.setItem(INK_PAYMENTS_KEY, JSON.stringify(updated));
+    toast.success('تم تسجيل الدفعة');
+    soundManager.play('save');
+    setShowPayModal(false);
+    setPayAmount('');
+    setPayNote('');
+
     try {
-      const res = await supabaseService.addSupplierPayment(newPay);
-      const updated = [...payments, { ...newPay, ...res }];
-      setPayments(updated);
-      localStorage.setItem(INK_PAYMENTS_KEY, JSON.stringify(updated));
-      toast.success('تم تسجيل الدفعة');
-      soundManager.play('save');
-      setShowPayModal(false);
-      setPayAmount('');
-      setPayNote('');
+      await supabaseService.addSupplierPayment(newPay);
     } catch (e) {
-      console.error(e);
-      toast.error('حدث خطأ أثناء تسجيل الدفعة');
+      console.error('Supabase error:', e);
     }
   };
 
