@@ -1,6 +1,6 @@
 // دالة لتعديل اللون (تفتيح أو تظليل)
 export const adjustColor = (color, amount) => {
-    if (!color) return "#8B5CF6";
+    if (!color) return "#5235E8";
     try {
         const num = parseInt(color.replace("#", ""), 16);
         const amt = Math.round(2.55 * amount);
@@ -91,7 +91,7 @@ export const initTheme = () => {
     try {
         const savedSettings = JSON.parse(localStorage.getItem('pos-settings') || '{}');
         const theme = savedSettings.theme || 'light';
-        const primaryColor = savedSettings.primaryColor || '#8B5CF6';
+        const primaryColor = savedSettings.primaryColor || '#5235E8';
 
         applyTheme(theme);
         applyPrimaryColor(primaryColor);
