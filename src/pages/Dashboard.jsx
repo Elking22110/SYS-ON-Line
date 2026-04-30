@@ -476,11 +476,11 @@ const Dashboard = () => {
         }
       }
 
-      if (customers && customers.length > 0) {
+      if (customers !== null && customers !== undefined) {
         localStorage.setItem('customers', JSON.stringify(customers));
       }
 
-      if (sales && sales.length > 0) {
+      if (sales !== null && sales !== undefined) {
         localStorage.setItem('sales', JSON.stringify(sales));
       }
 
@@ -519,17 +519,17 @@ const Dashboard = () => {
         supabaseService.getAllSupplierPayments('RAW'), supabaseService.getAllSupplierPayments('INK'), supabaseService.getAllSupplierPayments('CLICHE')
       ]);
 
-      if (rawSups?.length) localStorage.setItem('suppliers', JSON.stringify(rawSups));
-      if (inkSups?.length) localStorage.setItem('ink_suppliers', JSON.stringify(inkSups));
-      if (clicheSups?.length) localStorage.setItem('cliche_suppliers', JSON.stringify(clicheSups));
+      if (rawSups !== null && rawSups !== undefined) localStorage.setItem('suppliers', JSON.stringify(rawSups));
+      if (inkSups !== null && inkSups !== undefined) localStorage.setItem('ink_suppliers', JSON.stringify(inkSups));
+      if (clicheSups !== null && clicheSups !== undefined) localStorage.setItem('cliche_suppliers', JSON.stringify(clicheSups));
 
-      if (rawSupplies?.length) localStorage.setItem('supplier_supplies', JSON.stringify(rawSupplies));
-      if (inkSupplies?.length) localStorage.setItem('ink_supplies', JSON.stringify(inkSupplies));
-      if (clicheSupplies?.length) localStorage.setItem('cliche_supplies', JSON.stringify(clicheSupplies));
+      if (rawSupplies !== null && rawSupplies !== undefined) localStorage.setItem('supplier_supplies', JSON.stringify(rawSupplies));
+      if (inkSupplies !== null && inkSupplies !== undefined) localStorage.setItem('ink_supplies', JSON.stringify(inkSupplies));
+      if (clicheSupplies !== null && clicheSupplies !== undefined) localStorage.setItem('cliche_supplies', JSON.stringify(clicheSupplies));
 
-      if (rawPayments?.length) localStorage.setItem('supplier_payments', JSON.stringify(rawPayments));
-      if (inkPayments?.length) localStorage.setItem('ink_payments', JSON.stringify(inkPayments));
-      if (clichePayments?.length) localStorage.setItem('cliche_payments', JSON.stringify(clichePayments));
+      if (rawPayments !== null && rawPayments !== undefined) localStorage.setItem('supplier_payments', JSON.stringify(rawPayments));
+      if (inkPayments !== null && inkPayments !== undefined) localStorage.setItem('ink_payments', JSON.stringify(inkPayments));
+      if (clichePayments !== null && clichePayments !== undefined) localStorage.setItem('cliche_payments', JSON.stringify(clichePayments));
 
       analyzeRealData();
     } catch (error) {
