@@ -1137,7 +1137,15 @@ class SupabaseService {
             } else {
                 query = query.eq('type', type);
             }
-            const { data, error } = await query;
+            let { data, error } = await query;
+            
+            if (error && (error.code === 'PGRST204' || error?.message?.includes('column') || error?.code === '42703')) {
+                console.warn('getSuppliers: Schema mismatch for type filter. Fetching all suppliers...');
+                const fallbackResult = await supabase.from('Supplier').select('*');
+                data = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+            
             if (error) throw error;
             return data || [];
         } catch (error) {
@@ -1430,7 +1438,15 @@ class SupabaseService {
             } else {
                 query = query.eq('type', type);
             }
-            const { data, error } = await query;
+            let { data, error } = await query;
+            
+            if (error && (error.code === 'PGRST204' || error?.message?.includes('column') || error?.code === '42703')) {
+                console.warn('getAllSupplierSupplies: Schema mismatch for type filter. Fetching all supplies...');
+                const fallbackResult = await supabase.from('SupplierSupply').select('*');
+                data = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+            
             if (error) throw error;
             return data || [];
         } catch (error) {
@@ -1552,7 +1568,15 @@ class SupabaseService {
             } else {
                 query = query.eq('type', type);
             }
-            const { data, error } = await query;
+            let { data, error } = await query;
+            
+            if (error && (error.code === 'PGRST204' || error?.message?.includes('column') || error?.code === '42703')) {
+                console.warn('getAllSupplierPayments: Schema mismatch for type filter. Fetching all payments...');
+                const fallbackResult = await supabase.from('SupplierPayment').select('*');
+                data = fallbackResult.data;
+                error = fallbackResult.error;
+            }
+
             if (error) throw error;
             return data || [];
         } catch (error) {

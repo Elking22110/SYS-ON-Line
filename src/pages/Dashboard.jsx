@@ -415,6 +415,29 @@ const Dashboard = () => {
         supabaseService.getCategories()
       ]);
 
+      const safeMerge = (key, cloudData) => {
+        if (cloudData === null || cloudData === undefined) return;
+        const localData = JSON.parse(localStorage.getItem(key) || '[]');
+        const cloudIds = new Set(cloudData.map(item => String(item.id)));
+        const localOnly = localData.filter(item => item && item.id && !cloudIds.has(String(item.id)));
+        
+        // Preserve unsynced local items and merge them with cloud items
+        const safeMerged = cloudData.map(co => {
+            const lo = localData.find(l => l && String(l.id) === String(co.id));
+            if (!lo) return co;
+            const mergedItem = { ...lo };
+            Object.keys(co).forEach(k => {
+                if (co[k] !== null && co[k] !== undefined && co[k] !== '') {
+                    mergedItem[k] = co[k];
+                }
+            });
+            return mergedItem;
+        });
+        
+        const merged = [...safeMerged, ...localOnly];
+        localStorage.setItem(key, JSON.stringify(merged));
+      };
+
       if (products && products.length > 0) {
         const mappedProducts = products.map(p => ({
           id: p.id, name: p.name, category: p.category, price: p.price,
@@ -468,29 +491,6 @@ const Dashboard = () => {
         supabaseService.getAllSupplierPayments('RAW'), supabaseService.getAllSupplierPayments('INK'), supabaseService.getAllSupplierPayments('CLICHE')
       ]);
 
-      const safeMerge = (key, cloudData) => {
-        if (cloudData === null || cloudData === undefined) return;
-        const localData = JSON.parse(localStorage.getItem(key) || '[]');
-        const cloudIds = new Set(cloudData.map(item => String(item.id)));
-        const localOnly = localData.filter(item => item && item.id && !cloudIds.has(String(item.id)));
-        
-        // Preserve unsynced local items and merge them with cloud items
-        const safeMerged = cloudData.map(co => {
-            const lo = localData.find(l => l && String(l.id) === String(co.id));
-            if (!lo) return co;
-            const mergedItem = { ...lo };
-            Object.keys(co).forEach(k => {
-                if (co[k] !== null && co[k] !== undefined && co[k] !== '') {
-                    mergedItem[k] = co[k];
-                }
-            });
-            return mergedItem;
-        });
-        
-        const merged = [...safeMerged, ...localOnly];
-        localStorage.setItem(key, JSON.stringify(merged));
-      };
-
       safeMerge('suppliers', rawSups);
       safeMerge('ink_suppliers', inkSups);
       safeMerge('cliche_suppliers', clicheSups);
@@ -504,6 +504,7 @@ const Dashboard = () => {
       safeMerge('cliche_payments', clichePayments);
 
       analyzeRealData();
+      window.dispatchEvent(new Event('dataUpdated'));
     } catch (error) {
       console.error('Dashboard sync error:', error);
     }

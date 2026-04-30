@@ -49,9 +49,18 @@ const Suppliers = () => {
   const loadSuppliersFromSupabase = async () => {
     try {
       setLoading(true);
-      const onlineSuppliers = await supabaseService.getSuppliers();
-      const allSupplies = JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
-      const allPayments = JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+      const [onlineSuppliers, onlineSupplies, onlinePayments] = await Promise.all([
+          supabaseService.getSuppliers(),
+          supabaseService.getAllSupplierSupplies('RAW'),
+          supabaseService.getAllSupplierPayments('RAW')
+      ]);
+      
+      const allSupplies = onlineSupplies || JSON.parse(localStorage.getItem('supplier_supplies') || '[]');
+      const allPayments = onlinePayments || JSON.parse(localStorage.getItem('supplier_payments') || '[]');
+      
+      // Update local storage so other components can use it
+      if (onlineSupplies) localStorage.setItem('supplier_supplies', JSON.stringify(onlineSupplies));
+      if (onlinePayments) localStorage.setItem('supplier_payments', JSON.stringify(onlinePayments));
 
       if (onlineSuppliers && onlineSuppliers.length > 0) {
         const mapped = onlineSuppliers.map(s => {
