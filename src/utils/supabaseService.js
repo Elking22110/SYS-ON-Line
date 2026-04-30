@@ -668,7 +668,7 @@ class SupabaseService {
             return [];
         } catch (error) {
             console.error('Error fetching products from Supabase:', error);
-            return [];
+            return null;
         }
     }
 
@@ -753,7 +753,8 @@ class SupabaseService {
             }
             return [];
         } catch (error) {
-            return [];
+            console.error('Error fetching categories:', error);
+            return null;
         }
     }
 
@@ -810,7 +811,8 @@ class SupabaseService {
             }
             return [];
         } catch (error) {
-            return [];
+            console.error('Error fetching customers:', error);
+            return null;
         }
     }
 
@@ -869,7 +871,8 @@ class SupabaseService {
             }
             return [];
         } catch (error) {
-            return [];
+            console.error('Error fetching sales:', error);
+            return null;
         }
     }
 
@@ -1126,7 +1129,6 @@ class SupabaseService {
         }
     }
 
-    // SUPPLIERS
     async getSuppliers(type = 'RAW') {
         try {
             let query = supabase.from('Supplier').select('*');
@@ -1135,10 +1137,12 @@ class SupabaseService {
             } else {
                 query = query.eq('type', type);
             }
-            const { data } = await query;
+            const { data, error } = await query;
+            if (error) throw error;
             return data || [];
         } catch (error) {
-            return [];
+            console.error('Error fetching suppliers:', error);
+            return null;
         }
     }
 
@@ -1223,10 +1227,12 @@ class SupabaseService {
 
     async getAllCustomerOrders() {
         try {
-            const { data } = await supabase.from('CustomerOrder').select('*');
+            const { data, error } = await supabase.from('CustomerOrder').select('*');
+            if (error) throw error;
             return data || [];
         } catch (error) {
-            return [];
+            console.error('Error fetching all customer orders:', error);
+            return null;
         }
     }
 
@@ -1402,10 +1408,12 @@ class SupabaseService {
             } else {
                 query = query.eq('type', type);
             }
-            const { data } = await query;
+            const { data, error } = await query;
+            if (error) throw error;
             return data || [];
         } catch (error) {
-            return [];
+            console.error('Error fetching supplies:', error);
+            return null;
         }
     }
 
@@ -1425,7 +1433,8 @@ class SupabaseService {
                 paidAmount: sanitizeNumerical(supplyData.paidAmount, 0),
                 remainingAmount: sanitizeNumerical(supplyData.remainingAmount, 0),
                 remainingQuantity: sanitizeNumerical(supplyData.remainingQuantity, sanitizeNumerical(supplyData.quantity, 1)),
-                wasteQuantity: sanitizeNumerical(supplyData.wasteQuantity, 0)
+                wasteQuantity: sanitizeNumerical(supplyData.wasteQuantity, 0),
+                type: supplyData.type || 'RAW'
             };
             const { data: res, error } = await supabase.from('SupplierSupply').upsert(payload).select().single();
             if (error) {
@@ -1500,10 +1509,12 @@ class SupabaseService {
             } else {
                 query = query.eq('type', type);
             }
-            const { data } = await query;
+            const { data, error } = await query;
+            if (error) throw error;
             return data || [];
         } catch (error) {
-            return [];
+            console.error('Error fetching supplier payments:', error);
+            return null;
         }
     }
 
