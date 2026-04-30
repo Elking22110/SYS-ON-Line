@@ -42,7 +42,7 @@ const Sidebar = () => {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden bg-[#ec4899] text-white p-4 flex justify-between items-center z-50 flex-shrink-0 shadow-md">
+      <div className="md:hidden bg-[var(--primary-color)] text-white p-4 flex justify-between items-center z-50 flex-shrink-0 shadow-md">
         <div className="flex items-center">
           <span className="text-[29px] drop-shadow-md animate-float inline-block">👑</span>
         </div>
@@ -79,14 +79,14 @@ const Sidebar = () => {
           fixed md:static inset-y-0 right-0 z-50 transform transition-all duration-300 ease-in-out
           ${isMobileOpen ? 'translate-x-0' : 'translate-x-full'} md:translate-x-0
           w-64 lg:w-[260px]
-          bg-[#ec4899] md:bg-transparent text-white flex flex-col h-full md:h-screen flex-shrink-0
+          bg-[var(--primary-color)] md:bg-transparent text-white flex flex-col h-full md:h-screen flex-shrink-0
           shadow-2xl md:shadow-none overflow-visible
         `}
       >
 
         {/* TOP PART - Crown Header (Fixed Width) */}
-        <div className="w-full md:w-[260px] bg-[#ec4899] md:rounded-br-[2rem] pt-6 px-3 flex-shrink-0 relative z-20 md:shadow-[5px_5px_15px_rgba(236,72,153,0.1)] transition-all duration-300 pb-2">
-          <div className="bg-gradient-to-br from-pink-600 to-pink-900 rounded-2xl text-center relative shadow-xl overflow-visible border border-pink-700/50 group mb-0"
+        <div className="w-full md:w-[260px] bg-[var(--primary-color)] md:rounded-br-[2rem] pt-6 px-3 flex-shrink-0 relative z-20 shadow-[5px_5px_15px_rgba(0,0,0,0.1)] transition-all duration-300 pb-2">
+          <div className="bg-black/20 rounded-2xl text-center relative shadow-xl overflow-visible border border-white/10 group mb-0"
             style={{ padding: '16px 8px' }}
           >
             {/* Crown */}
@@ -98,15 +98,15 @@ const Sidebar = () => {
               <h1 className="font-black tracking-wider text-white text-lg whitespace-nowrap">
                 ELKING PRO V2
               </h1>
-              <p className="text-[10px] text-pink-200 font-medium block">نظام إدارة متكامل</p>
+              <p className="text-[10px] text-white/70 font-medium block">نظام إدارة متكامل</p>
             </div>
           </div>
         </div>
 
         {/* MIDDLE PART - Navigation (The moving part) */}
         <div className={`
-          w-full md:bg-[#ec4899] flex-1 overflow-hidden flex flex-col py-2
-          transition-all duration-300 ease-in-out md:shadow-[5px_5px_15px_rgba(236,72,153,0.1)] relative z-10
+          w-full md:bg-[var(--primary-color)] flex-1 overflow-hidden flex flex-col py-2
+          transition-all duration-300 ease-in-out shadow-[5px_5px_15px_rgba(0,0,0,0.05)] relative z-10
           md:my-5 md:py-4
           ${isExpanded ? 'md:w-[260px] md:rounded-r-[2rem]' : 'md:w-[130px] md:rounded-r-[2rem]'}
         `}>
@@ -128,15 +128,15 @@ const Sidebar = () => {
                   relative flex items-center rounded-2xl group transition-all duration-300 font-medium overflow-hidden
                   ${shouldShowLabels ? 'px-4 py-3.5 mx-1' : 'px-0 py-3 mx-1 justify-center'}
                   ${isActive
-                      ? 'bg-gradient-to-r from-white to-pink-50 text-[#ec4899] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] border border-white/20'
+                      ? 'bg-gradient-to-r from-white to-gray-50 text-[var(--primary-color)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] border border-white/20'
                       : 'text-white/80 hover:bg-white/10 hover:text-white hover:shadow-lg'
                     }
                 `}
                 >
                   {/* Icon container */}
-                  <div className={`flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-300 ${isActive ? 'bg-pink-100 shadow-inner' : 'group-hover:bg-white/10'}`}>
+                  <div className={`flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-300 ${isActive ? 'bg-white shadow-inner' : 'group-hover:bg-white/10'}`}>
                     <Icon
-                      className={`h-5 w-5 shrink-0 transition-all duration-300 ${isActive ? 'text-[#ec4899] drop-shadow-md' : 'text-white/70 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}
+                      className={`h-5 w-5 shrink-0 transition-all duration-300 ${isActive ? 'text-[var(--primary-color)] drop-shadow-md' : 'text-white/70 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
                   </div>
@@ -149,7 +149,7 @@ const Sidebar = () => {
                         ? 'ml-3 opacity-100 translate-x-0 w-auto'
                         : 'ml-0 opacity-0 -translate-x-4 w-0 overflow-hidden'
                       }
-                    ${isActive ? 'font-black tracking-wide text-pink-900' : 'font-semibold tracking-wide'}
+                    ${isActive ? 'font-black tracking-wide text-[var(--primary-color)]' : 'font-semibold tracking-wide'}
                   `}
                   >
                     {item.label}
@@ -166,7 +166,7 @@ const Sidebar = () => {
         </div>
 
         {/* BOTTOM PART - Admin & Sync Status */}
-        <div className="w-full md:w-[260px] bg-[#ec4899] md:rounded-tr-[2rem] px-3 pb-6 pt-4 flex-shrink-0 relative z-20 md:shadow-[5px_-5px_15px_rgba(236,72,153,0.1)] transition-all duration-300 mt-auto">
+        <div className="w-full md:w-[260px] bg-[var(--primary-color)] md:rounded-tr-[2rem] px-3 pb-6 pt-4 flex-shrink-0 relative z-20 shadow-[5px_-5px_15px_rgba(0,0,0,0.1)] transition-all duration-300 mt-auto">
           {/* Sync Status - Always visible now */}
           <div className="mb-3">
             <SyncStatus />
