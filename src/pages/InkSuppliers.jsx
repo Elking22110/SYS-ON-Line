@@ -84,7 +84,10 @@ const InkSuppliers = () => {
   };
 
   // ── Supply ──
-  const totalSupply = (colors) => colors.reduce((s, c) => safeMath.add(s, parseFloat(c.cost) || 0), 0);
+  const totalSupply = (colors) => colors.reduce((s, c) => {
+    const total = safeMath.multiply(parseFloat(c.cost) || 0, parseFloat(c.quantity) || 0);
+    return safeMath.add(s, total);
+  }, 0);
 
   const handleAddSupply = async () => {
     const validColors = supplyColors.filter(c => c.color && c.cost);
@@ -280,8 +283,8 @@ const InkSuppliers = () => {
                               <div className="space-y-1">
                                 {(sup.colors || sup.metadata?.colors)?.map((c, i) => (
                                   <div key={i} className="flex justify-between text-sm">
-                                    <span className="font-medium text-slate-700">🎨 {c.color} — {c.quantity} كجم</span>
-                                    <span className="font-bold text-slate-900">{parseFloat(c.cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
+                                    <span className="font-medium text-slate-700">🎨 {c.color} — {c.quantity} كجم × {c.cost} ج.م</span>
+                                    <span className="font-bold text-slate-900">{safeMath.multiply(c.cost || 0, c.quantity || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
                                   </div>
                                 ))}
                               </div>
@@ -382,7 +385,7 @@ const InkSuppliers = () => {
                       <input type="number" placeholder="كمية (كجم)" value={col.quantity}
                         onChange={e => setSupplyColors(supplyColors.map((c, i) => i === idx ? { ...c, quantity: e.target.value } : c))}
                         className="w-24 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-center" />
-                      <input type="number" placeholder="تكلفة (ج.م)" value={col.cost}
+                      <input type="number" placeholder="سعر الكجم" value={col.cost}
                         onChange={e => setSupplyColors(supplyColors.map((c, i) => i === idx ? { ...c, cost: e.target.value } : c))}
                         className="w-28 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-center" />
                       {supplyColors.length > 1 && (
