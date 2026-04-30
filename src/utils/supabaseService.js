@@ -1200,10 +1200,11 @@ class SupabaseService {
         if (offlineResult) return offlineResult;
 
         try {
-            if (dbApi) {
-                return await dbApi.deleteSupplier(id);
-            }
+            const { error } = await supabase.from('Supplier').delete().eq('id', id.toString());
+            if (error) throw error;
+            return true;
         } catch (error) {
+            console.error('deleteSupplier error:', error);
             if (!options.isSyncing) await syncManager.addToQueue('supabaseService', 'deleteSupplier', [id]);
             throw error;
         }

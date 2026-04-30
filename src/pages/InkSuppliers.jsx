@@ -77,8 +77,14 @@ const InkSuppliers = () => {
     if (!window.confirm('حذف هذا المورد؟')) return;
     try {
       await supabaseService.deleteSupplier(id);
+      // Update local state immediately
+      const updated = suppliers.filter(s => s.id !== id && String(s.id) !== String(id));
+      setSuppliers(updated);
+      localStorage.setItem(INK_SUPPLIERS_KEY, JSON.stringify(updated));
       soundManager.play('delete');
+      toast.success('تم حذف المورد');
     } catch (e) {
+      console.error(e);
       toast.error('حدث خطأ أثناء الحذف');
     }
   };
