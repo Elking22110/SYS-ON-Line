@@ -4,6 +4,7 @@ import { useNotifications } from '../NotificationSystem';
 import soundManager from '../../utils/soundManager.js';
 import errorHandler from '../../utils/errorHandler.js';
 import { getLocalDateString, getLocalDateFormatted, formatDateToDDMMYYYY } from '../../utils/dateUtils.js';
+import { safeMath } from '../../utils/safeMath.js';
 
 const PaymentManager = ({
   downPayment,
@@ -15,6 +16,7 @@ const PaymentManager = ({
   const { notifySuccess, notifyError } = useNotifications();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [customPercentage, setCustomPercentage] = useState('');
 
   // التحقق من صحة العربون
   const isDownPaymentValid = useMemo(() => {

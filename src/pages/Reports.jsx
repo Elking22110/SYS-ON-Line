@@ -1509,13 +1509,13 @@ const Reports = () => {
       `<tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>`
     ).join('')}
             </tbody>
-+              {selectedReport !== 'invoices' && selectedReport !== 'partial-invoices' && getCurrentData().length === 0 && (
-+                <tfoot>
-+                  <tr>
-+                    <td colSpan="6" className="px-4 md:px-6 py-8 text-center text-slate-600">لا توجد بيانات متاحة</td>
-+                  </tr>
-+                </tfoot>
-+              )}
+            ${selectedReport !== 'invoices' && selectedReport !== 'partial-invoices' && getCurrentData().length === 0 ? `
+              <tfoot>
+                <tr>
+                  <td colSpan="6" class="px-4 md:px-6 py-8 text-center text-slate-600">لا توجد بيانات متاحة</td>
+                </tr>
+              </tfoot>
+            ` : ''}
           </table>
           
           <div class="footer">

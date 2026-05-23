@@ -48,9 +48,28 @@ function createWindow() {
     mainWindow.focus();
   });
 
-  // السماح بنوافذ الطباعة والتقارير فارغة المصدر، ومنع الروابط الخارجية
+  // صلاحيات ومستمعات المنافذ المتسلسلة (Serial Port) للطباعة المباشرة
+  const session = mainWindow.webContents.session;
+  session.on('select-serial-port', (event, portList, webContents, callback) => {
+    event.preventDefault();
+    if (portList && portList.length > 0) {
+      callback(portList[0].portId);
+    } else {
+      callback('');
+    }
+  });
+
+  session.setPermissionCheckHandler((webContents, permission) => {
+    return permission === 'serial';
+  });
+
+  session.setDevicePermissionHandler((details) => {
+    return details.deviceType === 'serial';
+  });
+
+  // السماح بنوافذ الطباعة والتقارير فارغة المصدر وروابط Blob، ومنع الروابط الخارجية
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url === 'about:blank' || url === '') {
+    if (url === 'about:blank' || url === '' || url.startsWith('blob:')) {
       return { action: 'allow' };
     }
     shell.openExternal(url);

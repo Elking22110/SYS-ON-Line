@@ -851,8 +851,9 @@ const POSMain = () => {
             ${itemsArr.map(item => `
               <tr>
                 <td>${item.name || 'منتج غير محدد'}</td>
-                <td class="center">${((Number(item.price) || 0)).toLocaleString('ar-EG')}</td>
-                <td class="center">${(safeMath.multiply(Number(item.price) || 0, Number(item.quantity) || 0)).toLocaleString('ar-EG')}</td>
+                <td class="center">${((Number(item.quantity) || 0)).toLocaleString('ar-EG')}</td>
+                <td class="center">${((Number(item.price) || 0)).toLocaleString('ar-EG')} ج.م</td>
+                <td class="center">${(safeMath.multiply(Number(item.price) || 0, Number(item.quantity) || 0)).toLocaleString('ar-EG')} ج.م</td>
               </tr>
             `).join('')}
           </tbody>
@@ -908,10 +909,11 @@ const POSMain = () => {
         
         <script>
           // قطع الورق تلقائياً بعد الطباعة
+          let printed = false;
           window.onload = function() {
-              let printed = false;
-              const doPrint = function(){ if (printed) return; printed = true; setTimeout(function(){ if (window.print) { window.print(); } }, 300); };
-              doPrint();
+              if (printed) return;
+              printed = true;
+              setTimeout(function(){ if (window.print) { window.print(); } }, 300);
             setTimeout(function() {
               // إرسال أوامر قطع الورق للطابعة الحرارية
                 // لا نكرر window.print هنا لضمان ظهور نافذة الطباعة مرة واحدة فقط

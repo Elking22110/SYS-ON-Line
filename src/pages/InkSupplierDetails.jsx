@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Edit, Save, X, Droplets, DollarSign, ArrowRight, Package, Layers, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, X, Droplets, DollarSign, ArrowRight, Package, Layers, ChevronDown, ChevronUp, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
 import soundManager from '../utils/soundManager.js';
 import { getCurrentDate } from '../utils/dateUtils.js';
 import safeMath from '../utils/safeMath.js';
 import supabaseService from '../utils/supabaseService.js';
 import { observerManager } from '../utils/observerManager.js';
+import { printHtmlContent } from '../utils/printHelper.js';
 
 const INK_SUPPLIERS_KEY = 'ink_suppliers';
 const INK_SUPPLIES_KEY = 'ink_supplies';
@@ -51,6 +52,175 @@ const InkSupplierDetails = () => {
     return safeMath.add(s, total);
   }, 0);
 
+  const handlePrintSupply = (supply) => {
+    soundManager.play('openWindow');
+
+    const storeInfo = JSON.parse(localStorage.getItem('storeInfo') || '{}');
+    const storeName = storeInfo.storeName || 'Ms Group Factory';
+    const storePhone = storeInfo.storePhone || storeInfo.phone || '01029022006-01102364000-01025171668';
+    const storeAddress = storeInfo.storeAddress || storeInfo.address || 'عزبة رستم\nبجوار هايبر مصر\nشارع عرفة الدسوقي';
+    const storeLogo = storeInfo.logo || '';
+    const storeEmail = storeInfo.storeEmail || 'info@msgroupplast.com';
+    const storeTaxNumber = storeInfo.storeTaxNumber || '769337252';
+    const storeDescription = storeInfo.storeDescription || 'لاستيراد وتصدير وتصنيع المواد البلاستيكية والتعبئة والتغليف';
+
+    const colors = supply.colors || supply.metadata?.colors || [];
+
+    const html = `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+            <meta charset="UTF-8">
+            <title>إيصال استلام أحبار - ${supply.supplyNumber}</title>
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 28px; color: #1a1a2e; line-height: 1.6; background: #f8f9fe; }
+                /* ====== HEADER ====== */
+                .invoice-header { background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%); border-radius: 16px; padding: 28px 32px 22px; margin-bottom: 24px; color: #fff; position: relative; overflow: hidden; }
+                .invoice-header::before { content: ''; position: absolute; top: -40px; left: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.07); border-radius: 50%; }
+                .invoice-header::after  { content: ''; position: absolute; bottom: -50px; right: -30px; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+                .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; position: relative; z-index: 1; }
+                .company-name { font-size: 26px; font-weight: 900; letter-spacing: 0.5px; }
+                .company-desc { font-size: 12px; opacity: 0.82; margin-top: 4px; }
+                .invoice-badge { background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 6px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; backdrop-filter: blur(4px); white-space: nowrap; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
+                .info-card { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; min-height: 76px; display: flex; flex-direction: column; justify-content: flex-start; }
+                .info-card .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+                .info-card .val { font-size: 12px; font-weight: 700; white-space: pre-line; line-height: 1.7; word-break: break-word; }
+                .order-strip { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(6,182,212,0.10); border-right: 5px solid #06B6D4; }
+                .order-strip .ord-label { font-size: 13px; color: #6b7280; }
+                .order-strip .ord-value { font-size: 20px; font-weight: 900; color: #06B6D4; }
+                .order-strip .ord-badge { background: #ecfeff; color: #0891b2; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+                /* ====== SECTIONS ====== */
+                .section { margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+                .section-title { font-weight: 700; background: linear-gradient(90deg, #06B6D4, #3B82F6); color: #fff; padding: 9px 16px; font-size: 13px; letter-spacing: 0.5px; }
+                .row { display: flex; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding: 8px 16px; align-items: center; }
+                .row:last-child { border-bottom: none; }
+                .label { color: #6b7280; font-size: 12.5px; }
+                .value { font-weight: 700; font-size: 13px; color: #111827; }
+                
+                /* ====== TABLE ====== */
+                .table-container { padding: 12px 16px; }
+                table { width: 100%; border-collapse: collapse; text-align: right; }
+                th { color: #4b5563; font-size: 12px; font-weight: 700; padding: 8px 12px; border-bottom: 2px solid #e5e7eb; }
+                td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #1f2937; }
+                tr:last-child td { border-bottom: none; }
+                
+                /* ====== TOTALS ====== */
+                .totals { margin-top: 20px; background: linear-gradient(135deg, #ecfeff, #eff6ff); border: 2px solid #06B6D4; border-radius: 14px; padding: 16px 20px; }
+                .grand-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #a5f3fc; }
+                .grand-total .label { font-size: 15px; font-weight: 700; color: #0891b2; }
+                .grand-total .value { font-size: 22px; font-weight: 900; color: #0891b2; }
+                .paid-row { display: flex; justify-content: space-between; padding: 6px 0; }
+                .paid-row .label { font-size: 13px; color: #15803d; font-weight: 600; }
+                .paid-row .value { font-size: 14px; font-weight: 900; color: #15803d; }
+                .remaining-row { display: flex; justify-content: space-between; padding: 6px 0; }
+                .remaining-row .label { font-size: 13px; color: #dc2626; font-weight: 600; }
+                .remaining-row .value { font-size: 14px; font-weight: 900; color: #dc2626; }
+                /* ====== FOOTER ====== */
+                .footer { text-align: center; margin-top: 28px; font-size: 11px; color: #9ca3af; border-top: 1px dashed #e5e7eb; padding-top: 14px; }
+                @media print {
+                    @page { margin: 0; }
+                    body { padding: 1.2cm; background: #fff; }
+                    button { display: none !important; }
+                }
+            </style>
+        </head>
+        <body>
+            ${storeLogo ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${storeLogo}" style="max-height: 80px; max-width: 100%; object-fit: contain;" /></div>` : ''}
+
+            <!-- ===== HEADER ===== -->
+            <div class="invoice-header">
+                <div class="header-top">
+                    <div>
+                        <div class="company-name">${storeName}</div>
+                        <div class="company-desc">${storeDescription}</div>
+                    </div>
+                    <span class="invoice-badge">• إيصال استلام أحبار •</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="lbl">📍 العنوان</div>
+                        <div class="val">${storeAddress.replace(/-/g,'\n')}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="lbl">📞 التواصل</div>
+                        <div class="val">${storePhone.replace(/-/g,'\n')}</div>
+                        <div class="val" style="font-weight:500; font-size:11px; margin-top:4px; opacity:.85;">${storeEmail}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="lbl">🏦 الرقم الضريبي</div>
+                        <div class="val">${storeTaxNumber}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RECEIPT NUMBER STRIP ===== -->
+            <div class="order-strip">
+                <div>
+                    <div class="ord-label">رقم الإيصال</div>
+                    <div class="ord-value">${supply.supplyNumber}</div>
+                </div>
+                <span class="ord-badge">إيصال أحبار</span>
+            </div>
+
+            <div class="section">
+                <div class="section-title">بيانات المورد</div>
+                <div class="row"><span class="label">اسم المورد:</span><span class="value">${supplier?.name || '-'}</span></div>
+                <div class="row"><span class="label">تاريخ التوريد:</span><span class="value">${supply.date}</span></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">تفاصيل الألوان الموردة</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align: right;">اللون</th>
+                                <th style="text-align: center;">الكمية</th>
+                                <th style="text-align: center;">سعر الكجم</th>
+                                <th style="text-align: left;">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${colors.map(c => `
+                                <tr>
+                                    <td style="text-align: right; font-weight: bold;">${c.color}</td>
+                                    <td style="text-align: center;">${Number(c.quantity || 0).toLocaleString()} كجم</td>
+                                    <td style="text-align: center;">${Number(c.cost || 0).toLocaleString()} ج.م</td>
+                                    <td style="text-align: left; font-weight: bold;">${Number(safeMath.multiply(c.cost || 0, c.quantity || 0) || 0).toLocaleString()} ج.م</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="totals">
+                <div class="grand-total">
+                    <span class="label">إجمالي قيمة التوريدة:</span>
+                    <span class="value">${Number(supply.totalPrice || 0).toLocaleString()} ج.م</span>
+                </div>
+                <div class="paid-row">
+                    <span class="label">المبلغ المسدد في هذه العملية:</span>
+                    <span class="value">${Number(supply.paidAmount || 0).toLocaleString()} ج.م</span>
+                </div>
+                <div class="remaining-row">
+                    <span class="label">المديونية المتبقية من هذه العملية:</span>
+                    <span class="value">${Number(supply.remainingAmount || 0).toLocaleString()} ج.م</span>
+                </div>
+            </div>
+
+            <div class="footer">
+                ${storeName} &mdash; نظام إدارة الفواتير والتوريدات
+            </div>
+        </body>
+        </html>
+    `;
+
+    printHtmlContent(html);
+  };
+
   const handleAddSupply = () => {
     const valid = supplyColors.filter(c => c.color && c.cost);
     if (!valid.length) { toast.error('أضف لوناً واحداً على الأقل'); return; }
@@ -66,6 +236,13 @@ const InkSupplierDetails = () => {
     supabaseService.addSupplierSupply(newSup);
     toast.success('تم تسجيل التوريدة'); soundManager.play('save');
     setShowSupplyModal(false); setSupplyColors([emptyColor()]); setSupplyPaid('');
+
+    // Auto print prompt
+    setTimeout(() => {
+      if (window.confirm('تم تسجيل التوريدة بنجاح! هل تود طباعة إيصال استلام للمورد الآن؟')) {
+        handlePrintSupply(newSup);
+      }
+    }, 600);
   };
 
   const handleDeleteSupply = async (supId) => {
@@ -193,6 +370,11 @@ const InkSupplierDetails = () => {
                     <button onClick={() => setExpandedSupply(expandedSupply === sup.id ? null : sup.id)}
                       className="text-slate-400 hover:text-cyan-600 p-1">
                       {expandedSupply === sup.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </button>
+                    <button onClick={() => handlePrintSupply(sup)}
+                      className="text-cyan-500 hover:text-cyan-600 hover:bg-cyan-50 p-1.5 rounded-lg transition-all"
+                      title="طباعة إيصال التوريدة">
+                      <Printer className="h-4 w-4" />
                     </button>
                     <button onClick={() => handleDeleteSupply(sup.id)}
                       className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-all">
