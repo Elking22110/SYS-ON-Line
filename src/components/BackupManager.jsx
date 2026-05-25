@@ -57,10 +57,10 @@ const BackupManager = () => {
       setIsLoading(true);
       await backupManager.createManualBackup('manual');
       await loadData();
-      notifySuccess('تم إنشاء النسخة الاحتياطية', 'تم حفظ النسخة الاحتياطية بنجاح');
+      notifySuccess('تم إنشاء النسخة الاحتياطية بنجاح', 'تم حفظ نسخة احتياطية شاملة لجميع بيانات النظام (العملاء، الموردين، الطلبات، الورديات والماليات) مشفرة داخلياً.');
     } catch (error) {
       console.error('خطأ في إنشاء النسخة احتياطية:', error);
-      notifyError('خطأ في إنشاء النسخة الاحتياطية', 'حدث خطأ أثناء إنشاء النسخة الاحتياطية');
+      notifyError('خطأ في إنشاء النسخة الاحتياطية', 'حدث خطأ أثناء محاولة إنشاء النسخة الاحتياطية.');
     } finally {
       setIsLoading(false);
     }
@@ -74,10 +74,10 @@ const BackupManager = () => {
 
       setIsLoading(true);
       await backupManager.restoreBackup(backupId);
-      notifySuccess('تم استعادة النسخة الاحتياطية', 'تم استعادة البيانات بنجاح');
+      notifySuccess('تم استعادة النسخة الاحتياطية بنجاح', 'تمت استعادة كافة المنتجات، العملاء، الطلبات، الموردين، الورديات، والماليات بنجاح وتحديث شاشات التطبيق.');
     } catch (error) {
       console.error('خطأ في استعادة النسخة احتياطية:', error);
-      notifyError('خطأ في استعادة النسخة الاحتياطية', 'حدث خطأ أثناء استعادة النسخة الاحتياطية');
+      notifyError('خطأ في استعادة النسخة الاحتياطية', 'حدث خطأ أثناء محاولة استعادة النسخة الاحتياطية.');
     } finally {
       setIsLoading(false);
     }
@@ -87,10 +87,10 @@ const BackupManager = () => {
   const exportBackup = async (backupId) => {
     try {
       await backupManager.exportBackup(backupId);
-      notifySuccess('تم تصدير النسخة الاحتياطية', 'تم تحميل ملف النسخة الاحتياطية');
+      notifySuccess('تم تصدير النسخة الاحتياطية بنجاح', 'تم تحميل ملف النسخة الاحتياطية الشاملة على جهازك بنجاح.');
     } catch (error) {
       console.error('خطأ في تصدير النسخة الاحتياطية:', error);
-      notifyError('خطأ في تصدير النسخة الاحتياطية', 'حدث خطأ أثناء تصدير النسخة الاحتياطية');
+      notifyError('خطأ في تصدير النسخة الاحتياطية', 'حدث خطأ أثناء محاولة تصدير النسخة الاحتياطية.');
     }
   };
 
@@ -102,10 +102,10 @@ const BackupManager = () => {
 
       await backupManager.importBackup(file);
       await loadData();
-      notifySuccess('تم استيراد النسخة الاحتياطية', 'تم استيراد البيانات بنجاح');
+      notifySuccess('تم استيراد النسخة الاحتياطية بنجاح', 'تم فك تشفير واستيراد ملف النسخة الاحتياطية بنجاح وإضافته إلى القائمة.');
     } catch (error) {
       console.error('خطأ في استيراد النسخة احتياطية:', error);
-      notifyError('خطأ في استيراد النسخة الاحتياطية', 'حدث خطأ أثناء استيراد النسخة الاحتياطية');
+      notifyError('خطأ في استيراد النسخة الاحتياطية', 'حدث خطأ أثناء محاولة استيراد النسخة الاحتياطية.');
     }
   };
 

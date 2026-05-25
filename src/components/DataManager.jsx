@@ -23,9 +23,11 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import { publish, EVENTS } from '../utils/observerManager';
+import { useNotifications } from './NotificationSystem';
 
 const DataManager = () => {
   const { user, hasPermission } = useAuth();
+  const { notifySuccess, notifyError } = useNotifications();
   const [activeTab, setActiveTab] = useState('backup');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -133,8 +135,10 @@ const DataManager = () => {
       }
 
       setMessage({ type: 'success', text: 'تم تصدير البيانات بنجاح' });
+      notifySuccess('تم تصدير البيانات بنجاح', 'تم تحميل ملف النسخة الاحتياطية الشاملة على جهازك بنجاح (يشمل كافة المبيعات والعملاء والموردين والطلبات والورديات).');
     } catch (error) {
       setMessage({ type: 'error', text: 'فشل في تصدير البيانات' });
+      notifyError('فشل في تصدير البيانات', 'حدث خطأ أثناء محاولة تصدير البيانات.');
     } finally {
       setLoading(false);
     }
@@ -156,6 +160,7 @@ const DataManager = () => {
         const data = JSON.parse(text);
         await databaseManager.importData(data);
         setMessage({ type: 'success', text: 'تم استيراد البيانات بنجاح' });
+        notifySuccess('تم استيراد البيانات بنجاح', 'تم دمج واسترجاع كافة المنتجات، العملاء، الموردين، الطلبات، الورديات، والماليات بنجاح وتحديث واجهات النظام.');
         try { publish(EVENTS.DATA_IMPORTED, ['products','categories','customers','sales','users','settings']); } catch(_) {}
         loadStats();
         return;
@@ -165,6 +170,7 @@ const DataManager = () => {
     } catch (error) {
       console.error('Import error:', error);
       setMessage({ type: 'error', text: 'فشل في استيراد البيانات' });
+      notifyError('فشل في استيراد البيانات', 'حدث خطأ أثناء محاولة استيراد ملف البيانات. يرجى التحقق من صحة الملف.');
     } finally {
       setLoading(false);
     }
@@ -192,8 +198,10 @@ const DataManager = () => {
       URL.revokeObjectURL(url);
 
       setMessage({ type: 'success', text: 'تم تصدير الإعدادات بنجاح' });
+      notifySuccess('تم تصدير الإعدادات بنجاح', 'تم تحميل ملف إعدادات المتجر ونقاط البيع والنظام بنجاح.');
     } catch (error) {
       setMessage({ type: 'error', text: 'فشل في تصدير الإعدادات' });
+      notifyError('فشل في تصدير الإعدادات', 'حدث خطأ أثناء محاولة تصدير الإعدادات.');
     } finally {
       setLoading(false);
     }
@@ -215,10 +223,12 @@ const DataManager = () => {
       
       await databaseManager.importSettings(settingsData);
       setMessage({ type: 'success', text: 'تم استيراد الإعدادات بنجاح' });
+      notifySuccess('تم استيراد الإعدادات بنجاح', 'تم استيراد وتطبيق إعدادات المتجر ونقاط البيع والنظام بنجاح.');
       try { publish(EVENTS.DATA_IMPORTED, ['settings']); } catch(_) {}
       loadStats();
     } catch (error) {
       setMessage({ type: 'error', text: 'فشل في استيراد الإعدادات' });
+      notifyError('فشل في استيراد الإعدادات', 'حدث خطأ أثناء محاولة استيراد الإعدادات.');
     } finally {
       setLoading(false);
     }
@@ -235,14 +245,17 @@ const DataManager = () => {
       const backup = await databaseManager.createBackup('full');
       if (backup) {
         setMessage({ type: 'success', text: 'تم إنشاء نسخة احتياطية بنجاح' });
+        notifySuccess('تم إنشاء النسخة الاحتياطية بنجاح', 'تم حفظ نسخة احتياطية شاملة لجميع بيانات النظام (العملاء، الموردين، الطلبات، الورديات والماليات) مشفرة داخلياً.');
         loadBackups();
         loadStats();
         try { publish(EVENTS.DATA_BACKED_UP, { id: backup.id }); } catch(_) {}
       } else {
         setMessage({ type: 'error', text: 'فشل في إنشاء النسخة الاحتياطية' });
+        notifyError('فشل في إنشاء النسخة الاحتياطية', 'حدث خطأ أثناء محاولة إنشاء النسخة الاحتياطية.');
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'فشل في إنشاء النسخة الاحتياطية' });
+      notifyError('فشل في إنشاء النسخة الاحتياطية', 'حدث خطأ أثناء محاولة إنشاء النسخة الاحتياطية.');
     } finally {
       setLoading(false);
     }
@@ -263,13 +276,16 @@ const DataManager = () => {
       const success = await databaseManager.restoreBackup(backupId);
       if (success) {
         setMessage({ type: 'success', text: 'تم استعادة النسخة الاحتياطية بنجاح' });
+        notifySuccess('تم استعادة النسخة الاحتياطية بنجاح', 'تمت استعادة كافة المنتجات، العملاء، الطلبات، الموردين، الورديات، والماليات بنجاح وتحديث شاشات التطبيق.');
         loadStats();
         loadBackups();
       } else {
         setMessage({ type: 'error', text: 'فشل في استعادة النسخة الاحتياطية' });
+        notifyError('فشل في استعادة النسخة الاحتياطية', 'حدث خطأ أثناء محاولة استعادة النسخة الاحتياطية.');
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'فشل في استعادة النسخة الاحتياطية' });
+      notifyError('فشل في استعادة النسخة الاحتياطية', 'حدث خطأ أثناء محاولة استعادة النسخة الاحتياطية.');
     } finally {
       setLoading(false);
     }
