@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isElectron: true,
   version: process.versions.electron,
   getMachineId: () => ipcRenderer.invoke('get-machine-id'),
+  saveFile: (content, fileName) => ipcRenderer.invoke('save-file', { content, fileName })
 });

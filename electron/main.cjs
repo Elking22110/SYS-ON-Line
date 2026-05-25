@@ -134,6 +134,29 @@ app.whenReady().then(() => {
     }
   });
 
+  // معالجة حفظ الملفات من الواجهة الأمامية بشكل آمن
+  ipcMain.handle('save-file', async (event, { content, fileName }) => {
+    try {
+      const { filePath } = await dialog.showSaveDialog(mainWindow, {
+        title: 'حفظ النسخة الاحتياطية',
+        defaultPath: path.join(app.getPath('downloads'), fileName),
+        filters: [
+          { name: 'JSON/CSV Files', extensions: ['json', 'csv'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      });
+
+      if (filePath) {
+        fs.writeFileSync(filePath, content, 'utf8');
+        return { success: true, filePath };
+      }
+      return { success: false };
+    } catch (err) {
+      console.error('Error saving file via IPC:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
   createWindow();
 
   // فحص التحديثات وتطبيقها بصمت في الخلفية، وسيقوم تلقائياً بتحميل وتثبيت أي Release يتم إضافتها في GitHub

@@ -204,17 +204,28 @@ class BackupManager {
 
       // إنشاء ملف JSON
       const jsonData = JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      
-      // تحميل الملف
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `backup_${backupId}_${getCurrentDate().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const fileName = `backup_${backupId}_${getCurrentDate().split('T')[0]}.json`;
+
+      // التوافقية مع تطبيق Desktop (Electron)
+      if (window.electronAPI && window.electronAPI.isElectron && typeof window.electronAPI.saveFile === 'function') {
+        const result = await window.electronAPI.saveFile(jsonData, fileName);
+        if (result && result.success) {
+          console.log('تم حفظ الملف بنجاح في المسار:', result.filePath);
+          return true;
+        }
+        return false;
+      } else {
+        // التحميل القياسي في المتصفحات
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
 
       console.log('تم تصدير النسخة الاحتياطية:', backupId);
       return true;
@@ -232,19 +243,28 @@ class BackupManager {
       
       // تحويل البيانات إلى JSON
       const jsonData = JSON.stringify(settingsData, null, 2);
-      
-      // إنشاء ملف للتحميل
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      // تحميل الملف
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `settings_${getCurrentDate().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const fileName = `settings_${getCurrentDate().split('T')[0]}.json`;
+
+      // التوافقية مع تطبيق Desktop (Electron)
+      if (window.electronAPI && window.electronAPI.isElectron && typeof window.electronAPI.saveFile === 'function') {
+        const result = await window.electronAPI.saveFile(jsonData, fileName);
+        if (result && result.success) {
+          console.log('تم حفظ ملف الإعدادات بنجاح:', result.filePath);
+          return true;
+        }
+        return false;
+      } else {
+        // التحميل القياسي في المتصفحات
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
       
       console.log('تم تصدير الإعدادات بنجاح');
       return true;

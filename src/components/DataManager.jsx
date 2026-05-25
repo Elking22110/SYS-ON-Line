@@ -112,26 +112,35 @@ const DataManager = () => {
       const data = await databaseManager.exportData();
       const dataString = format === 'json' ? JSON.stringify(data, null, 2) : convertToCSV(data);
       
-      if (format === 'json') {
-        const blob = new Blob([dataString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pos_system_backup_${getCurrentDate().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else if (format === 'csv') {
-        const blob = new Blob([dataString], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pos_system_backup_${getCurrentDate().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      const fileName = format === 'json'
+        ? `pos_system_backup_${getCurrentDate().split('T')[0]}.json`
+        : `pos_system_backup_${getCurrentDate().split('T')[0]}.csv`;
+
+      // التوافقية مع تطبيق Desktop (Electron)
+      if (window.electronAPI && window.electronAPI.isElectron && typeof window.electronAPI.saveFile === 'function') {
+        await window.electronAPI.saveFile(dataString, fileName);
+      } else {
+        if (format === 'json') {
+          const blob = new Blob([dataString], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } else if (format === 'csv') {
+          const blob = new Blob([dataString], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
       }
 
       setMessage({ type: 'success', text: 'تم تصدير البيانات بنجاح' });
@@ -187,15 +196,22 @@ const DataManager = () => {
       const settingsData = await databaseManager.exportSettings();
       const dataString = JSON.stringify(settingsData, null, 2);
       
-      const blob = new Blob([dataString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `pos_system_settings_${getCurrentDate().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const fileName = `pos_system_settings_${getCurrentDate().split('T')[0]}.json`;
+
+      // التوافقية مع تطبيق Desktop (Electron)
+      if (window.electronAPI && window.electronAPI.isElectron && typeof window.electronAPI.saveFile === 'function') {
+        await window.electronAPI.saveFile(dataString, fileName);
+      } else {
+        const blob = new Blob([dataString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
 
       setMessage({ type: 'success', text: 'تم تصدير الإعدادات بنجاح' });
       notifySuccess('تم تصدير الإعدادات بنجاح', 'تم تحميل ملف إعدادات المتجر ونقاط البيع والنظام بنجاح.');
