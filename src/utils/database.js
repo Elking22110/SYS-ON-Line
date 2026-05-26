@@ -1,5 +1,7 @@
 // نظام قاعدة البيانات المحلية باستخدام IndexedDB
 import { getCurrentDate } from './dateUtils.js';
+import encryptionManager from './encryption.js';
+
 
 class DatabaseManager {
   constructor() {
@@ -295,21 +297,58 @@ class DatabaseManager {
         }
       }
 
-      // نسخ بيانات localStorage
+      // دالة مساعدة لجلب القيمة وفك تشفيرها بأمان من localStorage كـ JSON أو الاحتفاظ بها كنص
+      const getLocalStorageItem = (key, defaultValue = '{}') => {
+        const item = localStorage.getItem(key);
+        if (item === null) {
+          try {
+            return JSON.parse(defaultValue);
+          } catch {
+            return defaultValue;
+          }
+        }
+        try {
+          return JSON.parse(item);
+        } catch {
+          return item; // الاحتفاظ بها كنص خام إذا لم تكن بصيغة JSON
+        }
+      };
+
+      // نسخ بيانات localStorage بالكامل مع الحفاظ على التسمية الأصلية الدقيقة
       backupData.data.localStorage = {
-        storeInfo: JSON.parse(localStorage.getItem('storeInfo') || '{}'),
-        posSettings: JSON.parse(localStorage.getItem('pos-settings') || '{}'),
-        productCategories: JSON.parse(localStorage.getItem('productCategories') || '[]'),
-        products: JSON.parse(localStorage.getItem('products') || '[]'),
-        sales: JSON.parse(localStorage.getItem('sales') || '[]'),
-        customers: JSON.parse(localStorage.getItem('customers') || '[]'),
-        suppliers: JSON.parse(localStorage.getItem('suppliers') || '[]'),
-        supplier_supplies: JSON.parse(localStorage.getItem('supplier_supplies') || '[]'),
-        supplier_payments: JSON.parse(localStorage.getItem('supplier_payments') || '[]'),
-        shifts: JSON.parse(localStorage.getItem('shifts') || '[]'),
-        users: JSON.parse(localStorage.getItem('users') || '[]'),
-        notifications: JSON.parse(localStorage.getItem('notifications') || '[]'),
-        systemSettings: JSON.parse(localStorage.getItem('system-settings') || '{}')
+        'storeInfo': getLocalStorageItem('storeInfo', '{}'),
+        'pos-settings': getLocalStorageItem('pos-settings', '{}'),
+        'productCategories': getLocalStorageItem('productCategories', '[]'),
+        'products': getLocalStorageItem('products', '[]'),
+        'sales': getLocalStorageItem('sales', '[]'),
+        'customers': getLocalStorageItem('customers', '[]'),
+        'customer_orders': getLocalStorageItem('customer_orders', '[]'),
+        'customer_payments': getLocalStorageItem('customer_payments', '[]'),
+        'suppliers': getLocalStorageItem('suppliers', '[]'),
+        'supplier_supplies': getLocalStorageItem('supplier_supplies', '[]'),
+        'supplier_payments': getLocalStorageItem('supplier_payments', '[]'),
+        'ink_suppliers': getLocalStorageItem('ink_suppliers', '[]'),
+        'ink_supplies': getLocalStorageItem('ink_supplies', '[]'),
+        'ink_payments': getLocalStorageItem('ink_payments', '[]'),
+        'cliche_suppliers': getLocalStorageItem('cliche_suppliers', '[]'),
+        'cliche_supplies': getLocalStorageItem('cliche_supplies', '[]'),
+        'cliche_payments': getLocalStorageItem('cliche_payments', '[]'),
+        'expenses': getLocalStorageItem('expenses', '[]'),
+        'shifts': getLocalStorageItem('shifts', '[]'),
+        'activeShift': getLocalStorageItem('activeShift', 'null'),
+        'users': getLocalStorageItem('users', '[]'),
+        'notifications': getLocalStorageItem('notifications', '[]'),
+        'system-settings': getLocalStorageItem('system-settings', '{}'),
+        'elking_license': localStorage.getItem('elking_license') || '',
+        'design_theme': localStorage.getItem('design_theme') || 'dark',
+        'productImages': getLocalStorageItem('productImages', '{}'),
+        'security_logs': getLocalStorageItem('security_logs', '[]'),
+        'activity_logs': getLocalStorageItem('activity_logs', '[]'),
+        'encryption_key': localStorage.getItem('encryption_key') || '',
+        'soundEnabled': localStorage.getItem('soundEnabled') || 'true',
+        'soundVolume': localStorage.getItem('soundVolume') || '1',
+        'app_muted': localStorage.getItem('app_muted') || 'false',
+        'app_volume': localStorage.getItem('app_volume') || '0.5'
       };
 
       // حفظ النسخة الاحتياطية
@@ -331,47 +370,30 @@ class DatabaseManager {
         throw new Error('النسخة الاحتياطية غير موجودة');
       }
 
-      // استعادة بيانات IndexedDB
-      for (const [storeName, data] of Object.entries(backup.data)) {
-        // تخطي localStorage
-        if (storeName === 'localStorage') {
-          continue;
-        }
+      let backupData = backup.data;
 
-        if (data && data.length > 0) {
-          const transaction = this.db.transaction([storeName], 'readwrite');
-          const store = transaction.objectStore(storeName);
-
-          // مسح البيانات الموجودة
-          await new Promise((resolve, reject) => {
-            const clearRequest = store.clear();
-            clearRequest.onsuccess = () => resolve();
-            clearRequest.onerror = () => reject(clearRequest.error);
-          });
-
-          // إضافة البيانات الجديدة
-          for (const item of data) {
-            await new Promise((resolve, reject) => {
-              const addRequest = store.add(item);
-              addRequest.onsuccess = () => resolve();
-              addRequest.onerror = () => reject(addRequest.error);
-            });
-          }
+      // فك تشفير النسخة الاحتياطية إذا كانت مشفرة
+      if (backup.encrypted && backup.encryptedData) {
+        try {
+          backupData = encryptionManager.decryptObject(backup.encryptedData);
+        } catch (decryptError) {
+          console.error('خطأ في فك تشفير النسخة الاحتياطية:', decryptError);
+          throw new Error('فشل في فك تشفير النسخة الاحتياطية');
         }
       }
 
-      // استعادة بيانات localStorage
-      if (backup.data.localStorage) {
-        console.log('استعادة بيانات localStorage...');
-        for (const [key, value] of Object.entries(backup.data.localStorage)) {
-          try {
-            localStorage.setItem(key, JSON.stringify(value));
-            console.log(`تم استعادة ${key} إلى localStorage`);
-          } catch (error) {
-            console.warn(`خطأ في استعادة ${key} إلى localStorage:`, error);
-          }
-        }
+      // استخراج البيانات الفعلية في حال كانت مغلفة بداخل كائن النسخة بالكامل
+      if (backupData && backupData.data && typeof backupData.data === 'object' && !backupData.products && !backupData.sales) {
+        backupData = backupData.data;
       }
+
+      // التحقق من صحة بيانات النسخة الاحتياطية
+      if (!backupData || typeof backupData !== 'object') {
+        throw new Error('بيانات النسخة الاحتياطية غير صحيحة');
+      }
+
+      // استدعاء importData لاستعادة البيانات بالكامل ومنع تكرار الكود
+      await this.importData(backupData);
 
       console.log('تم استعادة النسخة الاحتياطية بنجاح:', backupId);
       return true;
@@ -391,7 +413,7 @@ class DatabaseManager {
     return await this.delete('backups', backupId);
   }
 
-  // تصدير البيانات
+  // تصدير البيانات بالكامل
   async exportData() {
     const exportData = {
       metadata: {
@@ -413,21 +435,58 @@ class DatabaseManager {
       }
     }
 
-    // تصدير بيانات localStorage
+    // دالة مساعدة لجلب القيمة وفك تشفيرها بأمان من localStorage كـ JSON أو الاحتفاظ بها كنص
+    const getLocalStorageItem = (key, defaultValue = '{}') => {
+      const item = localStorage.getItem(key);
+      if (item === null) {
+        try {
+          return JSON.parse(defaultValue);
+        } catch {
+          return defaultValue;
+        }
+      }
+      try {
+        return JSON.parse(item);
+      } catch {
+        return item;
+      }
+    };
+
+    // تصدير بيانات localStorage بالكامل مع الحفاظ على التسمية الدقيقة
     exportData.localStorage = {
-      storeInfo: JSON.parse(localStorage.getItem('storeInfo') || '{}'),
-      posSettings: JSON.parse(localStorage.getItem('pos-settings') || '{}'),
-      productCategories: JSON.parse(localStorage.getItem('productCategories') || '[]'),
-      products: JSON.parse(localStorage.getItem('products') || '[]'),
-      sales: JSON.parse(localStorage.getItem('sales') || '[]'),
-      customers: JSON.parse(localStorage.getItem('customers') || '[]'),
-      suppliers: JSON.parse(localStorage.getItem('suppliers') || '[]'),
-      supplier_supplies: JSON.parse(localStorage.getItem('supplier_supplies') || '[]'),
-      supplier_payments: JSON.parse(localStorage.getItem('supplier_payments') || '[]'),
-      shifts: JSON.parse(localStorage.getItem('shifts') || '[]'),
-      users: JSON.parse(localStorage.getItem('users') || '[]'),
-      notifications: JSON.parse(localStorage.getItem('notifications') || '[]'),
-      systemSettings: JSON.parse(localStorage.getItem('system-settings') || '{}')
+      'storeInfo': getLocalStorageItem('storeInfo', '{}'),
+      'pos-settings': getLocalStorageItem('pos-settings', '{}'),
+      'productCategories': getLocalStorageItem('productCategories', '[]'),
+      'products': getLocalStorageItem('products', '[]'),
+      'sales': getLocalStorageItem('sales', '[]'),
+      'customers': getLocalStorageItem('customers', '[]'),
+      'customer_orders': getLocalStorageItem('customer_orders', '[]'),
+      'customer_payments': getLocalStorageItem('customer_payments', '[]'),
+      'suppliers': getLocalStorageItem('suppliers', '[]'),
+      'supplier_supplies': getLocalStorageItem('supplier_supplies', '[]'),
+      'supplier_payments': getLocalStorageItem('supplier_payments', '[]'),
+      'ink_suppliers': getLocalStorageItem('ink_suppliers', '[]'),
+      'ink_supplies': getLocalStorageItem('ink_supplies', '[]'),
+      'ink_payments': getLocalStorageItem('ink_payments', '[]'),
+      'cliche_suppliers': getLocalStorageItem('cliche_suppliers', '[]'),
+      'cliche_supplies': getLocalStorageItem('cliche_supplies', '[]'),
+      'cliche_payments': getLocalStorageItem('cliche_payments', '[]'),
+      'expenses': getLocalStorageItem('expenses', '[]'),
+      'shifts': getLocalStorageItem('shifts', '[]'),
+      'activeShift': getLocalStorageItem('activeShift', 'null'),
+      'users': getLocalStorageItem('users', '[]'),
+      'notifications': getLocalStorageItem('notifications', '[]'),
+      'system-settings': getLocalStorageItem('system-settings', '{}'),
+      'elking_license': localStorage.getItem('elking_license') || '',
+      'design_theme': localStorage.getItem('design_theme') || 'dark',
+      'productImages': getLocalStorageItem('productImages', '{}'),
+      'security_logs': getLocalStorageItem('security_logs', '[]'),
+      'activity_logs': getLocalStorageItem('activity_logs', '[]'),
+      'encryption_key': localStorage.getItem('encryption_key') || '',
+      'soundEnabled': localStorage.getItem('soundEnabled') || 'true',
+      'soundVolume': localStorage.getItem('soundVolume') || '1',
+      'app_muted': localStorage.getItem('app_muted') || 'false',
+      'app_volume': localStorage.getItem('app_volume') || '0.5'
     };
 
     return exportData;
@@ -444,9 +503,11 @@ class DatabaseManager {
       },
       settings: await this.getAll('settings'),
       localStorage: {
-        storeInfo: JSON.parse(localStorage.getItem('storeInfo') || '{}'),
-        posSettings: JSON.parse(localStorage.getItem('pos-settings') || '{}'),
-        systemSettings: JSON.parse(localStorage.getItem('system-settings') || '{}')
+        'storeInfo': JSON.parse(localStorage.getItem('storeInfo') || '{}'),
+        'pos-settings': JSON.parse(localStorage.getItem('pos-settings') || '{}'),
+        'system-settings': JSON.parse(localStorage.getItem('system-settings') || '{}'),
+        'design_theme': localStorage.getItem('design_theme') || 'dark',
+        'elking_license': localStorage.getItem('elking_license') || ''
       }
     };
 
@@ -485,15 +546,28 @@ class DatabaseManager {
 
       // استيراد إعدادات localStorage
       if (data.localStorage) {
-        for (const [key, value] of Object.entries(data.localStorage)) {
+        for (let [key, value] of Object.entries(data.localStorage)) {
+          // تصحيح التسميات القديمة لضمان التوافقية
+          if (key === 'posSettings') key = 'pos-settings';
+          if (key === 'systemSettings') key = 'system-settings';
+
           try {
-            localStorage.setItem(key, JSON.stringify(value));
+            if (value === null || value === undefined) {
+              localStorage.removeItem(key);
+            } else if (typeof value === 'string') {
+              localStorage.setItem(key, value);
+            } else {
+              localStorage.setItem(key, JSON.stringify(value));
+            }
             console.log(`تم استيراد إعداد ${key} إلى localStorage`);
           } catch (error) {
             console.warn(`خطأ في استيراد إعداد ${key}:`, error);
           }
         }
       }
+
+      // تنبيه صفحات النظام لتحديث واجهاتها فوراً
+      window.dispatchEvent(new Event('dataUpdated'));
 
       console.log('تم استيراد الإعدادات بنجاح');
       return true;
@@ -514,8 +588,14 @@ class DatabaseManager {
       // التأكد من وجود جميع الجداول المطلوبة
       await this.ensureStoresExist();
 
+      // فك تغليف البيانات في حال كانت مغلفة بداخل كائن النسخة بالكامل
+      let actualData = data;
+      if (data && data.data && typeof data.data === 'object' && !data.products && !data.sales) {
+        actualData = data.data;
+      }
+
       // استيراد بيانات IndexedDB
-      for (const [storeName, items] of Object.entries(data)) {
+      for (const [storeName, items] of Object.entries(actualData)) {
         // تخطي metadata و localStorage
         if (storeName === 'metadata' || storeName === 'localStorage') {
           continue;
@@ -549,17 +629,30 @@ class DatabaseManager {
       }
 
       // استيراد بيانات localStorage
-      if (data.localStorage) {
+      if (actualData.localStorage) {
         console.log('استيراد بيانات localStorage...');
-        for (const [key, value] of Object.entries(data.localStorage)) {
+        for (let [key, value] of Object.entries(actualData.localStorage)) {
+          // تصحيح التسميات القديمة لضمان التوافقية
+          if (key === 'posSettings') key = 'pos-settings';
+          if (key === 'systemSettings') key = 'system-settings';
+
           try {
-            localStorage.setItem(key, JSON.stringify(value));
+            if (value === null || value === undefined) {
+              localStorage.removeItem(key);
+            } else if (typeof value === 'string') {
+              localStorage.setItem(key, value);
+            } else {
+              localStorage.setItem(key, JSON.stringify(value));
+            }
             console.log(`تم استيراد ${key} إلى localStorage`);
           } catch (error) {
             console.warn(`خطأ في استيراد ${key} إلى localStorage:`, error);
           }
         }
       }
+
+      // تنبيه صفحات النظام لتحديث واجهاتها فوراً
+      window.dispatchEvent(new Event('dataUpdated'));
 
       console.log('تم استيراد جميع البيانات بنجاح');
       return true;

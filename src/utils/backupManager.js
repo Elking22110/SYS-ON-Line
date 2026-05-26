@@ -276,8 +276,13 @@ class BackupManager {
   async importBackup(file) {
     try {
       const text = await file.text();
-      const backupData = JSON.parse(text);
+      let backupData = JSON.parse(text);
       
+      // إذا كان الملف المستورد يحتوي على الهيكل الكامل للنسخة الاحتياطية، فاستخرج البيانات الفعلية منه لمنع التداخل المضاعف
+      if (backupData && backupData.data && typeof backupData.data === 'object' && !backupData.products && !backupData.sales) {
+        backupData = backupData.data;
+      }
+
       // إنشاء نسخة احتياطية جديدة
       const backup = {
         id: `imported_${Date.now()}`,
