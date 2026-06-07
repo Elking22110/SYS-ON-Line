@@ -416,33 +416,33 @@ const ClicheSuppliers = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">تاريخ التوريدة</label>
                 <input type="date" value={supplyDate} onChange={e => setSupplyDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-slate-900" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">اسم / وصف الأكلشية</label>
                 <input type="text" value={clicheName} onChange={e => setClicheName(e.target.value)}
                   placeholder="مثال: أكلشية شنطة كارفور"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-slate-900" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">العرض (سم)</label>
                   <input type="number" value={clicheWidth} onChange={e => setClicheWidth(e.target.value)}
                     placeholder="0"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center" />
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center text-slate-900" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">الطول (سم)</label>
                   <input type="number" value={clicheHeight} onChange={e => setClicheHeight(e.target.value)}
                     placeholder="0"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center" />
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center text-slate-900" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">سعر السنتيمتر المربع (ج.م / سم²)</label>
                 <input type="number" value={pricePerCm} onChange={e => setPricePerCm(e.target.value)}
                   placeholder="0.00" step="0.01"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center text-slate-900" />
               </div>
 
               {/* Auto-calculated total */}
@@ -463,12 +463,12 @@ const ClicheSuppliers = () => {
                 <label className="block text-xs font-bold text-slate-500 mb-1">المبلغ المدفوع الآن (اختياري)</label>
                 <input type="number" value={supplyPaid} onChange={e => setSupplyPaid(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظة (اختياري)</label>
                 <input type="text" value={supplyNote} onChange={e => setSupplyNote(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-slate-900" />
               </div>
             </div>
             <div className="flex gap-2 mt-5">
@@ -495,12 +495,12 @@ const ClicheSuppliers = () => {
                 <label className="block text-xs font-bold text-slate-500 mb-1">المبلغ (ج.م)</label>
                 <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظة (اختياري)</label>
                 <input type="text" value={payNote} onChange={e => setPayNote(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900" />
               </div>
             </div>
             <div className="flex gap-2 mt-5">

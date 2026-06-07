@@ -268,7 +268,7 @@ const ClichesInventory = () => {
                                 placeholder="ابحث باسم العميل أو الأكلشية..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pr-10 pl-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5235E8] transition-all"
+                                className="w-full pr-10 pl-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5235E8] transition-all text-slate-800"
                             />
                         </div>
                     </div>
@@ -475,7 +475,7 @@ const ClichesInventory = () => {
                                         type="text"
                                         value={editForm.name}
                                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50"
+                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-slate-800"
                                         placeholder="اسم الأكلشية"
                                     />
                                 </div>
@@ -488,7 +488,7 @@ const ClichesInventory = () => {
                                         type="number"
                                         value={editForm.length}
                                         onChange={e => setEditForm({ ...editForm, length: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg"
+                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg text-slate-800"
                                         placeholder="طول"
                                         dir="ltr"
                                     />
@@ -499,7 +499,7 @@ const ClichesInventory = () => {
                                         type="number"
                                         value={editForm.width}
                                         onChange={e => setEditForm({ ...editForm, width: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg"
+                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg text-slate-800"
                                         placeholder="عرض"
                                         dir="ltr"
                                     />

@@ -508,7 +508,7 @@ const Suppliers = () => {
                 placeholder="البحث بالاسم أو الهاتف أو البريد الإلكتروني..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10 pl-4 py-3 text-right bg-white bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-blue-300 focus:outline-none focus:border-blue-400 focus:border-opacity-60"
+                className="w-full pr-10 pl-4 py-3 text-right bg-white bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-blue-300 focus:outline-none focus:border-blue-400 focus:border-opacity-60"
               />
             </div>
 
@@ -517,10 +517,10 @@ const Suppliers = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="pr-10 pl-4 py-3 text-right appearance-none bg-white bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:border-opacity-60"
+                className="pr-10 pl-4 py-3 text-right appearance-none bg-white bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg text-slate-800 dark:text-white focus:outline-none focus:border-purple-400 focus:border-opacity-60"
               >
                 {statuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
+                  <option key={status} value={status} className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100">{status}</option>
                 ))}
               </select>
             </div>

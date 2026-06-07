@@ -1544,11 +1544,11 @@ const Reports = () => {
 
       {/* نافذة سداد المتبقي - اختيار طريقة الدفع */}
       {showSettlementModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl p-4 md:p-6 w-full max-w-sm">
-            <h3 className="text-white text-base md:text-lg font-bold mb-3">اختيار طريقة سداد المتبقي</h3>
-            <p className="text-slate-600 text-sm mb-4">المبلغ المتبقي: <span className="text-yellow-300 font-semibold">{(settlementRemaining || 0).toLocaleString('en-US')}</span> جنيه</p>
-            <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100">
+            <h3 className="text-slate-800 text-base md:text-lg font-bold mb-3 text-right">اختيار طريقة سداد المتبقي</h3>
+            <p className="text-slate-600 text-sm mb-4 text-right">المبلغ المتبقي: <span className="text-amber-600 font-bold text-base">{(settlementRemaining || 0).toLocaleString('en-US')}</span> جنيه</p>
+            <div className="grid grid-cols-2 gap-2 mb-5">
               {[
                 { value: 'cash', label: 'نقداً' },
                 { value: 'wallet', label: 'محفظة إلكترونية' },
@@ -1558,7 +1558,7 @@ const Reports = () => {
                 <button
                   key={opt.value}
                   onClick={() => setSettlementMethod(opt.value)}
-                  className={`py-2 rounded-lg border-2 text-sm ${settlementMethod === opt.value ? 'border-blue-500 bg-blue-500 bg-opacity-20 text-blue-300' : 'border-slate-400 bg-gray-700 text-slate-600 hover:border-gray-500'}`}
+                  className={`py-2 px-3 rounded-xl border-2 text-sm font-bold transition-all duration-200 ${settlementMethod === opt.value ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:border-slate-300'}`}
                 >
                   {opt.label}
                 </button>
@@ -1567,11 +1567,11 @@ const Reports = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowSettlementModal(false); setSettlementInvoiceId(null); }}
-                className="flex-1 bg-gray-600 hover:bg-slate-200 text-slate-800 py-2 rounded-lg"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold transition-all"
               >إلغاء</button>
               <button
                 onClick={() => { const id = settlementInvoiceId; const m = settlementMethod; setShowSettlementModal(false); setSettlementInvoiceId(null); payRemainingAmount(id, m); }}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-slate-800 py-2 rounded-lg"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold transition-all shadow-md shadow-green-100"
               >تأكيد السداد</button>
             </div>
           </div>
@@ -1929,21 +1929,21 @@ const Reports = () => {
                         placeholder="البحث في الفواتير..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="input-enhanced bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-2 text-slate-800 placeholder-purple-200 focus:outline-none focus:border-blue-500 w-full sm:w-64"
+                        className="input-enhanced bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-2 text-slate-800 dark:text-white placeholder-purple-200 dark:placeholder-blue-300 focus:outline-none focus:border-blue-500 w-full sm:w-64"
                       />
-                      <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-600" />
+                      <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
                     </div>
 
                     {/* فلترة طريقة الدفع */}
                     <select
                       value={invoiceFilter}
                       onChange={(e) => setInvoiceFilter(e.target.value)}
-                      className="input-enhanced bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:border-blue-500"
+                      className="input-enhanced bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-2 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
                     >
-                      <option value="all">جميع طرق الدفع</option>
-                      <option value="cash">نقداً</option>
-                      <option value="wallet">محفظة إلكترونية</option>
-                      <option value="instapay">دفع فوري</option>
+                      <option value="all" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100">جميع طرق الدفع</option>
+                      <option value="cash" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100">نقداً</option>
+                      <option value="wallet" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100">محفظة إلكترونية</option>
+                      <option value="instapay" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100">دفع فوري</option>
                     </select>
                   </div>
                 </div>

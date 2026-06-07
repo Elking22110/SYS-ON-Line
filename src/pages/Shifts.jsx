@@ -15,7 +15,7 @@ const Shifts = () => {
             <Shield className="h-10 w-10 text-red-400" />
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-4">غير مصرح لك</h2>
-          <p className="text-purple-200 mb-6">
+          <p className="text-slate-600 mb-6">
             ليس لديك صلاحية للوصول إلى صفحة الورديات. يرجى التواصل مع المدير.
           </p>
           <div className="text-sm text-slate-500">
@@ -31,7 +31,7 @@ const Shifts = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">إدارة الورديات</h1>
-          <p className="text-purple-200">إدارة ورديات العمل ومراقبة الأداء</p>
+          <p className="text-slate-600">إدارة ورديات العمل ومراقبة الأداء</p>
         </div>
         
         <ShiftManager />
