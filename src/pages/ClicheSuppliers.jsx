@@ -306,8 +306,10 @@ const ClicheSuppliers = () => {
                     <div className="flex gap-2 flex-wrap text-xs">
                       <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg font-bold text-slate-700 dark:text-slate-300">إجمالي: {stats.totalSpent.toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
                       <span className="bg-emerald-100 dark:bg-emerald-950/20 px-2 py-1 rounded-lg font-bold text-emerald-700 dark:text-emerald-400">مدفوع: {stats.totalPaid.toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
-                      <span className={`px-2 py-1 rounded-lg font-bold ${stats.remaining > 0 ? 'bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-400' : 'bg-green-100 dark:bg-green-950/20 text-green-700 dark:text-green-400'}`}>
-                        متبقي: {stats.remaining.toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م
+                      <span className={`px-2 py-1 rounded-lg font-bold ${stats.remaining > 0 ? 'bg-red-100 dark:bg-red-950/20 text-red-700 dark:text-red-400' : stats.remaining < 0 ? 'bg-green-100 dark:bg-green-950/20 text-green-700 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
+                        {stats.remaining > 0 ? `متبقي للمورد: ${stats.remaining.toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م` : 
+                         stats.remaining < 0 ? `رصيد مقدم للمورد: ${Math.abs(stats.remaining).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م` : 
+                         'خالص'}
                       </span>
                     </div>
                     <div className="flex gap-2">

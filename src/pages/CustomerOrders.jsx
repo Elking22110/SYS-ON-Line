@@ -1736,23 +1736,32 @@ ${logoBlock}
                                             </div>
                                             {order.status === 'CLOSED' ? (
                                                 <>
+                                                    <div className="bg-emerald-100/50 dark:bg-emerald-950/30 border-2 border-emerald-500 rounded-2xl p-3 shadow-md flex-1 transform scale-105 transition-all">
+                                                        <p className="text-[11px] font-black text-emerald-800 dark:text-emerald-350 uppercase mb-0.5 tracking-tighter">الصافي المسلم (الأساسي)</p>
+                                                        <p className="text-[17px] font-black text-emerald-600 dark:text-emerald-400">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
                                                     </div>
-                                                    <div className="bg-red-50 border border-red-100 rounded-xl p-2.5 shadow-sm opacity-80">
-                                                        <p className="text-[10px] font-bold text-red-800 uppercase mb-0.5">الهالك</p>
-                                                        <p className="text-[13px] font-bold text-red-600">{order.wasteQuantity?.toLocaleString() || '0'} <small className="text-[10px]">كجم</small></p>
+                                                    <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/55 rounded-xl p-2.5 shadow-sm opacity-80">
+                                                        <p className="text-[10px] font-bold text-orange-800 dark:text-orange-350 uppercase mb-0.5">المطلوب</p>
+                                                        <p className="text-[13px] font-bold text-orange-600 dark:text-orange-400">{(parseFloat(order.orderedQuantity) || parseFloat(order.quantity))?.toLocaleString()} <small className="text-[10px]">كجم</small></p>
+                                                    </div>
+                                                    <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900 rounded-xl p-2.5 shadow-sm opacity-80">
+                                                        <p className="text-[10px] font-bold text-red-800 dark:text-red-350 uppercase mb-0.5">الهالك</p>
+                                                        <p className="text-[13px] font-bold text-red-650 dark:text-red-400">{order.wasteQuantity?.toLocaleString() || '0'} <small className="text-[10px]">كجم</small></p>
                                                     </div>
                                                 </>
                                             ) : (
-                                                <div className="bg-orange-50 border border-orange-100 rounded-lg p-2.5 shadow-sm">
-                                                    <p className="text-xs font-black text-orange-800 uppercase tracking-wider mb-1">الكمية</p>
-                                                    <p className="text-[15px] font-black text-orange-600">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
+                                                <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900 rounded-lg p-2.5 shadow-sm">
+                                                    <p className="text-xs font-black text-orange-800 dark:text-orange-300 uppercase tracking-wider mb-1">الكمية</p>
+                                                    <p className="text-[15px] font-black text-orange-600 dark:text-orange-400">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
                                                 </div>
                                             )}
-                                            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-xs font-black text-indigo-800 uppercase tracking-wider mb-1">اللون / المقاس</p>
-                                                <p className="text-[15px] font-black text-slate-800">
+                                            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-lg p-2.5 shadow-sm">
+                                                <p className="text-xs font-black text-indigo-800 dark:text-indigo-305 uppercase tracking-wider mb-1">اللون / المقاس</p>
+                                                <p className="text-[15px] font-black text-slate-800 dark:text-slate-200">
                                                     {order.color || order.size ? `${order.color || '-'} / ${order.size || '-'}` : '-'}
                                                 </p>
+                                            </div>
+                                        </div>
                                                         {/* Cost Calculation Breakdown */}
                                         <div className="mt-4 p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                                             <h4 className="text-[15px] font-black text-indigo-700 dark:text-indigo-400 border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 flex items-center gap-2">
@@ -1832,7 +1841,7 @@ ${logoBlock}
                                                         );
                                                     })()}
                                                 </div>
-
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1897,39 +1906,6 @@ ${logoBlock}
 
                                             {order.notes && (
                                                 <div className="mt-3 text-xs text-slate-400 dark:text-slate-300 bg-white dark:bg-slate-800 bg-opacity-5 dark:bg-opacity-20 rounded-lg p-2">
-                                                    <span className="font-bold text-slate-300">ملاحظات: </span>{order.notes}
-                                                </div>
-                                            )}
-                                        </div>                                               <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">المورد</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-slate-100">
-                                                            {orderSupplies.map(supply => (
-                                                                <tr key={supply.id} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-right">
-                                                                    <td className="py-4 px-4 text-right">
-                                                                        <span className="text-xs font-mono font-bold text-[#5235E8] bg-[#5235E8]/10 px-2 py-1 rounded">
-                                                                            {supply.supplyNumber || `#${supply.id.toString().slice(-4)}`}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="py-4 px-4 text-[#006af8] font-medium text-right">{supply.date}</td>
-                                                                    <td className="py-4 px-4 font-bold text-slate-800 text-right">{supply.productName}</td>
-                                                                    <td className="py-4 px-4 text-orange-600 font-bold text-right">{supply.quantity} كجم</td>
-                                                                    <td className="py-4 px-4 font-bold text-emerald-600 text-right">${supply.totalPrice}</td>
-                                                                    <td className="py-4 px-4 font-bold text-blue-600 text-right">
-                                                                        <div className="flex items-center justify-end gap-1.5">
-                                                                            <Truck className="w-3.5 h-3.5" />
-                                                                            {supabaseService.getSupplierName(supply.supplierId) || supply.supplierName || '-'}
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )}
-
-                                            {order.notes && (
-                                                <div className="mt-3 text-xs text-slate-400 bg-white bg-opacity-5 rounded-lg p-2">
                                                     <span className="font-bold text-slate-300">ملاحظات: </span>{order.notes}
                                                 </div>
                                             )}

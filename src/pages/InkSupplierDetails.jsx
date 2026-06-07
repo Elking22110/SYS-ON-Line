@@ -327,9 +327,13 @@ const InkSupplierDetails = () => {
               <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-1">إجمالي المدفوع</p>
               <p className="text-lg font-black text-emerald-705 dark:text-emerald-300">{totalPaid.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
             </div>
-            <div className={`rounded-xl px-4 py-3 border ${remaining > 0 ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/40'}`}>
-              <p className={`text-xs font-bold mb-1 ${remaining > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-605 dark:text-green-400'}`}>المتبقي</p>
-              <p className={`text-lg font-black ${remaining > 0 ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300'}`}>{remaining.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
+            <div className={`rounded-xl px-4 py-3 border ${remaining > 0 ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40' : remaining < 0 ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/40' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}>
+              <p className={`text-xs font-bold mb-1 ${remaining > 0 ? 'text-red-600 dark:text-red-400' : remaining < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                {remaining > 0 ? 'المديونية المتبقية' : remaining < 0 ? 'رصيد مقدم (لك)' : 'المتبقي'}
+              </p>
+              <p className={`text-lg font-black ${remaining > 0 ? 'text-red-700 dark:text-red-300' : remaining < 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400'}`}>
+                {remaining !== 0 ? Math.abs(remaining).toLocaleString('en-US', {minimumFractionDigits: 2}) : 0} <span className="text-xs">ج.م</span>
+              </p>
             </div>
           </div>
         </div>
@@ -529,9 +533,6 @@ const InkSupplierDetails = () => {
       )}
     </div>
   );
-};
-
-export default InkSupplierDetails;
 };
 
 export default InkSupplierDetails;
