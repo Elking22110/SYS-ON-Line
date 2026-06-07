@@ -956,7 +956,7 @@ const SupplierDetails = () => {
                                     placeholder="مثال: حبيبات بولي إيثيلين"
                                     value={newSupply.productName}
                                     onChange={(e) => setNewSupply({ ...newSupply, productName: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right text-slate-900 font-medium"
                                 />
                             </div>
 
@@ -970,7 +970,7 @@ const SupplierDetails = () => {
                                         dir="ltr"
                                         value={newSupply.quantity}
                                         onChange={(e) => setNewSupply({ ...newSupply, quantity: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold text-slate-900"
                                     />
                                 </div>
                                 <div>
@@ -982,7 +982,7 @@ const SupplierDetails = () => {
                                         dir="ltr"
                                         value={newSupply.unitPrice}
                                         onChange={(e) => setNewSupply({ ...newSupply, unitPrice: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold text-slate-900"
                                     />
                                 </div>
                             </div>
@@ -1032,7 +1032,7 @@ const SupplierDetails = () => {
                                             linkedCustomerId: order?.customerId || ''
                                         });
                                     }}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium text-slate-900"
                                 >
                                     <option value="">-- اختر طلب للربط --</option>
                                     {openOrders.map(order => {
@@ -1108,12 +1108,12 @@ const SupplierDetails = () => {
                                 <select
                                     value={newPayment.paymentMethod}
                                     onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium text-slate-900"
                                 >
-                                    <option value="نقدي">💵 نقدي</option>
-                                    <option value="تحويل بنكي">🏦 تحويل بنكي</option>
-                                    <option value="شيك">📝 شيك</option>
-                                    <option value="محفظة إلكترونية">📱 محفظة إلكترونية</option>
+                                    <option className="text-slate-900" value="نقدي">💵 نقدي</option>
+                                    <option className="text-slate-900" value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                    <option className="text-slate-900" value="شيك">📝 شيك</option>
+                                    <option className="text-slate-900" value="محفظة إلكترونية">📱 محفظة إلكترونية</option>
                                 </select>
                             </div>
                             <div>
@@ -1123,7 +1123,7 @@ const SupplierDetails = () => {
                                     onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
                                     rows="3"
                                     placeholder="اكتب أي ملاحظات متعلقة بالسداد هنا..."
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right text-slate-900 font-medium"
                                 ></textarea>
                             </div>
                         </div>

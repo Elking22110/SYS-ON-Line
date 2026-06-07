@@ -419,7 +419,7 @@ const InkSuppliers = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">تاريخ التوريدة</label>
                 <input type="date" value={supplyDate} onChange={e => setSupplyDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-slate-50 text-slate-900 font-medium" />
               </div>
 
               {/* Colors */}
@@ -436,13 +436,13 @@ const InkSuppliers = () => {
                     <div key={col.id} className="flex gap-2 items-center bg-slate-50 rounded-xl p-2 border border-slate-200">
                       <input placeholder="اسم اللون" value={col.color}
                         onChange={e => setSupplyColors(supplyColors.map((c, i) => i === idx ? { ...c, color: e.target.value } : c))}
-                        className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white" />
+                        className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-slate-900 font-medium" />
                       <input type="number" placeholder="كمية (كجم)" value={col.quantity}
                         onChange={e => setSupplyColors(supplyColors.map((c, i) => i === idx ? { ...c, quantity: e.target.value } : c))}
-                        className="w-24 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-center" />
+                        className="w-24 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-center text-slate-900 font-bold" />
                       <input type="number" placeholder="سعر الكجم" value={col.cost}
                         onChange={e => setSupplyColors(supplyColors.map((c, i) => i === idx ? { ...c, cost: e.target.value } : c))}
-                        className="w-28 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-center" />
+                        className="w-28 px-2 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 bg-white text-center text-slate-900 font-bold" />
                       {supplyColors.length > 1 && (
                         <button onClick={() => setSupplyColors(supplyColors.filter((_, i) => i !== idx))}
                           className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 className="h-4 w-4" /></button>
@@ -464,7 +464,7 @@ const InkSuppliers = () => {
                 <label className="block text-xs font-bold text-slate-500 mb-1">المبلغ المدفوع الآن (اختياري)</label>
                 <input type="number" value={supplyPaid} onChange={e => setSupplyPaid(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-emerald-700 font-bold" />
               </div>
             </div>
 
@@ -492,12 +492,12 @@ const InkSuppliers = () => {
                 <label className="block text-xs font-bold text-slate-500 mb-1">المبلغ (ج.م)</label>
                 <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-emerald-700 font-bold" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظة (اختياري)</label>
                 <input type="text" value={payNote} onChange={e => setPayNote(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50" />
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900 font-medium" />
               </div>
             </div>
             <div className="flex gap-2 mt-5">

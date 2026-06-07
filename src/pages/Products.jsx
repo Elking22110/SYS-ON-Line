@@ -1073,13 +1073,13 @@ const Products = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-white">إضافة فئة جديدة</h3>
+                <h3 className="text-lg font-bold text-slate-800">إضافة فئة جديدة</h3>
                 <button
                   onClick={() => {
                     setShowAddCategoryModal(false);
                     setNewCategory({ name: '', description: '' });
                   }}
-                  className="text-slate-300 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   ✕
                 </button>
@@ -1094,7 +1094,7 @@ const Products = () => {
                     type="text"
                     value={newCategory.name}
                     onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                    className="input-modern w-full"
+                    className="input-modern w-full text-slate-900"
                     placeholder="أدخل اسم الفئة"
                     required
                   />
@@ -1107,7 +1107,7 @@ const Products = () => {
                   <textarea
                     value={newCategory.description}
                     onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-                    className="input-modern w-full h-20 resize-none"
+                    className="input-modern w-full h-20 resize-none text-slate-900"
                     placeholder="وصف مختصر للفئة"
                   />
                 </div>
@@ -1134,7 +1134,7 @@ const Products = () => {
                     setShowAddCategoryModal(false);
                     setNewCategory({ name: '', description: '' });
                   }}
-                  className="px-4 py-2 text-slate-300 hover:text-white transition-colors min-h-[40px] cursor-pointer"
+                  className="px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors min-h-[40px] cursor-pointer"
                   style={{
                     pointerEvents: 'auto',
                     zIndex: 10,
@@ -1149,7 +1149,7 @@ const Products = () => {
                     e.stopPropagation();
                     handleAddCategory();
                   }}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-slate-800 rounded-lg transition-all min-h-[40px] cursor-pointer"
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white font-bold rounded-lg transition-all min-h-[40px] cursor-pointer"
                   style={{
                     pointerEvents: 'auto',
                     zIndex: 10,
