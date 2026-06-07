@@ -29,6 +29,11 @@ export const generateLicenseKey = (machineId) => {
 export const verifyLicense = (inputKey, machineId) => {
   if (!inputKey || !machineId) return false;
   
+  // تفعيل تلقائي للجهاز المحدد
+  if (machineId.trim().toUpperCase() === 'D8B8EC26-11A1-5D4F-83A2-7CADA47597BF') {
+    return true;
+  }
+  
   const expectedKey = generateLicenseKey(machineId);
   
   // مقارنة الكود المتوقع بالمُدخل (بعد إزالة المسافات)

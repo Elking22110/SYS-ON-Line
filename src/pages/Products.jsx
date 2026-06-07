@@ -47,8 +47,8 @@ const Products = () => {
           <div className="w-20 h-20 bg-red-500 bg-opacity-20 rounded-full mx-auto mb-6 flex items-center justify-center">
             <Shield className="h-10 w-10 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">غير مصرح لك</h2>
-          <p className="text-purple-200 mb-6">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">غير مصرح لك</h2>
+          <p className="text-slate-600 dark:text-purple-200 mb-6">
             ليس لديك صلاحية للوصول إلى صفحة المنتجات. يرجى التواصل مع المدير.
           </p>
           <div className="text-sm text-slate-500">
@@ -1018,9 +1018,9 @@ const Products = () => {
                       </div>
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-right">
-                      <div className="text-xs md:text-base font-medium text-slate-800">{emojiManager.getProductEmoji(product)} {product.name}</div>
+                      <div className="text-xs md:text-base font-medium text-slate-800 dark:text-slate-200">{emojiManager.getProductEmoji(product)} {product.name}</div>
                     </td>
-                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-base text-slate-800 font-semibold text-right">${product.price}</td>
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-base text-slate-800 dark:text-slate-200 font-semibold text-right">${product.price}</td>
                     <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-right">
                       <span className={`inline-flex px-2 md:px-3 py-1 md:py-2 text-[10px] md:text-sm font-semibold rounded-full ${product.stock <= product.minStock
                         ? 'bg-red-500 text-white shadow-sm'
@@ -1335,7 +1335,7 @@ const Products = () => {
                     minStock: ''
                   });
                 }}
-                className="px-4 md:px-6 py-2 md:py-3 text-blue-300 hover:text-blue-200 font-semibold transition-colors duration-300 min-h-[40px] cursor-pointer"
+                className="px-4 md:px-6 py-2 md:py-3 text-sky-300 hover:text-sky-200 font-semibold transition-colors duration-300 min-h-[40px] cursor-pointer"
               >
                 إلغاء
               </button>

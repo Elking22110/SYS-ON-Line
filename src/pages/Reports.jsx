@@ -489,10 +489,10 @@ const Reports = () => {
         isOpen: true,
         title: 'تأكيد الحذف',
         content: (
-          <div className="text-slate-600 mb-4">
-            <p>رقم الفاتورة: <span className="text-slate-800 font-mono">#{invoice.id}</span></p>
-            <p>المبلغ: <span className="text-slate-800 font-bold">{(Number(invoice.total) || 0).toLocaleString('ar-EG')} ج.م</span></p>
-            <p>العميل: <span className="text-slate-800">{invoice.customer?.name || 'عميل غير محدد'}</span></p>
+          <div className="text-slate-600 dark:text-slate-300 mb-4">
+            <p>رقم الفاتورة: <span className="text-slate-800 dark:text-slate-100 font-mono">#{invoice.id}</span></p>
+            <p>المبلغ: <span className="text-slate-800 dark:text-slate-100 font-bold">{(Number(invoice.total) || 0).toLocaleString('ar-EG')} ج.م</span></p>
+            <p>العميل: <span className="text-slate-800 dark:text-slate-100">{invoice.customer?.name || 'عميل غير محدد'}</span></p>
           </div>
         ),
         message: 'تحذير: هذا الإجراء لا يمكن التراجع عنه!',
@@ -708,10 +708,10 @@ const Reports = () => {
           isOpen: true,
           title: 'تأكيد حذف جميع المنتجات',
           content: (
-            <div className="mb-4 p-4 bg-white border border-slate-200 rounded-lg text-right">
-              <p className="text-slate-800 font-medium">فاتورة #{invoice.id}</p>
-              <p className="text-slate-500 text-sm">عدد المنتجات: {invoice.items.length.toLocaleString('ar-EG')}</p>
-              <p className="text-slate-500 text-sm">إجمالي الفاتورة: {(Number(invoice.total) || 0).toLocaleString('ar-EG')} ج.م</p>
+            <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-right">
+              <p className="text-slate-800 dark:text-slate-200 font-medium">فاتورة #{invoice.id}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">عدد المنتجات: {invoice.items.length.toLocaleString('ar-EG')}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">إجمالي الفاتورة: {(Number(invoice.total) || 0).toLocaleString('ar-EG')} ج.م</p>
             </div>
           ),
           message: 'هل أنت متأكد من حذف جميع المنتجات من هذه الفاتورة؟',
@@ -812,11 +812,11 @@ const Reports = () => {
           isOpen: true,
           title: 'تأكيد حذف المنتج',
           content: (
-            <div className="mb-4 p-4 bg-white border border-slate-200 rounded-lg text-right">
-              <p className="text-slate-800 font-medium">{itemToRemove.name}</p>
-              <p className="text-slate-500 text-sm">الكمية: {itemToRemove.quantity.toLocaleString('ar-EG')}</p>
-              <p className="text-slate-500 text-sm">السعر: {itemToRemove.price.toLocaleString('ar-EG')} ج.م</p>
-              <p className="text-slate-500 text-sm">المجموع: {safeMath.multiply(itemToRemove.price, itemToRemove.quantity).toLocaleString('ar-EG')} ج.م</p>
+            <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-right">
+              <p className="text-slate-800 dark:text-slate-200 font-medium">{itemToRemove.name}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">الكمية: {itemToRemove.quantity.toLocaleString('ar-EG')}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">السعر: {itemToRemove.price.toLocaleString('ar-EG')} ج.م</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">المجموع: {safeMath.multiply(itemToRemove.price, itemToRemove.quantity).toLocaleString('ar-EG')} ج.م</p>
             </div>
           ),
           message: 'هل أنت متأكد من حذف هذا المنتج من الفاتورة؟',
@@ -2636,9 +2636,9 @@ const Reports = () => {
             <div className="w-16 h-16 bg-red-500 bg-opacity-20 rounded-full mx-auto mb-4 flex items-center justify-center">
               <Trash2 className="h-8 w-8 text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-4">{confirmModal.title}</h3>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4">{confirmModal.title}</h3>
             {confirmModal.content}
-            <p className="text-red-300 mb-6">{confirmModal.message}</p>
+            <p className="text-red-600 dark:text-red-300 mb-6">{confirmModal.message}</p>
             <div className="flex gap-3">
               <button
                 onClick={confirmModal.onConfirm}

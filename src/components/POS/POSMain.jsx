@@ -1404,11 +1404,11 @@ const POSMain = () => {
 
                   {/* المرحلة الرابعة: ربط التوريدة وتحديد الصافي/الهالك */}
                   <div className="p-3 bg-white bg-opacity-5 rounded-xl border border-white border-opacity-10 h-full flex flex-col justify-start">
-                    <h3 className="text-sm font-bold text-purple-300 mb-2 pb-1 border-b border-purple-900 border-opacity-50">التشغيل والهالك</h3>
+                    <h3 className="text-sm font-bold text-purple-700 dark:text-purple-300 mb-2 pb-1 border-b border-purple-200 dark:border-purple-900 border-opacity-50">التشغيل والهالك</h3>
 
                     <div className="flex items-center justify-between p-2 bg-blue-900 bg-opacity-20 rounded-lg border border-blue-500 border-opacity-30 mb-3">
-                      <span className="text-blue-200 text-xs">توريدة خام مُتاحة:</span>
-                      <span className="font-bold text-slate-800 bg-blue-600 px-2 py-0.5 rounded text-xs direction-ltr">
+                      <span className="text-blue-700 dark:text-blue-200 text-xs font-bold">توريدة خام مُتاحة:</span>
+                      <span className="font-bold text-white bg-blue-600 px-2 py-0.5 rounded text-xs direction-ltr">
                         {availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()) ?
                           `${availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()).remainingQuantity !== undefined ? availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()).remainingQuantity : availableSupplies.find(s => s.id?.toString() === colorModalProduct.supplyId?.toString()).quantity} كجم`
                           : 'غير محدد'}
@@ -1417,7 +1417,7 @@ const POSMain = () => {
 
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-300 shadow-inner flex-1 flex flex-col justify-center">
                       <div className="mb-2">
-                        <label className="block text-xs text-emerald-400 font-bold mb-1 text-center">الصافي المُسلم للعميل (كجم)</label>
+                        <label className="block text-xs text-emerald-700 dark:text-emerald-400 font-bold mb-1 text-center">الصافي المُسلم للعميل (كجم)</label>
                         <input
                           type="number"
                           min="0"
@@ -1430,8 +1430,8 @@ const POSMain = () => {
                       </div>
 
                       <div className="flex justify-between items-center bg-red-900 bg-opacity-20 p-2 rounded-lg border border-red-500 border-opacity-30 mt-2">
-                        <span className="text-red-300 text-xs font-bold">الهالك المخصوم:</span>
-                        <span className="text-red-400 font-bold text-lg direction-ltr">
+                        <span className="text-red-700 dark:text-red-300 text-xs font-bold">الهالك المخصوم:</span>
+                        <span className="text-red-600 dark:text-red-400 font-bold text-lg direction-ltr">
                           {netSoldQuantity === '' ? 0 : Math.max(0, (Number(rawSupplyQuantity) || 0) - (Number(netSoldQuantity) || 0)).toFixed(2)} كجم
                         </span>
                       </div>
@@ -1444,24 +1444,24 @@ const POSMain = () => {
             </div>
 
             {/* الإجمالي الكلي (شريط سفلي قبل الأزرار) */}
-            <div className="p-4 md:p-5 bg-gradient-to-r from-blue-900 to-indigo-900 bg-opacity-60 rounded-xl mb-6 flex flex-col md:flex-row md:items-center justify-between border border-blue-500 border-opacity-40 shadow-inner shrink-0">
+            <div className="p-4 md:p-5 bg-gradient-to-r from-blue-900 to-indigo-900 bg-opacity-80 rounded-xl mb-6 flex flex-col md:flex-row md:items-center justify-between border border-blue-500 border-opacity-40 shadow-inner shrink-0">
               <div className="flex flex-wrap gap-x-6 gap-y-2 mb-3 md:mb-0">
-                <div className="flex items-center gap-2 text-sm text-blue-200">
+                <div className="flex items-center gap-2 text-sm text-sky-200">
                   <span>سعر الخام الأساسي:</span>
-                  <span className="font-semibold text-slate-800">{Number(colorModalProduct.price).toLocaleString('en-US')} ج.م</span>
+                  <span className="font-semibold text-white">{Number(colorModalProduct.price).toLocaleString('en-US')} ج.م</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-blue-200">
+                <div className="flex items-center gap-2 text-sm text-sky-200">
                   <span>الألوان:</span>
                   <span className="text-orange-400 font-bold">+{4 + (selectedColorCount - 1) * 3}</span>
                 </div>
                 {needsCutting && (
-                  <div className="flex items-center gap-2 text-sm text-blue-200">
+                  <div className="flex items-center gap-2 text-sm text-sky-200">
                     <span>التقطيع:</span>
                     <span className="text-orange-400 font-bold">+3</span>
                   </div>
                 )}
                 {eklashy.enabled && (
-                  <div className="flex items-center gap-2 text-sm text-blue-200">
+                  <div className="flex items-center gap-2 text-sm text-sky-200">
                     <span>الإكلشيه:</span>
                     <span className="text-orange-400 font-bold">
                       +{((Number(eklashy.length) || 0) * (Number(eklashy.width) || 0) * 0.85 * (Number(eklashy.count) || 0)).toFixed(2)}
@@ -1471,7 +1471,7 @@ const POSMain = () => {
               </div>
 
               <div className="flex items-center gap-3 bg-black bg-opacity-30 p-3 rounded-lg md:min-w-[200px] justify-center md:justify-end">
-                <span className="font-bold text-slate-600 text-sm">إجمالي الكيلو:</span>
+                <span className="font-bold text-slate-300 text-sm">إجمالي الكيلو:</span>
                 <span className="font-bold text-green-400 text-2xl md:text-3xl">
                   {Math.round(
                     Number(colorModalProduct.price) +
@@ -1487,7 +1487,7 @@ const POSMain = () => {
             <div className="flex gap-4 shrink-0">
               <button
                 onClick={() => { soundManager.play('closeWindow'); setColorModalProduct(null); }}
-                className="flex-1 px-6 py-3 md:px-8 md:py-4 text-slate-600 hover:text-slate-800 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all font-bold text-lg"
+                className="flex-1 px-6 py-3 md:px-8 md:py-4 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-all font-bold text-lg"
               >
                 إلغاء
               </button>

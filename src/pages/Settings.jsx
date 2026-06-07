@@ -998,7 +998,7 @@ const Settings = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">اسم الشركة</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">اسم الشركة</label>
           <input
             type="text"
             value={settings.companyName}
@@ -1007,7 +1007,7 @@ const Settings = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">هاتف الشركة</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">هاتف الشركة</label>
           <input
             type="tel"
             value={settings.companyPhone}
@@ -1018,7 +1018,7 @@ const Settings = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">عنوان الشركة</label>
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">عنوان الشركة</label>
         <textarea
           value={settings.companyAddress}
           onChange={(e) => handleSettingChange('companyAddress', e.target.value)}
@@ -1029,7 +1029,7 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">ربح الطلب الافتراضي بالجنيه (للكيلو)</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">ربح الطلب الافتراضي بالجنيه (للكيلو)</label>
           <input
             type="number"
             step="any"
@@ -1043,7 +1043,7 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">العملة</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">العملة</label>
           <select
             value={settings.currency}
             onChange={(e) => handleSettingChange('currency', e.target.value)}
@@ -1057,7 +1057,7 @@ const Settings = () => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">اللغة</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">اللغة</label>
           <select
             value={settings.language}
             onChange={(e) => handleSettingChange('language', e.target.value)}
@@ -1068,7 +1068,7 @@ const Settings = () => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">المنطقة الزمنية</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">المنطقة الزمنية</label>
           <select
             value={settings.timezone}
             onChange={(e) => handleSettingChange('timezone', e.target.value)}
@@ -1089,7 +1089,7 @@ const Settings = () => {
   const renderPrinterSettings = () => (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">اسم الطابعة</label>
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">اسم الطابعة</label>
         <input
           type="text"
           value={settings.printerName}
@@ -1100,7 +1100,7 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">حجم الورق</label>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">حجم الورق</label>
           <select
             value={settings.paperSize}
             onChange={(e) => handleSettingChange('paperSize', e.target.value)}
@@ -1116,8 +1116,8 @@ const Settings = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
           <div>
-            <h4 className="font-medium text-slate-800">طباعة الشعار</h4>
-            <p className="text-sm text-slate-600">طباعة شعار الشركة على الإيصالات</p>
+            <h4 className="font-medium text-slate-800 dark:text-white">طباعة الشعار</h4>
+            <p className="text-sm text-slate-600 dark:text-slate-400">طباعة شعار الشركة على الإيصالات</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -1132,8 +1132,8 @@ const Settings = () => {
 
         <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
           <div>
-            <h4 className="font-medium text-slate-800">طباعة التذييل</h4>
-            <p className="text-sm text-slate-600">طباعة معلومات إضافية في أسفل الإيصال</p>
+            <h4 className="font-medium text-slate-800 dark:text-white">طباعة التذييل</h4>
+            <p className="text-sm text-slate-600 dark:text-slate-400">طباعة معلومات إضافية في أسفل الإيصال</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -1169,7 +1169,7 @@ const Settings = () => {
                 soundManager.play('delete');
                 clearAndResetUsers();
               }}
-              className="bg-red-600 bg-opacity-20 text-slate-800 px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center border border-red-500 border-opacity-30 min-h-[40px] cursor-pointer"
+              className="bg-red-600 bg-opacity-20 text-red-800 dark:text-red-200 px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center border border-red-500 border-opacity-30 min-h-[40px] cursor-pointer"
               style={{
                 pointerEvents: 'auto',
                 zIndex: 10,
@@ -1187,7 +1187,7 @@ const Settings = () => {
                 soundManager.play('refresh');
                 resetToDefaultUsers();
               }}
-              className="bg-orange-600 bg-opacity-20 text-slate-800 px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center border border-orange-500 border-opacity-30 min-h-[40px] cursor-pointer"
+              className="bg-orange-600 bg-opacity-20 text-orange-800 dark:text-orange-200 px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center border border-orange-500 border-opacity-30 min-h-[40px] cursor-pointer"
               style={{
                 pointerEvents: 'auto',
                 zIndex: 10,
@@ -1221,24 +1221,24 @@ const Settings = () => {
         {/* User Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="glass-card p-4 text-center">
-            <div className="text-2xl font-bold text-slate-800">{users.length}</div>
-            <div className="text-sm text-slate-600">إجمالي المستخدمين</div>
+            <div className="text-2xl font-bold text-slate-800 dark:text-white">{users.length}</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400">إجمالي المستخدمين</div>
           </div>
           <div className="glass-card p-4 text-center">
             <div className="text-2xl font-bold text-green-400">{activeUsers}</div>
-            <div className="text-sm text-slate-600">نشط</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400">نشط</div>
           </div>
           <div className="glass-card p-4 text-center">
             <div className="text-2xl font-bold text-red-400">{inactiveUsers}</div>
-            <div className="text-sm text-slate-600">غير نشط</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400">غير نشط</div>
           </div>
           <div className="glass-card p-4 text-center">
             <div className="text-2xl font-bold text-yellow-400">{managerUsers}</div>
-            <div className="text-sm text-slate-600">مدير</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400">مدير</div>
           </div>
           <div className="glass-card p-4 text-center">
             <div className="text-2xl font-bold text-blue-400">{cashierUsers}</div>
-            <div className="text-sm text-slate-600">كاشير</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400">كاشير</div>
           </div>
         </div>
 
@@ -1248,13 +1248,13 @@ const Settings = () => {
             <table className="w-full">
               <thead className="bg-white bg-opacity-10">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">البريد الإلكتروني</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">الهاتف</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">الدور</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">الحالة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">آخر دخول</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">الإجراءات</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">المستخدم</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">البريد الإلكتروني</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">الهاتف</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">الدور</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">الحالة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">آخر دخول</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white divide-opacity-10">
@@ -1267,33 +1267,33 @@ const Settings = () => {
                             ? 'bg-gradient-to-r from-red-500 to-pink-500'
                             : 'bg-gradient-to-r from-purple-500 to-blue-500'
                             }`}>
-                            <User className="h-5 w-5 text-slate-800" />
+                            <User className="h-5 w-5 text-white" />
                           </div>
                         </div>
                         <div className="mr-4">
                           <div className={`text-sm font-medium ${user.name === 'admin' && user.role === 'admin'
                             ? 'text-red-300 font-bold'
-                            : 'text-slate-800'
+                            : 'text-slate-800 dark:text-slate-200'
                             }`}>
                             {user.name}
                             {user.name === 'admin' && user.role === 'admin' && (
                               <span className="ml-2 text-xs bg-red-500 bg-opacity-30 px-2 py-1 rounded-full">رئيسي</span>
                             )}
                           </div>
-                          <div className="text-sm text-slate-600">ID: {user.id}</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">ID: {user.id}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <Mail className="h-4 w-4 text-slate-600 mr-2" />
-                        <div className="text-sm text-slate-800">{user.email}</div>
+                        <Mail className="h-4 w-4 text-slate-600 dark:text-slate-400 mr-2" />
+                        <div className="text-sm text-slate-800 dark:text-slate-200">{user.email}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <Phone className="h-4 w-4 text-slate-600 mr-2" />
-                        <div className="text-sm text-slate-800">{user.phone}</div>
+                        <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400 mr-2" />
+                        <div className="text-sm text-slate-800 dark:text-slate-200">{user.phone}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1393,8 +1393,8 @@ const Settings = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
         <div>
-          <h4 className="font-medium text-slate-800">إشعارات البريد الإلكتروني</h4>
-          <p className="text-sm text-slate-600">إرسال إشعارات عبر البريد الإلكتروني</p>
+          <h4 className="font-medium text-slate-800 dark:text-white">إشعارات البريد الإلكتروني</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400">إرسال إشعارات عبر البريد الإلكتروني</p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -1409,8 +1409,8 @@ const Settings = () => {
 
       <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
         <div>
-          <h4 className="font-medium text-slate-800">إشعارات الرسائل النصية</h4>
-          <p className="text-sm text-slate-600">إرسال إشعارات عبر الرسائل النصية</p>
+          <h4 className="font-medium text-slate-800 dark:text-white">إشعارات الرسائل النصية</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400">إرسال إشعارات عبر الرسائل النصية</p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -1425,8 +1425,8 @@ const Settings = () => {
 
       <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
         <div>
-          <h4 className="font-medium text-slate-800">تنبيهات المخزون المنخفض</h4>
-          <p className="text-sm text-slate-600">إشعار عند انخفاض مخزون المنتجات</p>
+          <h4 className="font-medium text-slate-800 dark:text-white">تنبيهات المخزون المنخفض</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400">إشعار عند انخفاض مخزون المنتجات</p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -1441,8 +1441,8 @@ const Settings = () => {
 
       <div className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
         <div>
-          <h4 className="font-medium text-slate-800">تقارير المبيعات</h4>
-          <p className="text-sm text-slate-600">إرسال تقارير المبيعات الدورية</p>
+          <h4 className="font-medium text-slate-800 dark:text-white">تقارير المبيعات</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400">إرسال تقارير المبيعات الدورية</p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -1460,16 +1460,16 @@ const Settings = () => {
   const renderAppearanceSettings = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="section-header mb-2">
-        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+        <h3 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
           <Palette className="h-5 w-5 text-purple-500" />
           تخصيص المظهر العام
         </h3>
-        <p className="text-sm text-slate-500 mr-7">اختر نظام الألوان الذي يناسب ذوقك وتفضيلاتك</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mr-7">اختر نظام الألوان الذي يناسب ذوقك وتفضيلاتك</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
              <Monitor className="h-4 w-4" /> وضع النظام
           </label>
           <div className="grid grid-cols-2 gap-4">
@@ -1485,7 +1485,7 @@ const Settings = () => {
                  <div className="h-3 w-1/2 bg-slate-100 rounded"></div>
                  <div className="mt-auto h-4 w-full bg-[#8B5CF6]/20 rounded"></div>
               </div>
-              <span className={`text-sm font-bold block text-center ${settings.theme === 'light' ? 'text-[#8B5CF6]' : 'text-slate-600'}`}>وضع فاتح</span>
+              <span className={`text-sm font-bold block text-center ${settings.theme === 'light' ? 'text-[#8B5CF6]' : 'text-slate-600 dark:text-slate-300'}`}>وضع فاتح</span>
               {settings.theme === 'light' && <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#8B5CF6]" />}
             </button>
             
@@ -1501,14 +1501,14 @@ const Settings = () => {
                  <div className="h-3 w-1/2 bg-slate-700 rounded"></div>
                  <div className="mt-auto h-4 w-full bg-[#5235E8]/40 rounded"></div>
               </div>
-              <span className={`text-sm font-bold block text-center ${settings.theme === 'dark' ? 'text-[#5235E8]' : 'text-slate-400'}`}>وضع داكن</span>
+              <span className={`text-sm font-bold block text-center ${settings.theme === 'dark' ? 'text-[#5235E8]' : 'text-slate-400 dark:text-slate-300'}`}>وضع داكن</span>
               {settings.theme === 'dark' && <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#5235E8]" />}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
             <Palette className="h-4 w-4" /> الألوان الأساسية المميزة
           </label>
           <div className="grid grid-cols-5 gap-3 mb-6">
@@ -1784,10 +1784,10 @@ const Settings = () => {
 
       <div className="bg-yellow-500 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg p-4">
         <div className="flex items-center">
-          <AlertTriangle className="h-5 w-5 text-yellow-300 mr-2" />
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-yellow-300 mr-2" />
           <div>
-            <h4 className="font-medium text-yellow-200">تنبيه مهم</h4>
-            <p className="text-sm text-yellow-300 mt-1">
+            <h4 className="font-medium text-amber-800 dark:text-yellow-200">تنبيه مهم</h4>
+            <p className="text-sm text-amber-700 dark:text-yellow-300 mt-1">
               تغيير هذه الإعدادات قد يؤثر على أداء النظام. تأكد من فهمك للعواقب قبل التغيير.
             </p>
           </div>
@@ -1798,16 +1798,16 @@ const Settings = () => {
       <div className="bg-red-500 bg-opacity-10 border-2 border-red-500 border-opacity-40 rounded-xl p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
-            <AlertTriangle className="h-5 w-5 text-red-400" />
+            <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400" />
           </div>
           <div>
-            <h4 className="font-bold text-red-300 text-base">⛔ منطقة الخطر - إعادة تعيين كاملة</h4>
-            <p className="text-xs text-red-400 mt-0.5">هذه العملية لا يمكن التراجع عنها</p>
+            <h4 className="font-bold text-red-800 dark:text-red-300 text-base">⛔ منطقة الخطر - إعادة تعيين كاملة</h4>
+            <p className="text-xs text-red-700 dark:text-red-400 mt-0.5">هذه العملية لا يمكن التراجع عنها</p>
           </div>
         </div>
-        <p className="text-sm text-red-300 mb-4 leading-relaxed">
+        <p className="text-sm text-red-700 dark:text-red-300 mb-4 leading-relaxed">
           سيتم حذف جميع بيانات السيستم نهائياً (العملاء، الموردين، الطلبات، المبيعات، المنتجات، الورديات...)
-          والاحتفاظ فقط بمستخدم <span className="font-bold text-white">admin</span>. استخدم هذا الزر لتجهيز السيستم لعميل جديد.
+          والاحتفاظ فقط بمستخدم <span className="font-bold text-slate-800 dark:text-white">admin</span>. استخدم هذا الزر لتجهيز السيستم لعميل جديد.
         </p>
         <button
           onClick={() => { soundManager.play('warning'); handleFullSystemReset(); }}

@@ -549,7 +549,7 @@ const Dashboard = () => {
       {/* --- HEADER --- */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 w-full ">
         <div>
-          <h1 className="text-3xl font-bold text-[#1e1b4b] tracking-tight">لوحة التحكم</h1>
+          <h1 className="text-3xl font-bold text-[#1e1b4b] dark:text-white tracking-tight">لوحة التحكم</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-gray-500 text-sm">مرحباً {userName} 👋</p>
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
@@ -574,7 +574,7 @@ const Dashboard = () => {
             <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gradient-to-tr from-purple-400 to-orange-300 flex items-center justify-center">
               <span className="text-white font-bold text-xs">{userName.charAt(0)}</span>
             </div>
-            <div className="flex items-center text-[#1E1B4B]">
+            <div className="flex items-center text-[#1E1B4B] dark:text-slate-200">
               <span className="text-sm font-semibold mr-1">{userName}</span>
             </div>
           </div>
@@ -730,7 +730,7 @@ const Dashboard = () => {
 
       {/* --- RECENT ORDERS LIST --- */}
       <div className="bg-white/80 backdrop-blur-md border border-white/50 rounded-[28px] p-8 shadow-xl shadow-slate-200/40 mb-8 transition-all hover:shadow-slate-300/50">
-        <h2 className="text-[#1E1B4B] font-black text-xl mb-6 flex items-center">
+        <h2 className="text-[#1E1B4B] dark:text-white font-black text-xl mb-6 flex items-center">
           <Activity className="w-5 h-5 ml-2 text-indigo-500" />
           آخر الطلبات
         </h2>
@@ -805,7 +805,7 @@ const Dashboard = () => {
         {/* BIG CHART: Sales over the last 7 days */}
         <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-white/50 p-8 rounded-[28px] shadow-xl shadow-slate-200/40 animate-card-enter animate-card-enter-6">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-[#1E1B4B] font-black text-lg flex items-center">
+            <h3 className="text-[#1E1B4B] dark:text-white font-black text-lg flex items-center">
               <TrendingUp className="w-5 h-5 ml-2 text-indigo-500" />
               نشاط المبيعات (آخر 7 أيام)
             </h3>

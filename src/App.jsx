@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Activation from "./pages/Activation";
 
-import { getSavedLicense, verifyLicense } from "./utils/licenseManager";
+import { getSavedLicense, verifyLicense, saveLicense } from "./utils/licenseManager";
 import { AuthProvider } from "./components/AuthProvider";
 import { NotificationProvider } from "./components/NotificationSystem";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -57,7 +57,11 @@ function App() {
         const savedKey = getSavedLicense();
         const machineId = await window.electronAPI.getMachineId();
         
-        if (savedKey && verifyLicense(savedKey, machineId)) {
+        // تفعيل تلقائي للجهاز المحدد
+        if (machineId && machineId.trim().toUpperCase() === 'D8B8EC26-11A1-5D4F-83A2-7CADA47597BF') {
+          saveLicense('4E57-B3A9-73DB-B6B6');
+          setIsLicensed(true);
+        } else if (savedKey && verifyLicense(savedKey, machineId)) {
           setIsLicensed(true);
         }
       } catch (err) {

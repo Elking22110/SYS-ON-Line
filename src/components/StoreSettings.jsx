@@ -26,11 +26,11 @@ const StoreSettings = ({ settings, onSettingChange }) => {
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
-          <Store className="h-6 w-6 text-slate-800" />
+          <Store className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-800">إعدادات المتجر</h2>
-          <p className="text-slate-600 text-sm">قم بتخصيص بيانات متجرك للفواتير والإيصالات</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white">إعدادات المتجر</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm">قم بتخصيص بيانات متجرك للفواتير والإيصالات</p>
         </div>
       </div>
 
@@ -39,12 +39,12 @@ const StoreSettings = ({ settings, onSettingChange }) => {
         <div className="glass-card p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Building className="h-5 w-5 text-purple-400" />
-            <h3 className="text-lg font-semibold text-slate-800">المعلومات الأساسية</h3>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">المعلومات الأساسية</h3>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 اسم المصنع *
               </label>
               <input
@@ -58,7 +58,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 وصف المتجر
               </label>
               <textarea
@@ -70,7 +70,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 الرقم الضريبي
               </label>
               <input
@@ -88,12 +88,12 @@ const StoreSettings = ({ settings, onSettingChange }) => {
         <div className="glass-card p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Phone className="h-5 w-5 text-purple-400" />
-            <h3 className="text-lg font-semibold text-slate-800">معلومات الاتصال</h3>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">معلومات الاتصال</h3>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 العنوان
               </label>
               <div className="relative">
@@ -109,7 +109,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 رقم الهاتف
               </label>
               <div className="relative">
@@ -125,7 +125,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 البريد الإلكتروني
               </label>
               <div className="relative">
@@ -146,12 +146,12 @@ const StoreSettings = ({ settings, onSettingChange }) => {
         <div className="glass-card p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Building className="h-5 w-5 text-purple-400" />
-            <h3 className="text-lg font-semibold text-slate-800">إعدادات الضرائب</h3>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">إعدادات الضرائب</h3>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-600">تفعيل الضريبة</label>
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300">تفعيل الضريبة</label>
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -174,7 +174,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
             {settings.taxEnabled && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">اسم الضريبة</label>
+                  <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">اسم الضريبة</label>
                   <input
                     type="text"
                     value={settings.taxName || ''}
@@ -185,7 +185,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">نسبة الضريبة (%)</label>
+                  <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">نسبة الضريبة (%)</label>
                   <input
                     type="number"
                     value={settings.taxRate || 0}
@@ -205,18 +205,18 @@ const StoreSettings = ({ settings, onSettingChange }) => {
         <div className="glass-card p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Settings2 className="h-5 w-5 text-indigo-400" />
-            <h3 className="text-lg font-semibold text-slate-800">إعدادات النظام</h3>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">إعدادات النظام</h3>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-white/50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+            <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-indigo-200 transition-all">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${!soundEngine.isMuted ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
                   {!soundEngine.isMuted ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-slate-700 block text-right">أصوات النظام</label>
-                  <p className="text-xs text-slate-500 text-right">تفعيل أو تعطيل المؤثرات الصوتية</p>
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-200 block text-right">أصوات النظام</label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 text-right">تفعيل أو تعطيل المؤثرات الصوتية</p>
                 </div>
               </div>
               <button
@@ -232,7 +232,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between text-xs font-medium text-slate-500 px-1">
+              <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 px-1">
                 <span>مستوى الصوت</span>
                 <span>{Math.round(soundEngine.volume * 100)}%</span>
               </div>
@@ -255,7 +255,7 @@ const StoreSettings = ({ settings, onSettingChange }) => {
 
       {/* معاينة الفاتورة */}
       <div className="glass-card p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">معاينة الفاتورة</h3>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">معاينة الفاتورة</h3>
         <div className="bg-white text-black p-6 rounded-lg font-mono text-sm">
           <div className="text-center mb-4">
             <h4 className="text-lg font-bold">{settings.companyName || 'مصنع الشنط البلاستيكية الرائد - Elking'}</h4>

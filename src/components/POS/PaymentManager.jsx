@@ -229,10 +229,10 @@ const PaymentManager = ({
           <div className="space-y-4">
             {/* مبلغ العربون */}
             <div>
-              <label className="block text-[11px] text-blue-200 mb-1">
+              <label className="block text-[11px] text-slate-600 dark:text-slate-400 font-bold mb-1">
                 مبلغ العربون (جنيه)
                 {(!downPayment.amount || parseFloat(downPayment.amount) <= 0) && (
-                  <span className="text-red-400 text-xs block">⚠️ يرجى إدخال مبلغ العربون</span>
+                  <span className="text-red-500 text-xs block font-bold">⚠️ يرجى إدخال مبلغ العربون</span>
                 )}
               </label>
               <input
@@ -240,7 +240,7 @@ const PaymentManager = ({
                 value={downPayment.amount}
                 onChange={(e) => updateDownPaymentAmount(e.target.value)}
                 className={`input-modern w-full px-2 py-1.5 text-xs text-right ${(!downPayment.amount || parseFloat(downPayment.amount) <= 0)
-                  ? 'border-red-500 bg-red-900 bg-opacity-20'
+                  ? 'border-red-500 bg-red-50 text-red-900 font-bold'
                   : ''
                   }`}
                 placeholder="0"
@@ -257,21 +257,21 @@ const PaymentManager = ({
                 <button
                   type="button"
                   onClick={() => applyQuickPercentage(25)}
-                  className="text-xs bg-blue-500 hover:bg-blue-600 text-slate-800 px-2 py-1 rounded"
+                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded shadow-sm"
                 >
                   25%
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPercentage(50)}
-                  className="text-xs bg-green-500 hover:bg-green-600 text-slate-800 px-2 py-1 rounded"
+                  className="text-xs bg-green-600 hover:bg-green-700 text-white font-bold px-2 py-1 rounded shadow-sm"
                 >
                   50%
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPercentage(75)}
-                  className="text-xs bg-yellow-500 hover:bg-yellow-600 text-slate-800 px-2 py-1 rounded"
+                  className="text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold px-2 py-1 rounded shadow-sm"
                 >
                   75%
                 </button>
@@ -280,9 +280,9 @@ const PaymentManager = ({
 
             {/* تاريخ الاستلام */}
             <div>
-              <label className="block text-[11px] text-blue-200 mb-1">
+              <label className="block text-[11px] text-slate-600 dark:text-slate-400 font-bold mb-1">
                 تاريخ الاستلام
-                <span className="text-gray-500 text-xs block">
+                <span className="text-slate-400 text-xs block font-normal">
                   اليوم: {getLocalDateFormatted()} (ميلادي)
                 </span>
               </label>
@@ -296,7 +296,7 @@ const PaymentManager = ({
                     max="31"
                     value={downPayment.deliveryDate ? parseInt(downPayment.deliveryDate.split('-')[2]) : ''}
                     onChange={(e) => updateDeliveryDate('day', e.target.value)}
-                    className="input-modern w-1/3 px-2 py-1.5 text-xs text-center"
+                    className="input-modern w-1/3 px-2 py-1.5 text-xs text-center text-slate-800"
                   />
                   <span className="text-slate-800 text-xs flex items-center">/</span>
                   <input
@@ -306,7 +306,7 @@ const PaymentManager = ({
                     max="12"
                     value={downPayment.deliveryDate ? parseInt(downPayment.deliveryDate.split('-')[1]) : ''}
                     onChange={(e) => updateDeliveryDate('month', e.target.value)}
-                    className="input-modern w-1/3 px-2 py-1.5 text-xs text-center"
+                    className="input-modern w-1/3 px-2 py-1.5 text-xs text-center text-slate-800"
                   />
                   <span className="text-slate-800 text-xs flex items-center">/</span>
                   <input
@@ -316,12 +316,12 @@ const PaymentManager = ({
                     max="2030"
                     value={downPayment.deliveryDate ? downPayment.deliveryDate.split('-')[0] : ''}
                     onChange={(e) => updateDeliveryDate('year', e.target.value)}
-                    className="input-modern w-1/3 px-2 py-1.5 text-xs text-center"
+                    className="input-modern w-1/3 px-2 py-1.5 text-xs text-center text-slate-800"
                   />
                   <button
                     type="button"
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="bg-blue-500 hover:bg-blue-600 text-slate-800 px-2 py-1.5 rounded text-xs"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded text-xs"
                     title="اختيار من التقويم"
                   >
                     📅
@@ -331,7 +331,7 @@ const PaymentManager = ({
                 {/* التقويم */}
                 {showDatePicker && (
                   <div
-                    className="absolute z-50 bg-white border border-slate-400 rounded-lg p-3 mt-1 shadow-lg date-picker-container"
+                    className="absolute z-50 bg-white border border-slate-300 rounded-lg p-3 mt-1 shadow-lg date-picker-container"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="text-center mb-2">
@@ -345,7 +345,7 @@ const PaymentManager = ({
                               deliveryDate: currentDate.toISOString().split('T')[0]
                             });
                           }}
-                          className="text-slate-800 hover:text-blue-300"
+                          className="text-slate-800 hover:text-blue-600 font-bold"
                         >
                           ‹
                         </button>
@@ -364,7 +364,7 @@ const PaymentManager = ({
                               deliveryDate: currentDate.toISOString().split('T')[0]
                             });
                           }}
-                          className="text-slate-800 hover:text-blue-300"
+                          className="text-slate-800 hover:text-blue-600 font-bold"
                         >
                           ›
                         </button>
@@ -374,7 +374,7 @@ const PaymentManager = ({
                     {/* أيام الأسبوع */}
                     <div className="grid grid-cols-7 gap-1 mb-2">
                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="text-xs text-slate-500 text-center p-1">
+                        <div key={day} className="text-xs text-slate-500 text-center p-1 font-bold">
                           {day}
                         </div>
                       ))}
@@ -385,13 +385,13 @@ const PaymentManager = ({
                       {renderCalendar()}
                     </div>
 
-                    <div className="mt-2 pt-2 border-t border-slate-400">
-                      <div className="text-xs text-gray-500 text-center mb-2">
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <div className="text-xs text-gray-400 text-center mb-2">
                         التقويم الميلادي
                       </div>
                       <button
                         onClick={() => setShowDatePicker(false)}
-                        className="w-full text-xs text-slate-500 hover:text-slate-800"
+                        className="w-full text-xs text-slate-500 hover:text-slate-800 font-bold"
                       >
                         إغلاق
                       </button>
@@ -406,19 +406,19 @@ const PaymentManager = ({
                   <button
                     type="button"
                     onClick={setToday}
-                    className="text-xs text-blue-300 hover:text-blue-200 underline"
+                    className="text-xs text-blue-600 hover:text-blue-800 underline font-bold"
                   >
                     اليوم
                   </button>
                   <button
                     type="button"
                     onClick={setTomorrow}
-                    className="text-xs text-green-300 hover:text-green-200 underline"
+                    className="text-xs text-green-600 hover:text-green-800 underline font-bold"
                   >
                     غداً
                   </button>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-400">
                   تنسيق: يوم/شهر/سنة (ميلادي)
                 </div>
               </div>

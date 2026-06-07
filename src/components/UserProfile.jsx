@@ -104,7 +104,7 @@ const UserProfile = () => {
         </div>
         <div>
           <h2 className="text-xl font-bold text-slate-800">{user.username}</h2>
-          <p className="text-purple-200">{user.email}</p>
+          <p className="text-slate-500 dark:text-purple-200">{user.email}</p>
           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getRoleColor(user.role)}`}>
             {user.role === 'admin' ? 'مدير عام' : user.role === 'manager' ? 'مدير' : 'كاشير'}
           </span>
@@ -153,14 +153,14 @@ const UserProfile = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-purple-200 mb-2">اسم المستخدم</label>
+              <label className="block text-sm font-medium text-slate-500 dark:text-purple-200 mb-2">اسم المستخدم</label>
               <div className="input-modern flex items-center">
                 <User className="h-5 w-5 text-purple-300 mr-3" />
                 <span className="text-slate-800">{user.username}</span>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-purple-200 mb-2">البريد الإلكتروني</label>
+              <label className="block text-sm font-medium text-slate-500 dark:text-purple-200 mb-2">البريد الإلكتروني</label>
               <div className="input-modern flex items-center">
                 <Mail className="h-5 w-5 text-purple-300 mr-3" />
                 <span className="text-slate-800">{user.email}</span>
@@ -169,7 +169,7 @@ const UserProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-purple-200 mb-2">الدور</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-purple-200 mb-2">الدور</label>
             <div className="input-modern flex items-center">
               <Shield className="h-5 w-5 text-purple-300 mr-3" />
               <span className="text-slate-800">
@@ -179,7 +179,7 @@ const UserProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-purple-200 mb-2">الصلاحيات</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-purple-200 mb-2">الصلاحيات</label>
             <div className="flex flex-wrap gap-2">
               {user.permissions.map((permission) => (
                 <span
@@ -196,7 +196,7 @@ const UserProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-purple-200 mb-2">آخر تسجيل دخول</label>
+            <label className="block text-sm font-medium text-slate-500 dark:text-purple-200 mb-2">آخر تسجيل دخول</label>
             <div className="input-modern flex items-center">
               <Clock className="h-5 w-5 text-purple-300 mr-3" />
               <span className="text-slate-800">{formatDateTime(user.lastLogin)}</span>
@@ -311,7 +311,7 @@ const UserProfile = () => {
       {/* Activity Tab */}
       {activeTab === 'activity' && (
         <div className="space-y-4">
-          <div className="text-center text-purple-200">
+          <div className="text-center text-slate-500 dark:text-purple-200">
             <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>سجل النشاطات سيتم عرضه هنا</p>
             <p className="text-sm">جميع العمليات الحساسة يتم تسجيلها تلقائياً</p>

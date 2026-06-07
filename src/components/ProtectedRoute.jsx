@@ -51,10 +51,10 @@ const ProtectedRoute = ({ children, requiredPermission = null, requiredRole = nu
             <AlertTriangle className="h-8 w-8 text-red-300" />
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-4">غير مصرح لك</h2>
-          <p className="text-purple-200 mb-6">
+          <p className="text-slate-600 mb-6">
             ليس لديك الصلاحية المطلوبة للوصول إلى هذه الصفحة
           </p>
-          <div className="text-sm text-purple-300">
+          <div className="text-sm text-slate-500">
             <p>الصلاحية المطلوبة: <span className="font-mono">{requiredPermission}</span></p>
             <p>صلاحياتك الحالية: <span className="font-mono">{user.permissions.join(', ')}</span></p>
           </div>
@@ -72,10 +72,10 @@ const ProtectedRoute = ({ children, requiredPermission = null, requiredRole = nu
             <Shield className="h-8 w-8 text-red-300" />
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-4">غير مصرح لك</h2>
-          <p className="text-purple-200 mb-6">
+          <p className="text-slate-600 mb-6">
             ليس لديك الدور المطلوب للوصول إلى هذه الصفحة
           </p>
-          <div className="text-sm text-purple-300">
+          <div className="text-sm text-slate-500">
             <p>الدور المطلوب: <span className="font-mono">{requiredRole}</span></p>
             <p>دورك الحالي: <span className="font-mono">{user.role}</span></p>
           </div>
