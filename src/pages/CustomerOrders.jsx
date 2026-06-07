@@ -125,16 +125,16 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-0 sm:p-4"
         >
             <div
-                className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg mx-4"
+                className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-lg mx-4"
                 style={{
                     maxHeight: '90vh',
                     overflowY: 'auto'
                 }}
             >
-                <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
                     <Package className="h-5 w-5 text-blue-600" />
                     {editingOrder ? 'تعديل الطلب' : 'إضافة طلب جديد'}
                 </h2>
@@ -142,47 +142,47 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                 <div className="space-y-4">
                     {/* Product Type */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">نوع المنتج <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">نوع المنتج <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             placeholder="مثال: شنط بيور، أكياس بلاستيك..."
                             value={form.productType}
                             onChange={e => setForm({ ...form, productType: e.target.value })}
-                            className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-750 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                         />
                     </div>
                     {/* Color and Thickness */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">اللون</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">اللون</label>
                             <input
                                 type="text"
                                 placeholder="مثال: أحمر، شفاف..."
                                 value={form.color}
                                 onChange={e => setForm({ ...form, color: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-750 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">السمك</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">السمك</label>
                             <input
                                 type="text"
                                 placeholder="مثال: 50 ميكرون"
                                 value={form.thickness}
                                 onChange={e => setForm({ ...form, thickness: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-750 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                     </div>
 
                     {/* Dimensions (Width x Height) */}
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-750 space-y-3">
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-bold text-slate-700">المقاسات (عرض × طول) <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">المقاسات (عرض × طول) <span className="text-red-500">*</span></label>
                             <button
                                 type="button"
                                 onClick={() => setForm({ ...form, sizes: [...(form.sizes || []), { width: '', height: '' }] })}
-                                className="text-xs flex items-center gap-1 bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded-lg hover:bg-purple-200 transition-colors"
+                                className="text-xs flex items-center gap-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold px-2 py-1 rounded-lg hover:bg-purple-200 transition-colors"
                             >
                                 + إضافة مقاس آخر
                             </button>
@@ -193,7 +193,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     type="number" step="any" placeholder="العرض الأساسي (سم)"
                                     dir="ltr"
                                     value={form.sizeWidth} onChange={e => setForm({ ...form, sizeWidth: e.target.value })}
-                                    className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                    className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800"
                                 />
                             </div>
                             <div>
@@ -201,7 +201,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                     type="number" step="any" placeholder="الطول الأساسي (سم)"
                                     dir="ltr"
                                     value={form.sizeHeight} onChange={e => setForm({ ...form, sizeHeight: e.target.value })}
-                                    className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                    className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800"
                                 />
                             </div>
                         </div>
@@ -216,7 +216,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                         newSizes[idx].width = e.target.value;
                                         setForm({ ...form, sizes: newSizes });
                                     }}
-                                    className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-purple-500 bg-white"
+                                    className="w-full px-3 py-2 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800"
                                 />
                                 <input
                                     type="number" step="any" placeholder={`طول مقاس ${idx + 2} (سم)`}
@@ -227,7 +227,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                         newSizes[idx].height = e.target.value;
                                         setForm({ ...form, sizes: newSizes });
                                     }}
-                                    className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-purple-500 bg-white"
+                                    className="w-full px-3 py-2 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800"
                                 />
                                 <button
                                     type="button"
@@ -235,7 +235,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                         const newSizes = form.sizes.filter((_, i) => i !== idx);
                                         setForm({ ...form, sizes: newSizes });
                                     }}
-                                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                    className="p-2 bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 transition-colors"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -244,15 +244,15 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     </div>
 
                     {/* Souffles Toggle */}
-                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-750">
                         <div className="flex items-center gap-2">
-                            <Scissors className="h-5 w-5 text-indigo-600" />
-                            <span className="text-sm font-bold text-slate-700">تفعيل السوفليهات؟</span>
+                            <Scissors className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">تفعيل السوفليهات؟</span>
                         </div>
                         <button
                             type="button"
                             onClick={() => setForm({ ...form, bottomEnabled: !form.bottomEnabled })}
-                            className={`w-12 h-6 rounded-full transition-all relative ${form.bottomEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                            className={`w-12 h-6 rounded-full transition-all relative ${form.bottomEnabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}`}
                         >
                             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${form.bottomEnabled ? 'left-7' : 'left-1'}`} />
                         </button>
@@ -261,13 +261,13 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     {/* Souffles Input */}
                     {form.bottomEnabled && (
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">حجم السوفليهات</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">حجم السوفليهات</label>
                             <input
                                 type="text"
                                 placeholder="مثال: 5 سم"
                                 value={form.bottomSize}
                                 onChange={e => setForm({ ...form, bottomSize: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-indigo-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-indigo-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-indigo-200 dark:border-indigo-800 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-indigo-50 dark:bg-indigo-950/40 focus:bg-white"
                             />
                         </div>
                     )}
@@ -275,7 +275,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     {/* Quantity + Price */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">الكمية (كجم) <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">الكمية (كجم) <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 step="any"
@@ -283,11 +283,11 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 dir="ltr"
                                 value={form.quantity}
                                 onChange={e => setForm({ ...form, quantity: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">سعر الكيلو <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">سعر الكيلو <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 step="any"
@@ -295,21 +295,21 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 dir="ltr"
                                 value={form.pricePerKg}
                                 onChange={e => setForm({ ...form, pricePerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                     </div>
 
                     {/* Cliche Toggle */}
-                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-750">
                         <div className="flex items-center gap-2">
-                            <Layers className="h-5 w-5 text-purple-600" />
-                            <span className="text-sm font-bold text-slate-700">تفعيل تكلفة الأكلشية؟</span>
+                            <Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">تفعيل تكلفة الأكلشية؟</span>
                         </div>
                         <button
                             type="button"
                             onClick={() => setForm({ ...form, clicheEnabled: !form.clicheEnabled })}
-                            className={`w-12 h-6 rounded-full transition-all relative ${form.clicheEnabled ? 'bg-purple-600' : 'bg-slate-300'}`}
+                            className={`w-12 h-6 rounded-full transition-all relative ${form.clicheEnabled ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-700'}`}
                         >
                             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${form.clicheEnabled ? 'left-7' : 'left-1'}`} />
                         </button>
@@ -317,10 +317,10 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
 
                     {/* Cliche Dimensions (Conditional) */}
                     {form.clicheEnabled && (
-                        <div className="p-4 bg-purple-50 rounded-xl border border-purple-100 space-y-4">
+                        <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-xl border border-purple-100 dark:border-purple-900 space-y-4">
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">طول الأكلشية <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">طول الأكلشية <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         step="any"
@@ -328,11 +328,11 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                         dir="ltr"
                                         value={form.clicheHeight}
                                         onChange={e => setForm({ ...form, clicheHeight: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 dark:border-purple-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white dark:bg-slate-800"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">عرض الأكلشية <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">عرض الأكلشية <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         step="any"
@@ -340,24 +340,24 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                         dir="ltr"
                                         value={form.clicheWidth}
                                         onChange={e => setForm({ ...form, clicheWidth: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 dark:border-purple-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white dark:bg-slate-800"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">عدد الألوان <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">عدد الألوان <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         placeholder="عدد الألوان"
                                         dir="ltr"
                                         value={form.colorCount}
                                         onChange={e => setForm({ ...form, colorCount: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 dark:border-purple-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white dark:bg-slate-800"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">سعر السنتيمتر <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">سعر السنتيمتر <span className="text-red-500">*</span></label>
                                     <input
                                         type="number"
                                         step="any"
@@ -365,11 +365,11 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                         dir="ltr"
                                         value={form.clichePricePerCm}
                                         onChange={e => setForm({ ...form, clichePricePerCm: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-right border border-purple-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                        className="w-full px-4 py-2.5 text-right border border-purple-200 dark:border-purple-700 rounded-lg text-slate-850 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white dark:bg-slate-800"
                                     />
                                 </div>
                             </div>
-                            <div className="text-xs text-purple-600 font-bold bg-white p-2 rounded-lg border border-purple-100 flex justify-between">
+                            <div className="text-xs text-purple-600 dark:text-purple-300 font-bold bg-white dark:bg-slate-800 p-2 rounded-lg border border-purple-100 dark:border-purple-900 flex justify-between">
                                 <span>تكلفة الأكلشية التقريبية:</span>
                                 <span>
                                     {safeMath.multiply(
@@ -387,7 +387,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                     {/* Printing & Cutting Costs */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المطبعه / كجم <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">تكلفة المطبعه / كجم <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 step="any"
@@ -395,11 +395,11 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 dir="ltr"
                                 value={form.printingCostPerKg}
                                 onChange={e => setForm({ ...form, printingCostPerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">تكلفة المقص / كجم <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">تكلفة المقص / كجم <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 step="any"
@@ -407,7 +407,7 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
                                 dir="ltr"
                                 value={form.cuttingCostPerKg}
                                 onChange={e => setForm({ ...form, cuttingCostPerKg: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                     </div>
@@ -415,56 +415,56 @@ const AddOrderModal = ({ show, editingOrder, onClose, onSave }) => {
 
                     {/* Status */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">حالة الطلب</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">حالة الطلب</label>
                         <select
                             value={form.status}
                             onChange={e => setForm({ ...form, status: e.target.value })}
-                            className="w-full flex-1 appearance-none px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            className="w-full flex-1 appearance-none px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                         >
                             {ORDER_STATUSES.map(s => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
+                                <option key={s.value} value={s.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{s.label}</option>
                             ))}
                         </select>
                     </div>
 
                     {/* Notes */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">ملاحظات (اختياري)</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">ملاحظات (اختياري)</label>
                         <textarea
                             rows={3}
                             value={form.notes}
                             onChange={e => setForm({ ...form, notes: e.target.value })}
-                            className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                            className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             placeholder="أي تفاصيل إضافية..."
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">تاريخ التسليم <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">تاريخ التسليم <span className="text-red-500">*</span></label>
                             <input
                                 type="date"
                                 value={form.deliveryDate}
                                 onChange={e => setForm({ ...form, deliveryDate: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">تاريخ التنبيه <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">تاريخ التنبيه <span className="text-red-500">*</span></label>
                             <input
                                 type="date"
                                 value={form.reminderDate}
                                 onChange={e => setForm({ ...form, reminderDate: e.target.value })}
-                                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100">
+                <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 text-slate-600 bg-slate-100 font-bold hover:bg-slate-200 hover:text-white rounded-xl transition-all"
+                        className="px-6 py-2.5 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-white rounded-xl transition-all"
                     >
                         إلغاء
                     </button>
@@ -1290,7 +1290,7 @@ ${logoBlock}
     }
 
     return (
-        <div className="min-h-screen bg-[#F3F4F9] relative overflow-hidden pb-10">
+        <div className="min-h-screen bg-[#F3F4F9] dark:bg-slate-950 text-slate-800 dark:text-slate-100 relative overflow-hidden pb-10">
             {/* Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" />
@@ -1319,7 +1319,7 @@ ${logoBlock}
                                 <User className="h-7 w-7 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl md:text-2xl font-black text-black mb-2">{customer.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2">{customer.name}</h1>
                                 <div className="flex flex-wrap items-center gap-2 text-sm">
                                     {customer.phone && (
                                         <span className="flex items-center gap-1.5 bg-green-100 border border-green-200 text-green-700 px-4 py-1.5 rounded-full font-bold shadow-sm">
@@ -1355,14 +1355,14 @@ ${logoBlock}
 
                     {/* Static Customer Info */}
                     {/* Unified Financial Summary Area - Prominent at the top */}
-                    <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-start gap-3">
                             <div className="bg-blue-500/20 p-2 rounded-lg">
                                 <Hash className="h-4 w-4 text-blue-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-blue-600 uppercase tracking-wider mb-0.5 font-bold">إجمالي الطلبات</p>
-                                <p className="text-lg font-black text-slate-800">{totalOrders} <small className="text-[10px] font-normal text-slate-500">طلب</small></p>
+                                <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5 font-bold">إجمالي الطلبات</p>
+                                <p className="text-lg font-black text-slate-800 dark:text-white">{totalOrders} <small className="text-[10px] font-normal text-slate-500 dark:text-slate-400">طلب</small></p>
                             </div>
                         </div>
 
@@ -1371,8 +1371,8 @@ ${logoBlock}
                                 <Package className="h-4 w-4 text-orange-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-orange-600 uppercase tracking-wider mb-0.5 font-bold">إجمالي الكمية</p>
-                                <p className="text-lg font-black text-slate-800">{totalQuantityOrdered.toLocaleString()} <small className="text-[10px] font-normal text-slate-500">كجم</small></p>
+                                <p className="text-[10px] text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5 font-bold">إجمالي الكمية</p>
+                                <p className="text-lg font-black text-slate-800 dark:text-white">{totalQuantityOrdered.toLocaleString()} <small className="text-[10px] font-normal text-slate-500 dark:text-slate-400">كجم</small></p>
                             </div>
                         </div>
 
@@ -1381,18 +1381,18 @@ ${logoBlock}
                                 <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-emerald-600 uppercase tracking-wider mb-0.5 font-bold">إجمالي المسدد</p>
-                                <p className="text-lg font-black text-emerald-700">{totalPaid.toLocaleString()} <small className="text-[10px] font-normal text-slate-500">ج.م</small></p>
+                                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0.5 font-bold">إجمالي المسدد</p>
+                                <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{totalPaid.toLocaleString()} <small className="text-[10px] font-normal text-slate-500 dark:text-slate-400">ج.م</small></p>
                             </div>
                         </div>
 
-                        <div className={`border rounded-xl p-3 flex items-start gap-3 ${remainingBalance > 0 ? 'bg-red-500/10 border-red-500/30 shadow-red-100 shadow-sm' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+                        <div className={`border rounded-xl p-3 flex items-start gap-3 ${remainingBalance > 0 ? 'bg-red-500/10 border-red-500/30 shadow-red-100 dark:shadow-none shadow-sm' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
                             <div className={`${remainingBalance > 0 ? 'bg-red-500/20' : 'bg-emerald-500/20'} p-2 rounded-lg`}>
                                 <AlertTriangle className={`h-4 w-4 ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
                             </div>
                             <div>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5 font-bold">المديونية المتبقية</p>
-                                <p className={`text-lg font-black ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5 font-bold">المديونية المتبقية</p>
+                                <p className={`text-lg font-black ${remainingBalance > 0 ? 'text-red-600' : 'text-emerald-650'}`}>
                                     {remainingBalance <= 0 ? 0 : remainingBalance.toLocaleString()} <small className="text-[10px] font-normal opacity-60">ج.م</small>
                                 </p>
                             </div>
@@ -1401,33 +1401,33 @@ ${logoBlock}
 
                     {/* Expanded Profile Details - Matching the Stat Cards style */}
                     <div className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-4">
-                        <div className="bg-amber-100 border border-amber-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div className="bg-amber-100 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/55 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-amber-500/20 p-2 rounded-lg">
                                 <Briefcase className="h-4 w-4 text-amber-700 flex-shrink-0" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] text-amber-700 uppercase tracking-wider mb-0.5 font-bold">النشاط التجاري</p>
-                                <p className="text-sm font-black text-slate-900 truncate">{customer.businessActivity || 'غير محدد'}</p>
+                                <p className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-0.5 font-bold">النشاط التجاري</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white truncate">{customer.businessActivity || 'غير محدد'}</p>
                             </div>
                         </div>
 
-                        <div className="bg-indigo-100 border border-indigo-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div className="bg-indigo-100 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/55 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-indigo-500/20 p-2 rounded-lg">
                                 <Tag className="h-4 w-4 text-indigo-700 flex-shrink-0" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] text-indigo-700 uppercase tracking-wider mb-0.5 font-bold">المنتج المعتاد</p>
-                                <p className="text-sm font-black text-slate-900 truncate">{customer.usualProduct || 'غير محدد'}</p>
+                                <p className="text-[10px] text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mb-0.5 font-bold">المنتج المعتاد</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white truncate">{customer.usualProduct || 'غير محدد'}</p>
                             </div>
                         </div>
 
-                        <div className="bg-blue-100 border border-blue-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div className="bg-blue-100 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/55 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-blue-500/20 p-2 rounded-lg">
                                 <Hash className="h-4 w-4 text-blue-700 flex-shrink-0" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] text-blue-700 uppercase tracking-wider mb-0.5 font-bold">المقاس</p>
-                                <p className="text-sm font-black text-slate-900 truncate">
+                                <p className="text-[10px] text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-0.5 font-bold">المقاس</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white truncate">
                                     {customer.sizeWidth && customer.sizeHeight
                                         ? `${customer.sizeWidth} × ${customer.sizeHeight}`
                                         : 'غير محدد'}
@@ -1435,23 +1435,23 @@ ${logoBlock}
                             </div>
                         </div>
 
-                        <div className="bg-pink-100 border border-pink-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div className="bg-pink-100 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-900/55 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-pink-500/20 p-2 rounded-lg">
                                 <Palette className="h-4 w-4 text-pink-700 flex-shrink-0" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-pink-700 uppercase tracking-wider mb-0.5 font-bold">الألوان</p>
-                                <p className="text-sm font-black text-slate-900">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
+                                <p className="text-[10px] text-pink-700 dark:text-pink-400 uppercase tracking-wider mb-0.5 font-bold">الألوان</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white">{customer.colorCount ? `${customer.colorCount} لون` : 'غير محدد'}</p>
                             </div>
                         </div>
 
-                        <div className="bg-cyan-100 border border-cyan-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div className="bg-cyan-100 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-900/55 rounded-xl p-3 flex items-start gap-3 shadow-sm">
                             <div className="bg-cyan-500/20 p-2 rounded-lg">
                                 <Layers className="h-4 w-4 text-cyan-700 flex-shrink-0" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] text-cyan-700 uppercase tracking-wider mb-0.5 font-bold">الأكلشية الأساسي</p>
-                                <p className="text-sm font-black text-slate-900 truncate">
+                                <p className="text-[10px] text-cyan-700 dark:text-cyan-400 uppercase tracking-wider mb-0.5 font-bold">الأكلشية الأساسي</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white truncate">
                                     {customer.clicheHeight && customer.clicheWidth
                                         ? `${customer.clicheHeight} × ${customer.clicheWidth}`
                                         : customer.cliche || 'غير محدد'}
@@ -1463,14 +1463,14 @@ ${logoBlock}
                     {/* Profile Cliches & Sizes (Additional) */}
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                         {Array.isArray(customer.profileCliches) && customer.profileCliches.map(pc => (
-                            <div key={pc.id} className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
+                            <div key={pc.id} className="bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/50 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
                                 <div className="flex items-start gap-3">
-                                    <div className="bg-purple-100 p-2 rounded-lg">
-                                        <Layers className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                                    <div className="bg-purple-100 dark:bg-purple-900/40 p-2 rounded-lg">
+                                        <Layers className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">{pc.name}</p>
-                                        <p className="text-sm font-bold text-slate-700">{pc.dimensions}</p>
+                                        <p className="text-xs text-[#006af8] dark:text-blue-400 mb-0.5 font-medium">{pc.name}</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{pc.dimensions}</p>
                                     </div>
                                 </div>
                                 <button
@@ -1482,14 +1482,14 @@ ${logoBlock}
                             </div>
                         ))}
                         {Array.isArray(customer.profileSizes) && customer.profileSizes.map(ps => (
-                            <div key={ps.id} className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
+                            <div key={ps.id} className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-xl p-3 flex items-start justify-between gap-3 transition-all hover:shadow-md group">
                                 <div className="flex items-start gap-3">
-                                    <div className="bg-blue-100 p-2 rounded-lg">
-                                        <Tag className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                    <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg">
+                                        <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-[#006af8] mb-0.5 font-medium">{ps.name}</p>
-                                        <p className="text-sm font-bold text-slate-700">{ps.dimensions} سم</p>
+                                        <p className="text-xs text-[#006af8] dark:text-blue-400 mb-0.5 font-medium">{ps.name}</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{ps.dimensions} سم</p>
                                     </div>
                                 </div>
                                 <button
@@ -1503,14 +1503,14 @@ ${logoBlock}
                         {/* Add More Buttons */}
                         <div
                             onClick={() => setShowClicheModal(true)}
-                            className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-all group min-h-[60px]"
+                            className="bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group min-h-[60px]"
                         >
                             <Plus className="h-4 w-4 text-slate-400 group-hover:text-purple-600" />
                             <span className="text-sm font-bold text-slate-500 group-hover:text-purple-600">أضف أكلشية جديد</span>
                         </div>
                         <div
                             onClick={() => setShowSizeModal(true)}
-                            className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-all group min-h-[60px]"
+                            className="bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group min-h-[60px]"
                         >
                             <Plus className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
                             <span className="text-sm font-bold text-slate-500 group-hover:text-blue-600">أضف مقاس جديد</span>
@@ -1521,41 +1521,41 @@ ${logoBlock}
                 {/* --- CUSTOMER CLICHE MODAL --- */}
                 {showClicheModal && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                 <Layers className="h-5 w-5 text-purple-600" />
                                 إضافة أكلشية لملف العميل
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">اسم الأكلشية</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">اسم الأكلشية</label>
                                     <input
                                         type="text"
                                         placeholder="مثال: أكلشية 4 لون وجه واحد"
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                                         value={clicheForm.name}
                                         onChange={e => setClicheForm({ ...clicheForm, name: e.target.value })}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">الطول</label>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">الطول</label>
                                         <input
                                             type="number"
                                             placeholder="طول"
                                             dir="ltr"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
+                                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
                                             value={clicheForm.length}
                                             onChange={e => setClicheForm({ ...clicheForm, length: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">العرض</label>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">العرض</label>
                                         <input
                                             type="number"
                                             placeholder="عرض"
                                             dir="ltr"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
+                                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
                                             value={clicheForm.width}
                                             onChange={e => setClicheForm({ ...clicheForm, width: e.target.value })}
                                         />
@@ -1571,7 +1571,7 @@ ${logoBlock}
                                 </button>
                                 <button
                                     onClick={() => setShowClicheModal(false)}
-                                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition-all"
+                                    className="px-4 py-2 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
                                 >
                                     إلغاء
                                 </button>
@@ -1583,41 +1583,41 @@ ${logoBlock}
                 {/* --- CUSTOMER SIZE MODAL --- */}
                 {showSizeModal && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                 <Tag className="h-5 w-5 text-blue-600" />
                                 إضافة مقاس لملف العميل
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">اسم/وصف المقاس</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">اسم/وصف المقاس</label>
                                     <input
                                         type="text"
                                         placeholder="مثال: شنطة كارفور"
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         value={sizeForm.name}
                                         onChange={e => setSizeForm({ ...sizeForm, name: e.target.value })}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">العرض (سم)</label>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">العرض (سم)</label>
                                         <input
                                             type="number"
                                             placeholder="مثال: 30"
                                             dir="ltr"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
+                                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
                                             value={sizeForm.width}
                                             onChange={e => setSizeForm({ ...sizeForm, width: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">الطول (سم)</label>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">الطول (سم)</label>
                                         <input
                                             type="number"
                                             placeholder="مثال: 40"
                                             dir="ltr"
-                                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
+                                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
                                             value={sizeForm.height}
                                             onChange={e => setSizeForm({ ...sizeForm, height: e.target.value })}
                                         />
@@ -1633,7 +1633,7 @@ ${logoBlock}
                                 </button>
                                 <button
                                     onClick={() => setShowSizeModal(false)}
-                                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition-all"
+                                    className="px-4 py-2 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
                                 >
                                     إلغاء
                                 </button>
@@ -1716,11 +1716,11 @@ ${logoBlock}
                                                     <StatusIcon className="h-3 w-3" />
                                                     {statusInfo.label}
                                                 </span>
-                                                <span className="text-xs text-[#006af8] bg-slate-100 px-2 py-1 rounded-full">
+                                                <span className="text-xs text-[#006af8] dark:text-[#42a0ff] bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
                                                     {order.date}
                                                 </span>
                                                 {order.deliveryDate && (
-                                                    <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full flex items-center gap-1">
+                                                    <span className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded-full flex items-center gap-1">
                                                         <Calendar className="h-3 w-3" />
                                                         تسليم: {order.deliveryDate}
                                                     </span>
@@ -1730,19 +1730,12 @@ ${logoBlock}
 
                                         {/* Order Details Summary */}
                                         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
-                                            <div className="bg-slate-100/50 border border-slate-200 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-[12px] font-black text-blue-800 uppercase tracking-wider mb-1">نوع المنتج</p>
-                                                <p className="text-[15px] font-black text-slate-800">{order.productType || '-'}</p>
+                                            <div className="bg-slate-100/50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 shadow-sm">
+                                                <p className="text-[12px] font-black text-blue-800 dark:text-blue-400 uppercase tracking-wider mb-1">نوع المنتج</p>
+                                                <p className="text-[15px] font-black text-slate-850 dark:text-slate-100">{order.productType || '-'}</p>
                                             </div>
                                             {order.status === 'CLOSED' ? (
                                                 <>
-                                                    <div className="bg-emerald-100/50 border-2 border-emerald-500 rounded-2xl p-3 shadow-md flex-1 transform scale-105 transition-all">
-                                                        <p className="text-[11px] font-black text-emerald-800 uppercase mb-0.5 tracking-tighter">الصافي المسلم (الأساسي)</p>
-                                                        <p className="text-[17px] font-black text-emerald-600">{order.quantity?.toLocaleString()} <small className="text-[11px]">كجم</small></p>
-                                                    </div>
-                                                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-2.5 shadow-sm opacity-80">
-                                                        <p className="text-[10px] font-bold text-orange-800 uppercase mb-0.5">المطلوب</p>
-                                                        <p className="text-[13px] font-bold text-orange-600">{(parseFloat(order.orderedQuantity) || parseFloat(order.quantity))?.toLocaleString()} <small className="text-[10px]">كجم</small></p>
                                                     </div>
                                                     <div className="bg-red-50 border border-red-100 rounded-xl p-2.5 shadow-sm opacity-80">
                                                         <p className="text-[10px] font-bold text-red-800 uppercase mb-0.5">الهالك</p>
@@ -1760,41 +1753,9 @@ ${logoBlock}
                                                 <p className="text-[15px] font-black text-slate-800">
                                                     {order.color || order.size ? `${order.color || '-'} / ${order.size || '-'}` : '-'}
                                                 </p>
-                                            </div>
-                                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 shadow-sm">
-                                                <p className="text-xs font-black text-blue-800 uppercase tracking-wider mb-1">سفليات / سمك</p>
-                                                <p className="text-[15px] font-black text-slate-800">
-                                                    {order.bottomSize || order.thickness ? `${order.bottomSize || '-'} / ${order.thickness || '-'}` : '-'}
-                                                </p>
-                                            </div>
-                                            <div className={`rounded-lg p-2.5 shadow-sm border ${orderSupplies.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
-                                                <p className="text-xs font-black text-slate-600 uppercase tracking-wider mb-1">توفير الخامات</p>
-                                                <div className={`text-sm font-black ${orderSupplies.length > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                    {orderSupplies.length > 0 ? (
-                                                        <div className="space-y-0.5">
-                                                            {orderSupplies.map((s, idx) => (
-                                                                <div key={s.id || idx} className="flex flex-col leading-tight">
-                                                                    <span className="text-[13px] leading-tight truncate">{s.supplierName}</span>
-                                                                    <span className="text-[10px] opacity-75 font-bold">التوريدة: {s.supplyNumber || s.id?.toString().slice(-6)}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : 'لم يتم توفير خامات'}
-                                                </div>
-                                            </div>
-                                            {order.reminderDate && (
-                                                <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-100">
-                                                    <p className="text-xs text-yellow-700 mb-0.5 flex items-center gap-1">
-                                                        <AlertCircle className="h-3 w-3" /> تنبيه الموعد
-                                                    </p>
-                                                    <p className="text-sm font-bold text-yellow-800">{order.reminderDate}</p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Cost Calculation Breakdown */}
-                                        <div className="mt-4 p-5 bg-slate-50/80 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                                            <h4 className="text-[15px] font-black text-indigo-700 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                                                        {/* Cost Calculation Breakdown */}
+                                        <div className="mt-4 p-5 bg-slate-50/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                                            <h4 className="text-[15px] font-black text-indigo-700 dark:text-indigo-400 border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 flex items-center gap-2">
                                                 <Calculator className="h-4 w-4" />
                                                 تفصيل الحساب الربحي والإنتاج:
                                             </h4>
@@ -1802,36 +1763,38 @@ ${logoBlock}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {/* Production Costs */}
                                                 <div className="space-y-3">
-                                                        <span className="text-slate-600 font-bold flex items-center gap-2">
+                                                    <div className="flex justify-between items-center text-[15px]">
+                                                        <span className="text-slate-650 dark:text-slate-400 font-bold flex items-center gap-2">
                                                             <Package className="h-4 w-4 text-slate-400" />
                                                             تكلفة الخامة ({order.status === 'CLOSED' ? `الصافي ${order.quantity}` : `${order.quantity}`} كجم):
                                                         </span>
-                                                        <span className="font-black text-slate-900">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
+                                                        <span className="font-black text-slate-900 dark:text-white">${(order.quantity * (order.pricePerKg || 0)).toLocaleString()}</span>
+                                                    </div>
 
                                                     {order.printingCostPerKg > 0 && (
                                                         <div className="flex justify-between items-center text-[15px]">
-                                                            <span className="text-slate-600 font-bold flex items-center gap-2"><Printer className="h-4 w-4 text-slate-400" /> تكلفة المطبعه:</span>
-                                                            <span className="font-black text-slate-900">${(order.quantity * order.printingCostPerKg).toLocaleString()}</span>
+                                                            <span className="text-slate-650 dark:text-slate-400 font-bold flex items-center gap-2"><Printer className="h-4 w-4 text-slate-400" /> تكلفة المطبعه:</span>
+                                                            <span className="font-black text-slate-900 dark:text-white">${(order.quantity * order.printingCostPerKg).toLocaleString()}</span>
                                                         </div>
                                                     )}
 
                                                     {order.cuttingCostPerKg > 0 && (
                                                         <div className="flex justify-between items-center text-[15px]">
-                                                            <span className="text-slate-600 font-bold flex items-center gap-2"><Scissors className="h-4 w-4 text-slate-400" /> تكلفة المقص:</span>
-                                                            <span className="font-black text-slate-900">${(order.quantity * order.cuttingCostPerKg).toLocaleString()}</span>
+                                                            <span className="text-slate-650 dark:text-slate-400 font-bold flex items-center gap-2"><Scissors className="h-4 w-4 text-slate-400" /> تكلفة المقص:</span>
+                                                            <span className="font-black text-slate-900 dark:text-white">${(order.quantity * order.cuttingCostPerKg).toLocaleString()}</span>
                                                         </div>
                                                     )}
 
                                                     {order.clicheEnabled && order.clicheCost > 0 && (
                                                         <div className="flex justify-between items-center text-[15px]">
-                                                            <span className="text-slate-600 font-bold flex items-center gap-2"><Layers className="h-4 w-4 text-slate-400" /> تكلفة الأكلشية:</span>
-                                                            <span className="font-black text-slate-900">${(order.clicheCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                                            <span className="text-slate-650 dark:text-slate-400 font-bold flex items-center gap-2"><Layers className="h-4 w-4 text-slate-400" /> تكلفة الأكلشية:</span>
+                                                            <span className="font-black text-slate-900 dark:text-white">${(order.clicheCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Totals and Profit */}
-                                                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                                                <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
                                                     {(() => {
                                                         const qty = parseFloat(order.quantity) || 0;
                                                         const rawPricePerKg = parseFloat(order.pricePerKg) || 0;
@@ -1845,23 +1808,23 @@ ${logoBlock}
                                                         return (
                                                             <>
                                                                 {/* Final price per kg - highlighted */}
-                                                                <div className="flex justify-between items-center bg-[#5235E8]/5 border border-[#5235E8]/20 rounded-lg px-3 py-2">
-                                                                    <span className="text-xs font-black text-[#5235E8] flex items-center gap-1">
+                                                                <div className="flex justify-between items-center bg-[#5235E8]/5 dark:bg-[#5235E8]/10 border border-[#5235E8]/20 rounded-lg px-3 py-2">
+                                                                    <span className="text-xs font-black text-[#5235E8] dark:text-[#a094ff] flex items-center gap-1">
                                                                         💰 سعر الكيلو النهائي:
                                                                     </span>
-                                                                    <span className="font-black text-[#5235E8] text-sm">
+                                                                    <span className="font-black text-[#5235E8] dark:text-[#a094ff] text-sm">
                                                                         {finalPricePerKg.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م/كجم
                                                                     </span>
                                                                 </div>
                                                                 {cl > 0 && (
-                                                                    <div className="flex justify-between items-center text-xs text-purple-600">
+                                                                    <div className="flex justify-between items-center text-xs text-purple-600 dark:text-purple-400">
                                                                         <span className="font-bold">تكلفة الأكلشية (مضاف):</span>
                                                                         <span className="font-bold">{cl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م</span>
                                                                     </div>
                                                                 )}
-                                                                <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-                                                                    <span className="text-sm font-black text-[#5235E8]">الإجمالي النهائي:</span>
-                                                                    <span className="text-lg font-black text-[#5235E8] px-3 py-1 bg-[#5235E8] bg-opacity-10 rounded-lg">
+                                                                <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                                    <span className="text-sm font-black text-[#5235E8] dark:text-[#a094ff]">الإجمالي النهائي:</span>
+                                                                    <span className="text-lg font-black text-[#5235E8] dark:text-[#a094ff] px-3 py-1 bg-[#5235E8] bg-opacity-10 dark:bg-opacity-20 rounded-lg">
                                                                         {grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ج.م
                                                                     </span>
                                                                 </div>
@@ -1870,42 +1833,74 @@ ${logoBlock}
                                                     })()}
                                                 </div>
 
-                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Expanded: Linked Supplies */}
                                     {isExpanded && (
-                                        <div className="border-t border-slate-200 px-4 md:px-5 py-4 bg-[#F3F4F9]">
+                                        <div className="border-t border-slate-200 dark:border-slate-800 px-4 md:px-5 py-4 bg-[#F3F4F9] dark:bg-slate-950">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                                <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                                     <Link2 className="h-4 w-4 text-[#8410ff]" />
-                                                    <span className="text-[#8410ff]">بيانات توريدة الخامات لهذا الطلب</span>
+                                                    <span className="text-[#8410ff] dark:text-purple-400">بيانات توريدة الخامات لهذا الطلب</span>
                                                 </h3>
                                                 {orderSupplies.length > 0 && (
-                                                    <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full">
+                                                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-350 bg-emerald-100 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full">
                                                         إجمالي تكلفة الخامات: ${totalSupplyValue}
                                                     </span>
                                                 )}
                                             </div>
 
                                             {orderSupplies.length === 0 ? (
-                                                <div className="text-center text-[#006af8] text-sm py-6 bg-white rounded-xl border border-dashed border-slate-300">
-                                                    <Link2 className="h-6 w-6 mx-auto mb-2 text-slate-400" />
-                                                    <p className="font-medium text-slate-600">لا توجد توريدات مرتبطة بعد.</p>
-                                                    <p className="text-xs mt-1 text-slate-400">اذهب لصفحة المورد وارتبط بهذا الطلب عند إضافة توريدة.</p>
+                                                <div className="text-center text-[#006af8] dark:text-blue-400 text-sm py-6 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-800">
+                                                    <Link2 className="h-6 w-6 mx-auto mb-2 text-slate-400 dark:text-slate-650" />
+                                                    <p className="font-medium text-slate-600 dark:text-slate-400">لا توجد توريدات مرتبطة بعد.</p>
+                                                    <p className="text-xs mt-1 text-slate-400 dark:text-slate-500">اذهب لصفحة المورد وارتبط بهذا الطلب عند إضافة توريدة.</p>
                                                 </div>
                                             ) : (
-                                                <div className="overflow-x-auto bg-white rounded-xl border border-slate-200">
+                                                <div className="overflow-x-auto bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                                                     <table className="w-full text-sm">
-                                                        <thead className="bg-[#F3F4F9] border-b border-slate-200">
+                                                        <thead className="bg-[#F3F4F9] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                                                             <tr>
-                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">رقم التوريدة</th>
-                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">التاريخ</th>
-                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">المادة</th>
-                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">الكمية</th>
-                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">الإجمالي</th>
-                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">المورد</th>
+                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">رقم التوريدة</th>
+                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">التاريخ</th>
+                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">المادة</th>
+                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">الكمية</th>
+                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">الإجمالي</th>
+                                                                <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">المورد</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                            {orderSupplies.map(supply => (
+                                                                <tr key={supply.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0 text-right">
+                                                                    <td className="py-4 px-4 text-right">
+                                                                        <span className="text-xs font-mono font-bold text-[#5235E8] bg-[#5235E8]/10 px-2 py-1 rounded">
+                                                                            {supply.supplyNumber || `#${supply.id.toString().slice(-4)}`}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="py-4 px-4 text-[#006af8] dark:text-[#42a0ff] font-medium text-right">{supply.date}</td>
+                                                                    <td className="py-4 px-4 font-bold text-slate-800 dark:text-slate-200 text-right">{supply.productName}</td>
+                                                                    <td className="py-4 px-4 text-orange-650 dark:text-orange-400 font-bold text-right">{supply.quantity} كجم</td>
+                                                                    <td className="py-4 px-4 font-bold text-emerald-600 dark:text-emerald-450 text-right">${supply.totalPrice}</td>
+                                                                    <td className="py-4 px-4 font-bold text-blue-650 dark:text-blue-450 text-right">
+                                                                        <div className="flex items-center justify-end gap-1.5">
+                                                                            <Truck className="w-3.5 h-3.5" />
+                                                                            {supabaseService.getSupplierName(supply.supplierId) || supply.supplierName || '-'}
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+
+                                            {order.notes && (
+                                                <div className="mt-3 text-xs text-slate-400 dark:text-slate-300 bg-white dark:bg-slate-800 bg-opacity-5 dark:bg-opacity-20 rounded-lg p-2">
+                                                    <span className="font-bold text-slate-300">ملاحظات: </span>{order.notes}
+                                                </div>
+                                            )}
+                                        </div>                                               <th className="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase">المورد</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100">
@@ -1977,22 +1972,22 @@ ${logoBlock}
             {/* Order Completion Modal */}
             {completionModalOrder && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999] backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto">
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                             <CheckCircle className="h-6 w-6 text-emerald-600" />
                             إنهاء الطلب: الصافي والهالك
                         </h2>
                         
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5 space-y-3 font-bold text-right direction-rtl">
+                        <div className="bg-slate-50 dark:bg-slate-850 p-4 rounded-xl border border-slate-200 dark:border-slate-750 mb-5 space-y-3 font-bold text-right direction-rtl">
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">الكمية المطلوبة للعميل:</span>
-                                <span className="text-blue-600 font-bold">{completionModalOrder.quantity} كجم</span>
+                                <span className="text-slate-500 dark:text-slate-400">الكمية المطلوبة للعميل:</span>
+                                <span className="text-blue-600 dark:text-blue-400 font-bold">{completionModalOrder.quantity} كجم</span>
                             </div>
                             
                             {getOrderLinkedSupplies(completionModalOrder.id).length > 0 && (
-                                <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
-                                    <span className="text-slate-500">الخام المُرسل من المورد:</span>
-                                    <span className="text-orange-600 font-bold">
+                                <div className="flex justify-between text-sm pt-2 border-t border-slate-200 dark:border-slate-700">
+                                    <span className="text-slate-500 dark:text-slate-400">الخام المُرسل من المورد:</span>
+                                    <span className="text-orange-600 dark:text-orange-400 font-bold">
                                         {getOrderLinkedSupplies(completionModalOrder.id)[0].quantity} كجم
                                     </span>
                                 </div>
@@ -2001,7 +1996,7 @@ ${logoBlock}
 
                         <div className="mb-6 text-right direction-rtl space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-emerald-700 mb-2">الصافي المُسلم للعميل (كجم)</label>
+                                <label className="block text-sm font-bold text-emerald-700 dark:text-emerald-300 mb-2">الصافي المُسلم للعميل (كجم)</label>
                                 <input
                                     type="number"
                                     step="any"
@@ -2009,19 +2004,19 @@ ${logoBlock}
                                     dir="ltr"
                                     value={netDeliveredQuantity}
                                     onChange={(e) => setNetDeliveredQuantity(e.target.value)}
-                                    className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white"
+                                    className="w-full px-4 py-3 text-center text-xl font-extrabold border-2 border-emerald-300 dark:border-emerald-700 focus:border-emerald-500 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all bg-white dark:bg-slate-800"
                                     autoFocus
                                 />
-                                <p className="text-xs text-slate-500 mt-2">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                                     * هذا هو الرقم الذي سيبنى عليه حساب الفاتورة. الجزء المتبقي سيُحسب كـ "هالك".
                                 </p>
                             </div>
 
-                            <div className="pt-4 border-t border-slate-200">
-                                <label className="block text-sm font-bold text-blue-700 mb-2">المبلغ المسدد الآن (اختياري)</label>
+                            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <label className="block text-sm font-bold text-blue-700 dark:text-blue-300 mb-2">المبلغ المسدد الآن (اختياري)</label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="relative">
-                                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
                                         <input
                                             type="number"
                                             step="any"
@@ -2029,18 +2024,18 @@ ${logoBlock}
                                             dir="ltr"
                                             value={completionPaymentAmount}
                                             onChange={(e) => setCompletionPaymentAmount(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2.5 text-center text-lg font-bold border-2 border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50"
+                                            className="w-full pl-10 pr-4 py-2.5 text-center text-lg font-bold border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50 dark:bg-slate-800"
                                         />
                                     </div>
                                     <select
                                         value={completionPaymentMethod}
                                         onChange={(e) => setCompletionPaymentMethod(e.target.value)}
-                                        className="w-full px-4 py-2.5 text-center text-sm font-bold border-2 border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50 appearance-none"
+                                        className="w-full px-4 py-2.5 text-center text-sm font-bold border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all bg-slate-50 dark:bg-slate-800 appearance-none"
                                     >
-                                        <option value="CASH">نقدي</option>
-                                        <option value="VODAFONE_CASH">فودافون كاش</option>
-                                        <option value="BANK_TRANSFER">تحويل بنكي</option>
-                                        <option value="CHECK">شيك</option>
+                                        <option value="CASH" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">نقدي</option>
+                                        <option value="VODAFONE_CASH" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">فودافون كاش</option>
+                                        <option value="BANK_TRANSFER" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">تحويل بنكي</option>
+                                        <option value="CHECK" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">شيك</option>
                                     </select>
                                 </div>
                             </div>
@@ -2049,7 +2044,7 @@ ${logoBlock}
                         <div className="flex gap-3 mt-8">
                             <button
                                 onClick={() => { setCompletionModalOrder(null); soundManager.play('closeWindow'); }}
-                                className="flex-1 px-4 py-3 text-slate-700 bg-slate-100 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                                className="flex-1 px-4 py-3 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                             >
                                 إلغاء
                             </button>
@@ -2080,13 +2075,13 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors order-first">
-                        <XCircle className="h-6 w-6 text-slate-400" />
+                <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors order-first">
+                        <XCircle className="h-6 w-6 text-slate-400 dark:text-slate-500" />
                     </button>
-                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 text-right">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 text-right">
                         <CreditCard className="h-6 w-6 text-emerald-600" />
                         سداد ومدفوعات العميل: {customerName}
                     </h3>
@@ -2094,49 +2089,49 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
 
                 <div className="overflow-y-auto flex-1 p-6 space-y-8">
                     {/* Add Payment Form Section */}
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
-                        <h4 className="text-sm font-bold text-emerald-800 mb-4 text-right flex items-center justify-end gap-2">
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-5">
+                        <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-300 mb-4 text-right flex items-center justify-end gap-2">
                             تسجيل دفعة جديدة
                             <Plus className="h-4 w-4" />
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2 text-right">المبلغ المسدد <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 text-right">المبلغ المسدد <span className="text-red-500">*</span></label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5" />
                                     <input
                                         type="number"
                                         placeholder="مثال: 5000"
                                         dir="ltr"
                                         value={form.amount}
                                         onChange={e => setForm({ ...form, amount: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right"
+                                        className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2 text-right">طريقة الدفع</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 text-right">طريقة الدفع</label>
                                 <select
                                     value={form.method}
                                     onChange={e => setForm({ ...form, method: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none text-right"
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none text-right"
                                 >
-                                    <option value="CASH">نقدي</option>
-                                    <option value="BANK_TRANSFER">تحويل بنكي</option>
-                                    <option value="VODAFONE_CASH">فودافون كاش</option>
-                                    <option value="CHECK">شيك</option>
+                                    <option value="CASH" className="bg-white dark:bg-slate-850 text-slate-800 dark:text-white">نقدي</option>
+                                    <option value="BANK_TRANSFER" className="bg-white dark:bg-slate-850 text-slate-800 dark:text-white">تحويل بنكي</option>
+                                    <option value="VODAFONE_CASH" className="bg-white dark:bg-slate-850 text-slate-800 dark:text-white">فودافون كاش</option>
+                                    <option value="CHECK" className="bg-white dark:bg-slate-850 text-slate-800 dark:text-white">شيك</option>
                                 </select>
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2 text-right">ملاحظات</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 text-right">ملاحظات</label>
                                 <input
                                     type="text"
                                     placeholder="أي تفاصيل إضافية..."
                                     value={form.notes}
                                     onChange={e => setForm({ ...form, notes: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right"
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-right"
                                 />
                             </div>
                         </div>
@@ -2155,33 +2150,33 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
 
                     {/* History Section */}
                     <div>
-                        <h4 className="text-sm font-bold text-slate-500 mb-4 text-right flex items-center justify-end gap-2">
+                        <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 text-right flex items-center justify-end gap-2">
                             سجل الدفعات السابقة
                             <Clock className="h-4 w-4" />
                         </h4>
 
                         {payments.length === 0 ? (
-                            <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                            <div className="text-center py-10 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                                 <p className="text-slate-400 text-sm">لا توجد مدفوعات مسجلة بعد لهذا العميل.</p>
                             </div>
                         ) : (
-                            <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                            <div className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                                 <table className="w-full text-right text-sm">
-                                    <thead className="bg-slate-50 border-b border-slate-100">
+                                    <thead className="bg-slate-50 dark:bg-slate-850 border-b border-slate-100 dark:border-slate-800">
                                         <tr>
-                                            <th className="px-4 py-3 text-slate-600 font-bold">التاريخ</th>
-                                            <th className="px-4 py-3 text-slate-600 font-bold">المبلغ</th>
-                                            <th className="px-4 py-3 text-slate-600 font-bold">الطريقة</th>
-                                            <th className="px-4 py-3 text-slate-600 font-bold">الإجراءات</th>
+                                            <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-bold">التاريخ</th>
+                                            <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-bold">المبلغ</th>
+                                            <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-bold">الطريقة</th>
+                                            <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-bold">الإجراءات</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-50">
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                         {payments.sort((a, b) => b.id - a.id).map(payment => (
-                                            <tr key={payment.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-4 py-3 font-medium text-slate-600">{payment.date}</td>
+                                            <tr key={payment.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                                <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-300">{payment.date}</td>
                                                 <td className="px-4 py-3 font-bold text-emerald-600">{payment.amount?.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-3">
-                                                    <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">
+                                                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">
                                                         {payment.method === 'VODAFONE_CASH' ? 'فودافون كاش' : 
                                                          payment.method === 'CASH' ? 'نقدي' : 
                                                          payment.method === 'BANK_TRANSFER' ? 'تحويل بنكي' : 
@@ -2191,7 +2186,7 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
                                                 <td className="px-4 py-3">
                                                     <button
                                                         onClick={() => onDeletePayment(payment.id)}
-                                                        className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition-all"
+                                                        className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-all"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
@@ -2205,10 +2200,10 @@ const PaymentInstallmentModal = ({ show, customerName, payments, onClose, onSave
                     </div>
                 </div>
 
-                <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-center">
+                <div className="p-4 bg-slate-50 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-800 flex justify-center">
                     <button
                         onClick={onClose}
-                        className="px-10 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition-all"
+                        className="px-10 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-all"
                     >
                         إغلاق النافذة
                     </button>

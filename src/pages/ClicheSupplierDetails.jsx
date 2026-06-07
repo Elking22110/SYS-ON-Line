@@ -269,53 +269,59 @@ const ClicheSupplierDetails = () => {
   if (!supplier) return (
     <div className="p-8 text-center text-slate-400">
       <p>المورد غير موجود</p>
-      <button onClick={() => navigate('/cliche-suppliers')} className="mt-4 text-purple-600 font-bold">← رجوع</button>
+      <button onClick={() => navigate('/cliche-suppliers')} className="mt-4 text-purple-650 font-bold">← رجوع</button>
     </div>
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-6 space-y-6">
+    <div className="min-h-screen bg-[#F3F4F9] dark:bg-slate-950 text-slate-800 dark:text-slate-100 p-4 md:p-6 space-y-6 relative overflow-hidden pb-10">
+      {/* Background Animation */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* Breadcrumb */}
-      <div className="flex items-center gap-3">
+      <div className="relative z-10 flex items-center gap-3">
         <button onClick={() => navigate('/cliche-suppliers')} className="flex items-center gap-1 text-sm text-slate-500 hover:text-purple-600 font-bold transition-colors">
           <ArrowRight className="h-4 w-4" /> موردو الأكلشيهات
         </button>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-bold text-slate-700">{supplier.name}</span>
+        <span className="text-slate-350">/</span>
+        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{supplier.name}</span>
       </div>
 
       {/* Supplier Info */}
-      <div className="glass-card p-5">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+      <div className="relative z-10 glass-card p-5">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
               <Layers className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-800">{supplier.name}</h1>
-              <p className="text-sm text-slate-500">{supplier.phone} {supplier.email && `· ${supplier.email}`}</p>
-              {supplier.address && <p className="text-xs text-slate-400 mt-0.5">{supplier.address}</p>}
+              <h1 className="text-xl font-black text-slate-800 dark:text-white">{supplier.name}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{supplier.phone} {supplier.email && `· ${supplier.email}`}</p>
+              {supplier.address && <p className="text-xs text-slate-450 dark:text-slate-500 mt-0.5">{supplier.address}</p>}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">
-              <p className="text-xs text-slate-500 font-bold mb-1">إجمالي التوريدات</p>
-              <p className="text-lg font-black text-slate-800">{totalSpent.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
+          <div className="grid grid-cols-3 gap-3 text-center w-full lg:w-auto">
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl px-4 py-3 border border-slate-200 dark:border-slate-800">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mb-1">إجمالي التوريدات</p>
+              <p className="text-lg font-black text-slate-800 dark:text-white">{totalSpent.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
             </div>
-            <div className="bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-200">
-              <p className="text-xs text-emerald-600 font-bold mb-1">إجمالي المدفوع</p>
-              <p className="text-lg font-black text-emerald-700">{totalPaid.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl px-4 py-3 border border-emerald-200 dark:border-emerald-900/40">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-1">إجمالي المدفوع</p>
+              <p className="text-lg font-black text-emerald-705 dark:text-emerald-305">{totalPaid.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
             </div>
-            <div className={`rounded-xl px-4 py-3 border ${remaining > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-              <p className={`text-xs font-bold mb-1 ${remaining > 0 ? 'text-red-600' : 'text-green-600'}`}>المتبقي</p>
-              <p className={`text-lg font-black ${remaining > 0 ? 'text-red-700' : 'text-green-700'}`}>{remaining.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
+            <div className={`rounded-xl px-4 py-3 border ${remaining > 0 ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/40'}`}>
+              <p className={`text-xs font-bold mb-1 ${remaining > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>المتبقي</p>
+              <p className={`text-lg font-black ${remaining > 0 ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300'}`}>{remaining.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-xs">ج.م</span></p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="relative z-10 flex gap-3">
         <button onClick={() => setShowSupplyModal(true)}
           className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all shadow">
           <Plus className="h-4 w-4" /> إضافة توريدة
@@ -327,10 +333,10 @@ const ClicheSupplierDetails = () => {
       </div>
 
       {/* Supplies */}
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex items-center gap-2">
-          <Package className="h-5 w-5 text-purple-600" />
-          <h2 className="font-black text-slate-800">التوريدات ({supplies.length})</h2>
+      <div className="relative z-10 glass-card overflow-hidden">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <Package className="h-5 w-5 text-purple-650" />
+          <h2 className="font-black text-slate-800 dark:text-white">التوريدات ({supplies.length})</h2>
         </div>
         {supplies.length === 0 ? (
           <div className="p-10 text-center text-slate-400">
@@ -338,65 +344,70 @@ const ClicheSupplierDetails = () => {
             <p>لا توجد توريدات بعد</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {supplies.map(sup => (
-              <div key={sup.id} className="p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">{sup.supplyNumber}</span>
-                      <span className="text-xs text-slate-400">{sup.date}</span>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {supplies.map(sup => {
+              const width = sup.clicheWidth || sup.metadata?.width || 0;
+              const height = sup.clicheHeight || sup.metadata?.height || 0;
+              const area = safeMath.multiply(width, height);
+              return (
+                <div key={sup.id} className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20 px-2 py-0.5 rounded-full">{sup.supplyNumber}</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{sup.date}</span>
+                      </div>
+                      <p className="font-bold text-slate-800 dark:text-white">{sup.clicheName || sup.metadata?.clicheName}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {width} × {height} سم · {sup.pricePerCm || sup.metadata?.pricePerCm} ج.م/سم²
+                        <span className="mr-2 text-slate-400 dark:text-slate-500">مساحة: {area.toFixed(2)} سم²</span>
+                      </p>
+                      {sup.note && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{sup.note}</p>}
                     </div>
-                    <p className="font-bold text-slate-800">{sup.clicheName || sup.metadata?.clicheName}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {sup.clicheWidth || sup.metadata?.width} × {sup.clicheHeight || sup.metadata?.height} سم · {sup.pricePerCm || sup.metadata?.pricePerCm} ج.م/سم²
-                      <span className="mr-2 text-slate-400">مساحة: {((sup.clicheWidth || sup.metadata?.width) * (sup.clicheHeight || sup.metadata?.height)).toFixed(2)} سم²</span>
-                    </p>
-                    {sup.note && <p className="text-xs text-slate-400 mt-0.5">{sup.note}</p>}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-black text-slate-800">{(sup.totalPrice || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</p>
-                      <p className="text-xs text-emerald-600">مدفوع: {(sup.paidAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</p>
-                      <p className="text-xs text-red-500">متبقي: {(sup.remainingAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm font-black text-slate-800 dark:text-white">{(sup.totalPrice || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">مدفوع: {(sup.paidAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</p>
+                        <p className="text-xs text-red-500 dark:text-red-400">متبقي: {(sup.remainingAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</p>
+                      </div>
+                      <button onClick={() => handlePrintSupply(sup)}
+                        className="text-purple-500 hover:text-purple-650 hover:bg-purple-50 dark:hover:bg-purple-950/20 p-1.5 rounded-lg transition-all"
+                        title="طباعة إيصال التوريدة">
+                        <Printer className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDeleteSupply(sup.id)}
+                        className="text-red-400 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 p-1.5 rounded-lg transition-all">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
-                    <button onClick={() => handlePrintSupply(sup)}
-                      className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 p-1.5 rounded-lg transition-all"
-                      title="طباعة إيصال التوريدة">
-                      <Printer className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => handleDeleteSupply(sup.id)}
-                      className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-all">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Payments */}
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-emerald-600" />
-          <h2 className="font-black text-slate-800">الدفعات ({payments.length})</h2>
+      <div className="relative z-10 glass-card overflow-hidden">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <DollarSign className="h-5 w-5 text-emerald-650 dark:text-emerald-400" />
+          <h2 className="font-black text-slate-800 dark:text-white">الدفعات ({payments.length})</h2>
         </div>
         {payments.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-sm">لا توجد دفعات مستقلة</div>
+          <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-sm">لا توجد دفعات مستقلة</div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {payments.map(p => (
               <div key={p.id} className="px-4 py-3 flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-bold text-slate-700">{p.date}</p>
-                  {p.note && <p className="text-xs text-slate-400">{p.note}</p>}
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{p.date}</p>
+                  {p.note && <p className="text-xs text-slate-400 dark:text-slate-500">{p.note}</p>}
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-base font-black text-emerald-700">{(p.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
+                  <span className="text-base font-black text-emerald-700 dark:text-emerald-400">{(p.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
                   <button onClick={() => handleDeletePayment(p.id)}
-                    className="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg">
+                    className="text-red-400 hover:text-red-650 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -408,65 +419,65 @@ const ClicheSupplierDetails = () => {
 
       {/* Supply Modal */}
       {showSupplyModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-slate-800">إضافة توريدة أكلشية</h3>
-              <button onClick={() => setShowSupplyModal(false)}><X className="h-5 w-5 text-slate-400" /></button>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">إضافة توريدة أكلشية</h3>
+              <button onClick={() => setShowSupplyModal(false)}><X className="h-5 w-5 text-slate-400 dark:text-slate-500" /></button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">التاريخ</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">التاريخ</label>
                 <input type="date" value={supplyDate} onChange={e => setSupplyDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium text-right" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">اسم / وصف الأكلشية</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">اسم / وصف الأكلشية</label>
                 <input type="text" value={clicheName} onChange={e => setClicheName(e.target.value)}
                   placeholder="مثال: أكلشية شنطة كارفور"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium text-right" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">العرض (سم)</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">العرض (سم)</label>
                   <input type="number" value={clicheWidth} onChange={e => setClicheWidth(e.target.value)} placeholder="0"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center text-slate-900" />
+                    className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-center text-slate-900 dark:text-white font-bold" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">الطول (سم)</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">الطول (سم)</label>
                   <input type="number" value={clicheHeight} onChange={e => setClicheHeight(e.target.value)} placeholder="0"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center text-slate-900" />
+                    className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-center text-slate-900 dark:text-white font-bold" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">سعر السنتيمتر المربع (ج.م / سم²)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">سعر السنتيمتر المربع (ج.م / سم²)</label>
                 <input type="number" value={pricePerCm} onChange={e => setPricePerCm(e.target.value)} placeholder="0.00" step="0.01"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-center text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-center text-slate-900 dark:text-white font-bold" />
               </div>
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
-                <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl p-3">
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                   <span>المساحة: {((parseFloat(clicheWidth)||0)*(parseFloat(clicheHeight)||0)).toFixed(2)} سم²</span>
                   <span>× {parseFloat(pricePerCm)||0} ج.م/سم²</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-purple-700">إجمالي التوريدة:</span>
-                  <span className="text-lg font-black text-purple-800">{calcTotal().toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
+                  <span className="text-sm font-bold text-purple-700 dark:text-purple-400">إجمالي التوريدة:</span>
+                  <span className="text-lg font-black text-purple-800 dark:text-purple-300">{calcTotal().toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</span>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">المبلغ المدفوع الآن (اختياري)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">المبلغ المدفوع الآن (اختياري)</label>
                 <input type="number" value={supplyPaid} placeholder="0.00" onChange={e => setSupplyPaid(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 font-bold text-right" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظة (اختياري)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">ملاحظة (اختياري)</label>
                 <input type="text" value={supplyNote} onChange={e => setSupplyNote(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium text-right" />
               </div>
             </div>
             <div className="flex gap-2 mt-5">
-              <button onClick={handleAddSupply} className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-bold hover:bg-purple-700">حفظ التوريدة</button>
-              <button onClick={() => setShowSupplyModal(false)} className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg">إلغاء</button>
+              <button onClick={handleAddSupply} className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-bold hover:bg-purple-700 transition-all">حفظ التوريدة</button>
+              <button onClick={() => setShowSupplyModal(false)} className="px-4 py-2 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">إلغاء</button>
             </div>
           </div>
         </div>
@@ -474,27 +485,27 @@ const ClicheSupplierDetails = () => {
 
       {/* Payment Modal */}
       {showPayModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-slate-800">تسجيل دفعة</h3>
-              <button onClick={() => setShowPayModal(false)}><X className="h-5 w-5 text-slate-400" /></button>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">تسجيل دفعة</h3>
+              <button onClick={() => setShowPayModal(false)}><X className="h-5 w-5 text-slate-400 dark:text-slate-500" /></button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">المبلغ (ج.م)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">المبلغ (ج.م)</label>
                 <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0.00"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 dark:bg-slate-800 text-emerald-650 dark:text-emerald-400 font-bold text-right" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظة (اختياري)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">ملاحظة (اختياري)</label>
                 <input type="text" value={payNote} onChange={e => setPayNote(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-slate-50 text-slate-900" />
+                  className="w-full px-3 py-2 border border-slate-350 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium text-right" />
               </div>
             </div>
             <div className="flex gap-2 mt-5">
-              <button onClick={handleAddPayment} className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700">حفظ الدفعة</button>
-              <button onClick={() => setShowPayModal(false)} className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg">إلغاء</button>
+              <button onClick={handleAddPayment} className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700 transition-all">حفظ الدفعة</button>
+              <button onClick={() => setShowPayModal(false)} className="px-4 py-2 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">إلغاء</button>
             </div>
           </div>
         </div>

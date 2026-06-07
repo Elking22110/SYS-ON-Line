@@ -395,15 +395,15 @@ const Customers = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center  space-y-4 md:space-y-0">
           <div className="flex-1">
-            <h1 className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 mb-2 md:mb-3">
+            <h1 className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">
               إدارة العملاء
             </h1>
-            <p className="text-slate-600 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">إدارة بيانات عملاء مصنع Elking Plast</p>
+            <p className="text-slate-600 dark:text-slate-400 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">إدارة بيانات عملاء مصنع Elking Plast</p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => { soundManager.play('openWindow'); navigate('/cliches'); }}
-              className="bg-white bg-opacity-10 border border-[#5235E8] border-opacity-30 text-[#5235E8] flex items-center px-4 py-3 rounded-xl text-sm font-bold hover:bg-[#5235E8] hover:text-white transition-all duration-300"
+              className="bg-white bg-opacity-10 border border-[#5235E8] border-opacity-30 text-[#5235E8] dark:text-purple-300 flex items-center px-4 py-3 rounded-xl text-sm font-bold hover:bg-[#5235E8] hover:text-white transition-all duration-300"
             >
               <Layers className="h-5 w-5 mr-3" />
               مخزون الأكلشيهات
@@ -424,9 +424,9 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">إجمالي العملاء</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">{customers.length}</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-1 truncate">{customers.length}</p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-black font-medium truncate">عملاء مسجلون</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium truncate">عملاء مسجلون</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl shadow-sm">
@@ -439,11 +439,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">عملاء VIP</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-1 truncate">
                   {customers.filter(c => c.status === 'VIP').length}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-black font-medium truncate">عملاء مميزون</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium truncate">عملاء مميزون</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-purple-500 to-violet-500 rounded-xl shadow-sm">
@@ -456,11 +456,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">متوسط الشراء</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-1 truncate">
                   ${Math.round(customers.reduce((total, c) => safeMath.add(total, c.totalSpent), 0) / (customers.length || 1))}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-black font-medium truncate">كقيمة للمشتريات</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium truncate">كقيمة للمشتريات</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-sm">
@@ -473,11 +473,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-xs font-medium text-[#006af8] mb-1 uppercase tracking-wide truncate">عملاء جدد</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-1 truncate">
                   {customers.filter(c => c.status === 'جديد').length}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-black font-medium truncate">هذا الشهر</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium truncate">هذا الشهر</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl shadow-sm">
@@ -490,11 +490,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-[11px] font-medium text-blue-300 mb-1 uppercase tracking-wide truncate">إجمالي الكمية (كجم)</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-1 truncate">
                   {customers.reduce((total, c) => total + (c.totalQuantity || 0), 0).toLocaleString()}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-black font-medium truncate">المسلمة للعملاء</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium truncate">المسلمة للعملاء</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl shadow-sm">
@@ -507,11 +507,11 @@ const Customers = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[10px] md:text-[11px] font-medium text-red-300 mb-1 uppercase tracking-wide truncate">إجمالي الهالك (كجم)</p>
-                <p className="text-lg md:text-xl lg:text-2xl font-bold text-black mb-1 truncate">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-1 truncate">
                   {customers.reduce((total, c) => total + (c.totalWaste || 0), 0).toLocaleString()}
                 </p>
                 <div className="flex items-center text-[10px] md:text-[11px]">
-                  <span className="text-black font-medium truncate">المرتجع / الهالك</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium truncate">المرتجع / الهالك</span>
                 </div>
               </div>
               <div className="flex-shrink-0 p-2 md:p-2.5 lg:p-3 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
@@ -524,7 +524,7 @@ const Customers = () => {
         {/* Top Customers */}
         <div className="glass-card mb-4 md:mb-6">
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h3 className="text-lg font-bold text-black">أفضل العملاء</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">أفضل العملاء</h3>
             <div className="p-2 bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg shadow-md">
               <Star className="h-6 w-6 text-white" />
             </div>
@@ -537,7 +537,7 @@ const Customers = () => {
                     <span className="text-white font-bold text-sm">{index + 1}</span>
                   </div>
                   <div>
-                    <p className="font-bold text-black text-lg">{customer.name}</p>
+                    <p className="font-bold text-slate-900 dark:text-white text-lg">{customer.name}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <Phone className="h-3 w-3 text-green-400" />
                       <p className="text-sm text-green-300 font-medium bg-green-500 bg-opacity-20 px-2 py-1 rounded-full">{customer.phone}</p>
@@ -830,13 +830,13 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
       className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-0 sm:p-4"
       onClick={(e) => { if(e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-2xl shadow-2xl flex flex-col">
+      <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-2xl shadow-2xl flex flex-col">
         <div className="p-6 pb-0 flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-slate-800 flex flex-row items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white flex flex-row items-center gap-2">
             <User className="h-6 w-6 text-purple-600" />
             {editingCustomer ? 'تعديل بيانات العميل' : 'إضافة عميل جديد'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 bg-slate-100 hover:bg-slate-200 rounded-full">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full">
             <Plus className="h-5 w-5 rotate-45" />
           </button>
         </div>
@@ -845,69 +845,69 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
           {/* Row 1: Name + Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-1">اسم العميل <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">اسم العميل <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 placeholder="اسم العميل أو الشركة"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-1">رقم الهاتف <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">رقم الهاتف <span className="text-red-500">*</span></label>
               <div className="relative">
-                <Phone className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Phone className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <input
                   type="tel"
                   placeholder="01xxxxxxxxx"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
           </div>
 
-          <div className="h-px w-full bg-slate-100 my-4"></div>
+          <div className="h-px w-full bg-slate-100 dark:bg-slate-800 my-4"></div>
 
           {/* Row 2: Business Activity + Usual Product + Color Count */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">النشاط التجاري</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">النشاط التجاري</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Briefcase className="h-4 w-4 text-slate-400" />
+                  <Briefcase className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="تجارة، مصنع..."
                   value={formData.businessActivity}
                   onChange={(e) => setFormData({ ...formData, businessActivity: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">المنتج المعتاد</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">المنتج المعتاد</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Tag className="h-4 w-4 text-slate-400" />
+                  <Tag className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="شنط، أكياس..."
                   value={formData.usualProduct}
                   onChange={(e) => setFormData({ ...formData, usualProduct: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">عدد الألوان</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">عدد الألوان</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Palette className="h-4 w-4 text-slate-400" />
+                  <Palette className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="number"
@@ -915,7 +915,7 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                   dir="ltr"
                   value={formData.colorCount}
                   onChange={(e) => setFormData({ ...formData, colorCount: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
@@ -924,10 +924,10 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
           {/* Row 3: Product Size Width × Height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5 align-right">عرض المنتج المعتاد (سم)</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 align-right">عرض المنتج المعتاد (سم)</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Hash className="h-4 w-4 text-slate-400" />
+                  <Hash className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="number"
@@ -935,15 +935,15 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                   dir="ltr"
                   value={formData.sizeWidth}
                   onChange={(e) => setFormData({ ...formData, sizeWidth: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">طول المنتج المعتاد (سم)</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">طول المنتج المعتاد (سم)</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Hash className="h-4 w-4 text-slate-400" />
+                  <Hash className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="number"
@@ -951,23 +951,23 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                   dir="ltr"
                   value={formData.sizeHeight}
                   onChange={(e) => setFormData({ ...formData, sizeHeight: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
           </div>
 
           {/* Dynamic Bag Sizes List */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-850">
             <div className="flex justify-between items-center mb-3">
-              <label className="block text-sm font-bold text-slate-700 flex items-center gap-1">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                 <Hash className="h-4 w-4 text-purple-600" />
                 مقاسات إضافية
               </label>
               <button
                 type="button"
                 onClick={handleAddSize}
-                className="text-xs font-bold text-purple-600 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                className="text-xs font-bold text-purple-600 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/40 hover:bg-purple-200 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
                 title="إضافة مقاس آخر"
               >
                 <Plus className="h-3 w-3" />
@@ -977,40 +977,40 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
             
             <div className="space-y-3">
               {(!formData.bagSizes || formData.bagSizes.length === 0) && (
-                <div className="text-center py-4 text-xs font-medium text-slate-400 bg-white border border-slate-100 rounded-lg">
+                <div className="text-center py-4 text-xs font-medium text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-750 rounded-lg">
                   لا توجد مقاسات إضافية. يمكنك إضافة مقاسات متعددة للعميل من هنا.
                 </div>
               )}
               
               {formData.bagSizes?.map((size, index) => (
-                <div key={size.id || index} className="flex flex-row items-center gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative group">
+                <div key={size.id || index} className="flex flex-row items-center gap-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative group">
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-slate-600 mb-1">عرض (سم)</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">عرض (سم)</label>
                     <input
                       type="number"
                       placeholder="مثال: 30"
                       dir="ltr"
                       value={size.width || ''}
                       onChange={(e) => handleSizeChange(size.id, 'width', e.target.value)}
-                      className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 focus:bg-white"
+                      className="w-full px-3 py-2 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 dark:bg-slate-850 focus:bg-white"
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-slate-600 mb-1">طول (سم)</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">طول (سم)</label>
                     <input
                       type="number"
                       placeholder="مثال: 40"
                       dir="ltr"
                       value={size.length || size.height || ''}
                       onChange={(e) => handleSizeChange(size.id, 'length', e.target.value)}
-                      className="w-full px-3 py-2 text-right border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 focus:bg-white"
+                      className="w-full px-3 py-2 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 bg-slate-50 dark:bg-slate-850 focus:bg-white"
                     />
                   </div>
                   <div className="pt-5">
                     <button
                       type="button"
                       onClick={() => handleRemoveSize(size.id)}
-                      className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                      className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 rounded-lg transition-colors"
                       title="حذف المقاس"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -1021,15 +1021,15 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
             </div>
           </div>
 
-          <div className="h-px w-full bg-slate-100 my-4"></div>
+          <div className="h-px w-full bg-slate-100 dark:bg-slate-800 my-4"></div>
 
           {/* Row 4: Cliche Width × Cliche Height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5 align-right">عرض الأكلشية الأساسي (سم)</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 align-right">عرض الأكلشية الأساسي (سم)</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Layers className="h-4 w-4 text-slate-400" />
+                  <Layers className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="number"
@@ -1037,15 +1037,15 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                   dir="ltr"
                   value={formData.clicheWidth}
                   onChange={(e) => setFormData({ ...formData, clicheWidth: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">طول الأكلشية الأساسي (سم)</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">طول الأكلشية الأساسي (سم)</label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Layers className="h-4 w-4 text-slate-400" />
+                  <Layers className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                   type="number"
@@ -1053,18 +1053,18 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                   dir="ltr"
                   value={formData.clicheHeight}
                   onChange={(e) => setFormData({ ...formData, clicheHeight: e.target.value })}
-                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                  className="w-full pr-10 pl-3 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
                 />
               </div>
             </div>
           </div>
 
-          <div className="h-px w-full bg-slate-100 my-4"></div>
+          <div className="h-px w-full bg-slate-100 dark:bg-slate-800 my-4"></div>
 
           {/* Row 4: Notes + Address */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
                 <FileText className="w-4 h-4 text-purple-600" />
                 ملاحظات
               </label>
@@ -1073,26 +1073,26 @@ const AddCustomerModal = ({ show, editingCustomer, onClose, onSave }) => {
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows="1"
-                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white resize-none"
+                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850 resize-none"
               ></textarea>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">العنوان</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">العنوان</label>
               <input
                 type="text"
                 placeholder="تفاصيل العنوان"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-4 py-2.5 text-right border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 focus:bg-white"
+                className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-850"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-end gap-3 p-6 pt-4 border-t border-slate-100 bg-slate-50 mt-auto">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 p-6 pt-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 mt-auto">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-3 text-slate-600 bg-white border border-slate-200 font-bold hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all order-2 sm:order-1"
+            className="w-full sm:w-auto px-6 py-3 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white rounded-xl transition-all order-2 sm:order-1"
           >
             إلغاء
           </button>

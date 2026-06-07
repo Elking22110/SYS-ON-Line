@@ -497,15 +497,7 @@ const SupplierDetails = () => {
             return;
         }
 
-        if (totalRemaining <= 0) {
-            alert("لا مديونية حالية لهذا المورد لسدادها.");
-            return;
-        }
-
-        if (amount > totalRemaining) {
-            alert(`المبلغ المدخل (${amount.toLocaleString()}) أكبر من إجمالي المديونية المتبقية (${totalRemaining.toLocaleString()}).`);
-            return;
-        }
+        // Allow downpayments/prepayments to the supplier
 
         const activeShiftForSupplierPayment = JSON.parse(localStorage.getItem('activeShift') || 'null');
         const payment = {
@@ -643,7 +635,7 @@ const SupplierDetails = () => {
     const newSupplyRemaining = safeMath.subtract(newSupplyTotal, newSupplyPaid);
 
     return (
-        <div className="min-h-screen bg-[#F3F4F9] relative overflow-hidden pb-10">
+        <div className="min-h-screen bg-[#F3F4F9] dark:bg-slate-950 text-slate-800 dark:text-slate-100 relative overflow-hidden pb-10">
             {/* Background Animation */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" />
@@ -670,26 +662,28 @@ const SupplierDetails = () => {
                             <User className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1">{supplier.name}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-850 dark:text-white mb-1">{supplier.name}</h1>
                             <div className="flex flex-wrap items-center text-sm gap-3 font-medium">
-                                <span className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                <span className="flex items-center text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/20 px-3 py-1 rounded-full border border-green-100 dark:border-green-900/50">
                                     <Phone className="h-3.5 w-3.5 ml-1" /> {supplier.phone}
                                 </span>
                                 {supplier.email && (
-                                    <span className="flex items-center text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
+                                    <span className="flex items-center text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/20 px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
                                         <Mail className="h-3.5 w-3.5 ml-1" /> {supplier.email}
                                     </span>
                                 )}
-                                <span className="flex items-center text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                <span className="flex items-center text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-900/50">
                                     <Calendar className="h-3.5 w-3.5 ml-1" /> انضم: {supplier.joinDate}
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end bg-white/50 p-4 rounded-2xl border border-white backdrop-blur-sm">
-                        <p className="text-xs text-[#006af8] mb-1 font-bold">صافي المديونية الحالية</p>
-                        <h2 className="text-3xl font-black text-red-600">
-                            {totalRemaining <= 0 ? 0 : totalRemaining.toLocaleString()} ج.م
+                    <div className="flex flex-col items-end bg-white/50 dark:bg-slate-900/50 p-4 rounded-2xl border border-white dark:border-slate-800 backdrop-blur-sm">
+                        <p className="text-xs text-[#006af8] dark:text-[#42a0ff] mb-1 font-bold">
+                            {totalRemaining > 0 ? "صافي المديونية الحالية" : totalRemaining < 0 ? "رصيد مقدم (لك)" : "صافي المديونية الحالية"}
+                        </p>
+                        <h2 className={`text-3xl font-black ${totalRemaining > 0 ? "text-red-600" : totalRemaining < 0 ? "text-emerald-650 dark:text-emerald-400" : "text-slate-500"}`}>
+                            {totalRemaining !== 0 ? Math.abs(totalRemaining).toLocaleString() : 0} ج.م
                         </h2>
                     </div>
                 </div>
@@ -698,27 +692,29 @@ const SupplierDetails = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" style={{ animationDelay: '0.1s' }}>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-                        <AlertTriangle className="h-10 w-10 text-red-500 mb-2" />
-                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المديونية المتبقية</p>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{totalRemaining <= 0 ? 0 : totalRemaining.toLocaleString()} ج.م</h3>
+                        <AlertTriangle className={`h-10 w-10 mb-2 ${totalRemaining > 0 ? "text-red-500" : totalRemaining < 0 ? "text-emerald-500" : "text-slate-400"}`} />
+                        <p className="text-xs font-bold text-[#006af8] dark:text-blue-400 uppercase tracking-tight">
+                            {totalRemaining > 0 ? "إجمالي المديونية المتبقية" : totalRemaining < 0 ? "رصيد مقدم للمورد" : "إجمالي المديونية المتبقية"}
+                        </p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 dark:text-white mt-1">{totalRemaining !== 0 ? Math.abs(totalRemaining).toLocaleString() : 0} ج.م</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-green-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
                         <CreditCard className="h-10 w-10 text-emerald-500 mb-2" />
-                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي المدفوع للمورد</p>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{calculateTotalPaid().toLocaleString()} ج.م</h3>
+                        <p className="text-xs font-bold text-[#006af8] dark:text-blue-400 uppercase tracking-tight">إجمالي المدفوع للمورد</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 dark:text-white mt-1">{calculateTotalPaid().toLocaleString()} ج.م</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
                         <Package className="h-10 w-10 text-[#006af8] mb-2" />
-                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي الكمية (كجم)</p>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{supplies.reduce((total, s) => total + (parseFloat(s.quantity) || 0), 0).toLocaleString()} كجم</h3>
+                        <p className="text-xs font-bold text-[#006af8] dark:text-blue-400 uppercase tracking-tight">إجمالي الكمية (كجم)</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 dark:text-white mt-1">{supplies.reduce((total, s) => total + (parseFloat(s.quantity) || 0), 0).toLocaleString()} كجم</h3>
                     </div>
                     <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
                         <Package className="h-10 w-10 text-orange-500 mb-2" />
-                        <p className="text-xs font-bold text-[#006af8] uppercase tracking-tight">إجمالي عدد التوريدات</p>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 mt-1">{supplies.length}</h3>
+                        <p className="text-xs font-bold text-[#006af8] dark:text-blue-400 uppercase tracking-tight">إجمالي عدد التوريدات</p>
+                        <h3 className="text-2xl lg:text-3xl font-black text-slate-800 dark:text-white mt-1">{supplies.length}</h3>
                     </div>
                 </div>
 
@@ -727,13 +723,13 @@ const SupplierDetails = () => {
                     <div className="flex space-x-2 rtl:space-x-reverse mb-4 md:mb-0">
                         <button
                             onClick={() => setActiveTab('supplies')}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'supplies' ? 'bg-blue-600 text-slate-800' : 'text-blue-200 hover:bg-white hover:bg-opacity-10'}`}
+                            className={`px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'supplies' ? 'bg-blue-600 text-white dark:text-slate-900' : 'text-slate-650 dark:text-blue-200 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                         >
                             سجل التوريدات
                         </button>
                         <button
                             onClick={() => setActiveTab('payments')}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'payments' ? 'bg-green-600 text-slate-800' : 'text-green-200 hover:bg-white hover:bg-opacity-10'}`}
+                            className={`px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'payments' ? 'bg-green-600 text-white dark:text-slate-900' : 'text-slate-650 dark:text-green-200 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                         >
                             سجل المدفوعات (السداد)
                         </button>
@@ -741,26 +737,22 @@ const SupplierDetails = () => {
                     <div className="flex space-x-3 rtl:space-x-reverse">
                         <button
                             onClick={() => { 
-                                setEditingSupply(null);
                                 setNewSupply({ productName: '', quantity: '', unitPrice: '', paidAmount: '0', linkedOrderId: '' });
+                                setEditingSupply(null);
                                 setShowSupplyModal(true); 
                                 soundManager.play('openWindow'); 
                             }}
-                            className="btn-primary flex items-center px-4 py-2"
+                            className="btn-primary flex items-center px-4 py-2 text-white"
                         >
                             <Plus className="h-5 w-5 ml-2" />
                             إضافة توريدة
                         </button>
                         <button
                             onClick={() => {
-                                if (totalRemaining <= 0) {
-                                    alert('لا توجد مديونية مستحقة لهذا المورد لسدادها.');
-                                    return;
-                                }
                                 soundManager.play('openWindow');
                                 setShowPaymentModal(true);
                             }}
-                            className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-slate-800 flex items-center px-4 py-2 rounded-lg font-bold shadow-lg"
+                            className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white dark:text-slate-950 flex items-center px-4 py-2 rounded-lg font-bold shadow-lg"
                         >
                             <CreditCard className="h-5 w-5 ml-2" />
                             سداد دفعة
@@ -798,37 +790,37 @@ const SupplierDetails = () => {
                                                         {supply.supplyNumber || `#${supply.id.toString().slice(-4)}`}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-[#006af8] font-medium text-right">{supply.date}</td>
-                                                <td className="px-4 py-4 text-sm font-bold text-slate-800 text-right">{supply.productName}</td>
-                                                <td className="px-4 py-4 text-sm text-[#ff8200] font-bold text-right">{supply.quantity.toLocaleString()} كجم</td>
-                                                <td className="px-4 py-4 text-sm font-bold text-emerald-600 text-right">
-                                                    <span className="bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">
+                                                <td className="px-4 py-4 text-sm text-[#006af8] dark:text-[#42a0ff] font-medium text-right">{supply.date}</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-slate-850 dark:text-slate-200 text-right">{supply.productName}</td>
+                                                <td className="px-4 py-4 text-sm text-[#ff8200] dark:text-orange-400 font-bold text-right">{supply.quantity.toLocaleString()} كجم</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-emerald-600 dark:text-emerald-450 text-right">
+                                                    <span className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 px-2 py-1 rounded">
                                                         {supply.netDeliveredQuantity ? `${supply.netDeliveredQuantity.toLocaleString()} كجم` : '-'}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm font-bold text-red-500 text-right">
-                                                    <span className="bg-red-50 border border-red-100 px-2 py-1 rounded">
+                                                <td className="px-4 py-4 text-sm font-bold text-red-500 dark:text-red-400 text-right">
+                                                    <span className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 px-2 py-1 rounded">
                                                         {supply.wasteQuantity || 0} كجم
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-slate-600 text-right">{supply.unitPrice.toLocaleString()} ج.م</td>
-                                                <td className="px-4 py-4 text-sm font-bold text-slate-900 text-right">
-                                                    <span className="bg-slate-100 px-2 py-1 rounded-md bg-opacity-50">
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400 text-right">{supply.unitPrice.toLocaleString()} ج.م</td>
+                                                <td className="px-4 py-4 text-sm font-bold text-slate-900 dark:text-white text-right">
+                                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md bg-opacity-50">
                                                         {supply.totalPrice.toLocaleString()} ج.م
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-emerald-600 font-bold text-right">{supply.paidAmount.toLocaleString()} ج.م</td>
-                                                <td className="px-4 py-4 text-sm text-red-600 font-bold text-right">{supply.remainingAmount.toLocaleString()} ج.م</td>
+                                                <td className="px-4 py-4 text-sm text-emerald-600 dark:text-emerald-400 font-bold text-right">{supply.paidAmount.toLocaleString()} ج.م</td>
+                                                <td className="px-4 py-4 text-sm text-red-650 dark:text-red-400 font-bold text-right">{supply.remainingAmount.toLocaleString()} ج.م</td>
                                                 <td className="px-4 py-4 text-sm text-right">
                                                     {supply.linkedOrderNumber ? (
                                                         <div className="flex flex-col gap-0.5 items-end">
-                                                            <span className="text-[#8410ff] font-bold text-xs bg-[#8410ff]/10 px-2.5 py-1 rounded-full">{supply.linkedOrderNumber}</span>
-                                                            <span className="text-[#006af8] text-xs px-1 font-medium">
+                                                            <span className="text-[#8410ff] dark:text-purple-400 font-bold text-xs bg-[#8410ff]/10 dark:bg-[#8410ff]/20 px-2.5 py-1 rounded-full">{supply.linkedOrderNumber}</span>
+                                                            <span className="text-[#006af8] dark:text-[#42a0ff] text-xs px-1 font-medium">
                                                                 {supabaseService.getCustomerName(supply.linkedCustomerId) || supply.linkedCustomerName}
                                                             </span>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-slate-400 text-xs italic">غير مرتبط</span>
+                                                        <span className="text-slate-400 dark:text-slate-500 text-xs italic">غير مرتبط</span>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4 text-sm text-right text-left">
@@ -885,20 +877,20 @@ const SupplierDetails = () => {
                                     </thead>
                                     <tbody className="divide-y divide-white divide-opacity-20">
                                         {payments.map(payment => (
-                                            <tr key={payment.id} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-right">
-                                                <td className="px-6 py-4 text-sm text-[#006af8] text-right whitespace-nowrap">#{payment.id.toString().slice(-6)}</td>
-                                                <td className="px-6 py-4 text-sm text-slate-700 text-right whitespace-nowrap">{payment.date}</td>
-                                                <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-right whitespace-nowrap">
-                                                    <span className="bg-emerald-50 px-2 py-1 rounded">
+                                            <tr key={payment.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0 text-right">
+                                                <td className="px-6 py-4 text-sm text-[#006af8] dark:text-[#42a0ff] text-right whitespace-nowrap">#{payment.id.toString().slice(-6)}</td>
+                                                <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-350 text-right whitespace-nowrap">{payment.date}</td>
+                                                <td className="px-6 py-4 text-sm font-bold text-emerald-600 dark:text-emerald-400 text-right whitespace-nowrap">
+                                                    <span className="bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 rounded">
                                                         {payment.amount.toLocaleString()} ج.م
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
-                                                    <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-full font-bold">
+                                                    <span className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 px-3 py-1 rounded-full font-bold">
                                                         {payment.paymentMethod}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-slate-600 text-right">{payment.notes || '-'}</td>
+                                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 text-right">{payment.notes || '-'}</td>
                                                 <td className="px-6 py-4 text-sm text-right text-left">
                                                     <button
                                                         onClick={() => handleDeletePayment(payment.id)}
@@ -912,7 +904,7 @@ const SupplierDetails = () => {
                                         ))}
                                         {payments.length === 0 && (
                                             <tr>
-                                                <td colSpan="6" className="px-6 py-8 text-center text-[#006af8]">لا توجد دفعات مالية مسجلة مسبقاً لهذا المورد.</td>
+                                                <td colSpan="6" className="px-6 py-8 text-center text-[#006af8] dark:text-blue-400">لا توجد دفعات مالية مسجلة مسبقاً لهذا المورد.</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -926,43 +918,43 @@ const SupplierDetails = () => {
 
             {/* Add Supply Modal */}
             {showSupplyModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-lg mx-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+                <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[9999] backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl p-6 md:p-8 w-full max-w-lg mx-4 shadow-2xl overflow-y-auto max-h-[90vh]">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <h2 className="text-xl font-bold text-slate-850 dark:text-white flex items-center gap-2">
                                 <Package className="h-6 w-6 text-[#5235E8]" />
                                 {editingSupply ? `تعديل توريدة: ${editingSupply.supplyNumber}` : 'إضافة توريدة جديدة'}
                             </h2>
                             <button
                                 onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); setEditingSupply(null); }}
-                                className="text-slate-400 hover:text-slate-600 transition-colors"
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-350 transition-colors"
                             >
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
 
                         {editingSupply && (
-                            <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl text-blue-700 text-xs font-bold mb-4 flex items-center gap-2">
+                            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-3 rounded-xl text-blue-700 dark:text-blue-300 text-xs font-bold mb-4 flex items-center gap-2">
                                 <AlertTriangle className="h-4 w-4" />
                                 تنبيه: تعديل التوريدة سيؤثر على مديونية المورد وتكلفة المنتج المرتبط.
                             </div>
                         )}
 
                         <div className="space-y-5">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">اسم المنتج الخامه</label>
+                          <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">اسم المنتج الخامه</label>
                                 <input
                                     type="text"
                                     placeholder="مثال: حبيبات بولي إيثيلين"
                                     value={newSupply.productName}
                                     onChange={(e) => setNewSupply({ ...newSupply, productName: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right text-slate-900 font-medium"
+                                    className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">الكمية (كجم)</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">الكمية (كجم)</label>
                                     <input
                                         type="number"
                                         step="any"
@@ -970,11 +962,11 @@ const SupplierDetails = () => {
                                         dir="ltr"
                                         value={newSupply.quantity}
                                         onChange={(e) => setNewSupply({ ...newSupply, quantity: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold text-slate-900"
+                                        className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white font-bold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">سعر الكيلو</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">سعر الكيلو</label>
                                     <input
                                         type="number"
                                         step="any"
@@ -982,19 +974,19 @@ const SupplierDetails = () => {
                                         dir="ltr"
                                         value={newSupply.unitPrice}
                                         onChange={(e) => setNewSupply({ ...newSupply, unitPrice: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] focus:ring-2 focus:ring-[#5235E8]/20 outline-none transition-all text-right font-bold text-slate-900"
+                                        className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white font-bold"
                                     />
                                 </div>
                             </div>
 
-                            <div className="bg-[#5235E8]/5 p-4 rounded-2xl border border-[#5235E8]/10 flex justify-between items-center">
-                                <span className="text-slate-600 font-bold">إجمالي التكلفة:</span>
-                                <span className="text-2xl font-black text-[#5235E8]">{newSupplyTotal.toLocaleString()} ج.م</span>
+                            <div className="bg-[#5235E8]/5 dark:bg-[#5235E8]/10 p-4 rounded-2xl border border-[#5235E8]/10 dark:border-[#5235E8]/20 flex justify-between items-center">
+                                <span className="text-slate-650 dark:text-slate-400 font-bold">إجمالي التكلفة:</span>
+                                <span className="text-2xl font-black text-[#5235E8] dark:text-[#a094ff]">{newSupplyTotal.toLocaleString()} ج.م</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ المدفوع</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">المبلغ المدفوع</label>
                                     <input
                                         type="number"
                                         step="any"
@@ -1002,19 +994,19 @@ const SupplierDetails = () => {
                                         dir="ltr"
                                         value={newSupply.paidAmount}
                                         onChange={(e) => setNewSupply({ ...newSupply, paidAmount: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-right text-emerald-600 font-bold"
+                                        className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-emerald-600 dark:text-emerald-400 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white font-bold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">المتبقي مديونية</label>
-                                    <div className="px-4 py-3 rounded-xl bg-red-50 text-red-600 font-bold text-right border border-red-100">
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">المتبقي مديونية</label>
+                                    <div className="px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 font-bold text-right border border-red-100 dark:border-red-900/50">
                                         {newSupplyRemaining.toLocaleString()} ج.م
                                     </div>
                                 </div>
                             </div>
 
                             <div className="pt-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                                     <Link2 className="h-4 w-4 text-[#8410ff]" />
                                     ربط بطلب عميل (اختياري)
                                 </label>
@@ -1032,27 +1024,27 @@ const SupplierDetails = () => {
                                             linkedCustomerId: order?.customerId || ''
                                         });
                                     }}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium text-slate-900"
+                                    className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white font-medium appearance-none"
                                 >
-                                    <option value="">-- اختر طلب للربط --</option>
+                                    <option value="" className="bg-white dark:bg-slate-900 text-slate-850 dark:text-slate-100">-- اختر طلب للربط --</option>
                                     {openOrders.map(order => {
                                         const currentName = supabaseService.getCustomerName(order.customerId) || order.customerName || 'عميل غير معروف';
                                         return (
-                                            <option key={order.id} value={order.id}>
+                                            <option key={order.id} value={order.id} className="bg-white dark:bg-slate-900 text-slate-850 dark:text-slate-100">
                                                 {order.orderNumber} - {currentName} ({order.quantity?.toLocaleString()} {order.productType})
                                             </option>
                                         );
                                     })}
                                 </select>
                                 {openOrders.length === 0 && (
-                                    <p className="text-xs text-slate-400 mt-2 italic text-center">لا توجد طلبات مفتوحة حالياً للربط.</p>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 italic text-center">لا توجد طلبات مفتوحة حالياً للربط.</p>
                                 )}
                             </div>
 
                              <div className="flex gap-3 pt-4">
                                 <button
                                     onClick={() => { soundManager.play('closeWindow'); setShowSupplyModal(false); setEditingSupply(null); }}
-                                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+                                    className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-750 text-slate-600 dark:text-slate-300 font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                                 >
                                     إلغاء
                                 </button>
@@ -1070,29 +1062,41 @@ const SupplierDetails = () => {
 
             {/* Record Payment Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 shadow-2xl">
+                <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[9999] backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <h2 className="text-xl font-bold text-slate-850 dark:text-white flex items-center gap-2">
                                 <CreditCard className="h-6 w-6 text-emerald-500" />
                                 سداد دفعة مالية للمورد
                             </h2>
                             <button
                                 onClick={() => { soundManager.play('closeWindow'); setShowPaymentModal(false); }}
-                                className="text-slate-400 hover:text-slate-600 transition-colors"
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-350 transition-colors"
                             >
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
 
-                        <div className="bg-red-50 p-4 rounded-2xl border border-red-100 mb-6 flex justify-between items-center">
-                            <span className="text-slate-600 font-bold">المديونية الحالية:</span>
-                            <span className="text-xl font-black text-red-600">${totalRemaining.toLocaleString()}</span>
+                        <div className={`p-4 rounded-2xl border mb-6 flex justify-between items-center ${
+                            totalRemaining > 0 
+                            ? 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50' 
+                            : totalRemaining < 0 
+                            ? 'bg-green-50 dark:bg-green-950/20 border-green-100 dark:border-green-900/40' 
+                            : 'bg-slate-50 dark:bg-slate-900/40 border-slate-100 dark:border-slate-800'
+                        }`}>
+                            <span className="text-slate-650 dark:text-slate-400 font-bold">
+                                {totalRemaining > 0 ? "المديونية الحالية للمورد:" : totalRemaining < 0 ? "الرصيد المقدم للمورد:" : "المديونية الحالية للمورد:"}
+                            </span>
+                            <span className={`text-xl font-black ${
+                                totalRemaining > 0 ? 'text-red-600 dark:text-red-400' : totalRemaining < 0 ? 'text-emerald-650 dark:text-emerald-450' : 'text-slate-500 dark:text-slate-400'
+                            }`}>
+                                {totalRemaining !== 0 ? Math.abs(totalRemaining).toLocaleString() : 0} ج.م
+                            </span>
                         </div>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ المسدد</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">المبلغ المسدد</label>
                                 <input
                                     type="number"
                                     step="any"
@@ -1100,30 +1104,30 @@ const SupplierDetails = () => {
                                     dir="ltr"
                                     value={newPayment.amount}
                                     onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
-                                    className="w-full px-4 py-4 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-right font-black text-2xl text-emerald-600"
+                                    className="w-full px-4 py-4 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 font-black text-2xl text-emerald-650 dark:text-emerald-400 text-right"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">طريقة الدفع</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">طريقة الدفع</label>
                                 <select
                                     value={newPayment.paymentMethod}
                                     onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right appearance-none bg-white font-medium text-slate-900"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium text-right appearance-none"
                                 >
-                                    <option className="text-slate-900" value="نقدي">💵 نقدي</option>
-                                    <option className="text-slate-900" value="تحويل بنكي">🏦 تحويل بنكي</option>
-                                    <option className="text-slate-900" value="شيك">📝 شيك</option>
-                                    <option className="text-slate-900" value="محفظة إلكترونية">📱 محفظة إلكترونية</option>
+                                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="نقدي">💵 نقدي</option>
+                                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="شيك">📝 شيك</option>
+                                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="محفظة إلكترونية">📱 محفظة إلكترونية</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات (اختياري)</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">ملاحظات (اختياري)</label>
                                 <textarea
                                     value={newPayment.notes}
                                     onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
                                     rows="3"
                                     placeholder="اكتب أي ملاحظات متعلقة بالسداد هنا..."
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#5235E8] outline-none transition-all text-right text-slate-900 font-medium"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium text-right"
                                 ></textarea>
                             </div>
                         </div>
@@ -1131,7 +1135,7 @@ const SupplierDetails = () => {
                         <div className="flex gap-3 mt-8">
                             <button
                                 onClick={() => { soundManager.play('closeWindow'); setShowPaymentModal(false); }}
-                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+                                className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-750 text-slate-650 dark:text-slate-300 font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                             >
                                 إلغاء
                             </button>

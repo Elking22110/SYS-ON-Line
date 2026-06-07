@@ -237,11 +237,11 @@ const ClichesInventory = () => {
         customers.find(c => c.id?.toString() === customerId?.toString());
 
     return (
-        <div className="min-h-screen bg-[#F3F4F9] relative overflow-hidden pb-10 font-arabic rtl" dir="rtl">
+        <div className="min-h-screen bg-[#F3F4F9] dark:bg-slate-950 text-slate-800 dark:text-slate-100 relative overflow-hidden pb-10 font-arabic rtl" dir="rtl">
             {/* Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5" />
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5" />
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" />
+                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" />
             </div>
 
             <div className="relative z-10 p-4 md:p-6 lg:p-8 space-y-6">
@@ -251,13 +251,13 @@ const ClichesInventory = () => {
                         <div className="flex items-center gap-3 mb-2">
                             <button
                                 onClick={() => navigate('/customers')}
-                                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all text-slate-600"
+                                className="p-2 hover:bg-white hover:bg-opacity-20 dark:hover:bg-slate-800 rounded-full transition-all text-slate-600 dark:text-slate-400"
                             >
                                 <ArrowRight className="h-6 w-6" />
                             </button>
-                            <h1 className="text-2xl font-bold text-slate-900">مخزون الأكلشيهات</h1>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">مخزون الأكلشيهات</h1>
                         </div>
-                        <p className="text-slate-500 text-sm mr-11">إحصائيات ومتابعة جميع الأكلشيهات المتوفرة بالمصنع</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mr-11">إحصائيات ومتابعة جميع الأكلشيهات المتوفرة بالمصنع</p>
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
@@ -268,7 +268,7 @@ const ClichesInventory = () => {
                                 placeholder="ابحث باسم العميل أو الأكلشية..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pr-10 pl-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5235E8] transition-all text-slate-800"
+                                className="w-full pr-10 pl-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5235E8] transition-all text-slate-800 dark:text-white"
                             />
                         </div>
                     </div>
@@ -279,10 +279,10 @@ const ClichesInventory = () => {
                     <div className="glass-card p-6 border-r-4 border-purple-500">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-slate-500 text-sm mb-1 uppercase font-bold">إجمالي الأكلشيهات</p>
-                                <p className="text-3xl font-black text-slate-800">{allCliches.length}</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mb-1 uppercase font-bold">إجمالي الأكلشيهات</p>
+                                <p className="text-3xl font-black text-slate-800 dark:text-white">{allCliches.length}</p>
                             </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-950/20 rounded-2xl flex items-center justify-center text-purple-600 dark:text-purple-400">
                                 <Layers className="h-6 w-6" />
                             </div>
                         </div>
@@ -291,10 +291,10 @@ const ClichesInventory = () => {
                     <div className="glass-card p-6 border-r-4 border-blue-500">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-slate-500 text-sm mb-1 uppercase font-bold">عملاء لديهم أكلشيهات</p>
-                                <p className="text-3xl font-black text-slate-800">{customerStats.length}</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mb-1 uppercase font-bold">عملاء لديهم أكلشيهات</p>
+                                <p className="text-3xl font-black text-slate-800 dark:text-white">{customerStats.length}</p>
                             </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400">
                                 <User className="h-6 w-6" />
                             </div>
                         </div>
@@ -303,14 +303,14 @@ const ClichesInventory = () => {
                     <div className="glass-card p-6 border-r-4 border-emerald-500">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-slate-500 text-sm mb-1 uppercase font-bold">أساسية / إضافية</p>
-                                <p className="text-3xl font-black text-slate-800">
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mb-1 uppercase font-bold">أساسية / إضافية</p>
+                                <p className="text-3xl font-black text-slate-800 dark:text-white">
                                     {allCliches.filter(c => c.isMain).length}
                                     <span className="text-lg text-slate-400 mx-1">/</span>
                                     {allCliches.filter(c => !c.isMain).length}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/20 rounded-2xl flex items-center justify-center text-[#10b981] dark:text-emerald-400">
                                 <Plus className="h-6 w-6" />
                             </div>
                         </div>
@@ -325,49 +325,49 @@ const ClichesInventory = () => {
                             <p className="mt-4 text-slate-500">جاري تحميل البيانات...</p>
                         </div>
                     ) : filteredCliches.length === 0 ? (
-                        <div className="p-20 text-center bg-slate-50">
-                            <Package className="h-16 w-16 text-slate-200 mx-auto mb-4" />
-                            <p className="text-slate-400 font-bold">لا توجد أكلشيهات تطابق بحثك</p>
+                        <div className="p-20 text-center bg-slate-50 dark:bg-slate-900">
+                            <Package className="h-16 w-16 text-slate-200 dark:text-slate-700 mx-auto mb-4" />
+                            <p className="text-slate-400 dark:text-slate-550 font-bold">لا توجد أكلشيهات تطابق بحثك</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-right border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-100">
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">العميل</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">اسم الأكلشية</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">المقاس (طول × عرض)</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">النوع</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">الإجراءات</th>
+                                    <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-800">
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">العميل</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">اسم الأكلشية</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">المقاس (طول × عرض)</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">النوع</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
                                     {filteredCliches.map((cliche) => {
                                         const customerObj = getCustomerObj(cliche.customerId);
                                         return (
-                                            <tr key={cliche.id} className="hover:bg-slate-50 transition-colors group">
+                                            <tr key={cliche.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors group">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 bg-[#5235E8] bg-opacity-10 rounded-full flex items-center justify-center text-[#5235E8] font-bold text-xs">
                                                             {cliche.customerName?.charAt(0)}
                                                         </div>
-                                                        <span className="font-bold text-slate-700">{cliche.customerName}</span>
+                                                        <span className="font-bold text-slate-700 dark:text-slate-200">{cliche.customerName}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-slate-600 font-medium">{cliche.name}</span>
+                                                    <span className="text-sm text-slate-605 dark:text-slate-300 font-medium">{cliche.name}</span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2 text-slate-800 font-bold">
-                                                        <Maximize2 className="h-4 w-4 text-slate-400" />
+                                                    <div className="flex items-center gap-2 text-slate-800 dark:text-white font-bold">
+                                                        <Maximize2 className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                                                         {cliche.dimensions}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {cliche.isMain ? (
-                                                        <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">أساسي</span>
+                                                        <span className="text-[10px] bg-blue-105 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">أساسي</span>
                                                     ) : (
-                                                        <span className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">إضافي</span>
+                                                        <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">إضافي</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -375,7 +375,7 @@ const ClichesInventory = () => {
                                                         {/* تعديل */}
                                                         <button
                                                             onClick={() => customerObj && openEdit(cliche, customerObj)}
-                                                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-lg transition-all"
                                                             title="تعديل الأكلشية"
                                                         >
                                                             <Edit2 className="h-4 w-4" />
@@ -383,7 +383,7 @@ const ClichesInventory = () => {
                                                         {/* حذف */}
                                                         <button
                                                             onClick={() => customerObj && handleDelete(cliche, customerObj)}
-                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                            className="p-2 text-slate-400 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-all"
                                                             title="حذف الأكلشية"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
@@ -391,7 +391,7 @@ const ClichesInventory = () => {
                                                         {/* عرض ملف العميل */}
                                                         <button
                                                             onClick={() => navigate(`/customers/${cliche.customerId}`)}
-                                                            className="p-2 text-slate-400 hover:text-[#5235E8] hover:bg-slate-100 rounded-lg transition-all"
+                                                            className="p-2 text-slate-400 hover:text-[#5235E8] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
                                                             title="عرض ملف العميل"
                                                         >
                                                             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
@@ -410,24 +410,24 @@ const ClichesInventory = () => {
                 {/* Bottom Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="glass-card p-6">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                             <ClipboardList className="h-5 w-5 text-indigo-500" />
                             توزيع الأكلشيهات لكل عميل
                         </h3>
                         <div className="space-y-3">
                             {customerStats.sort((a, b) => b.count - a.count).slice(0, 5).map((stat, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                                    <span className="font-bold text-slate-700">{stat.name}</span>
+                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 rounded-xl">
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">{stat.name}</span>
                                     <span className="bg-[#5235E8] text-white px-3 py-1 rounded-lg text-xs font-bold">{stat.count} أكلشيه</span>
                                 </div>
                             ))}
                             {customerStats.length === 0 && (
-                                <p className="text-slate-400 text-sm text-center py-4">لا توجد بيانات</p>
+                                <p className="text-slate-400 dark:text-slate-500 text-sm text-center py-4">لا توجد بيانات</p>
                             )}
                         </div>
                     </div>
 
-                    <div className="glass-card p-6 bg-gradient-to-br from-[#5235E8] to-[#3a23a8] text-white">
+                    <div className="glass-card p-6 bg-gradient-to-br from-[#5235E8] to-[#3a23a8] text-white border-none">
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <Hash className="h-5 w-5 opacity-70" />
                             ملاحظات المخزن
@@ -440,7 +440,7 @@ const ClichesInventory = () => {
                         </div>
                         <button
                             onClick={() => navigate('/customers')}
-                            className="mt-6 w-full py-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-xl font-bold transition-all"
+                            className="mt-6 w-full py-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-xl font-bold transition-all text-white border border-white/20"
                         >
                             إدارة العملاء
                         </button>
@@ -450,32 +450,32 @@ const ClichesInventory = () => {
 
             {/* ─── مودال التعديل ─────────────────────────────────── */}
             {editingCliche && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
+                    <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800">تعديل الأكلشية</h2>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">تعديل الأكلشية</h2>
                             <button
                                 onClick={() => setEditingCliche(null)}
-                                className="p-2 hover:bg-slate-100 rounded-full transition-all text-slate-500"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-500 dark:text-slate-400"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
                         <div className="space-y-4">
-                            <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-sm text-purple-700 font-medium">
+                            <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 rounded-xl p-3 text-sm text-purple-700 dark:text-purple-400 font-medium">
                                 العميل: <span className="font-bold">{editingCliche.customer.name}</span>
                             </div>
 
                             {/* اسم الأكلشي (للإضافية فقط) */}
                             {!editingCliche.cliche.isMain && (
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">اسم الأكلشية</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">اسم الأكلشية</label>
                                     <input
                                         type="text"
                                         value={editForm.name}
                                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-slate-800"
+                                        className="w-full px-4 py-2.5 border border-slate-350 dark:border-slate-750 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 dark:bg-slate-800 text-slate-850 dark:text-white text-right"
                                         placeholder="اسم الأكلشية"
                                     />
                                 </div>
@@ -483,23 +483,23 @@ const ClichesInventory = () => {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">الطول (سم)</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">الطول (سم)</label>
                                     <input
                                         type="number"
                                         value={editForm.length}
                                         onChange={e => setEditForm({ ...editForm, length: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg text-slate-800"
+                                        className="w-full px-4 py-2.5 border border-slate-350 dark:border-slate-750 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 dark:bg-slate-800 text-center font-bold text-lg text-slate-850 dark:text-white"
                                         placeholder="طول"
                                         dir="ltr"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">العرض (سم)</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">العرض (سم)</label>
                                     <input
                                         type="number"
                                         value={editForm.width}
                                         onChange={e => setEditForm({ ...editForm, width: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 text-center font-bold text-lg text-slate-800"
+                                        className="w-full px-4 py-2.5 border border-slate-350 dark:border-slate-750 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50 dark:bg-slate-800 text-center font-bold text-lg text-slate-850 dark:text-white"
                                         placeholder="عرض"
                                         dir="ltr"
                                     />
@@ -507,10 +507,10 @@ const ClichesInventory = () => {
                             </div>
 
                             {editForm.length && editForm.width && (
-                                <div className="bg-slate-50 rounded-xl p-3 text-center">
-                                    <span className="text-slate-500 text-xs">المقاس الجديد: </span>
-                                    <span className="font-black text-slate-800 text-lg">{editForm.length} × {editForm.width}</span>
-                                    <span className="text-slate-400 text-xs mr-1">سم</span>
+                                <div className="bg-slate-50 dark:bg-slate-900 border dark:border-slate-850 rounded-xl p-3 text-center">
+                                    <span className="text-slate-550 dark:text-slate-400 text-xs">المقاس الجديد: </span>
+                                    <span className="font-black text-slate-800 dark:text-white text-lg">{editForm.length} × {editForm.width}</span>
+                                    <span className="text-slate-400 dark:text-slate-500 text-xs mr-1">سم</span>
                                 </div>
                             )}
                         </div>
@@ -525,7 +525,7 @@ const ClichesInventory = () => {
                             </button>
                             <button
                                 onClick={() => setEditingCliche(null)}
-                                className="flex-1 py-3 rounded-xl font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all"
+                                className="flex-1 py-3 rounded-xl font-bold border border-slate-205 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                             >
                                 إلغاء
                             </button>

@@ -338,9 +338,9 @@ const Suppliers = () => {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen bg-[#F3F4F9] dark:bg-slate-950 text-slate-800 dark:text-slate-100 relative overflow-hidden pb-10">
       {/* Background Animation - Stabilized */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-40 left-40 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-3" style={{ animationDelay: '4s' }}></div>
@@ -372,10 +372,10 @@ const Suppliers = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center  space-y-4 md:space-y-0">
           <div className="flex-1">
-            <h1 className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 mb-2 md:mb-3">
+            <h1 className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">
               إدارة الموردين
             </h1>
-            <p className="text-slate-600 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">إدارة بيانات ومحفوظات الموردين للمصنع</p>
+            <p className="text-slate-650 dark:text-slate-400 text-xs md:text-xs lg:text-sm xl:text-sm font-medium">إدارة بيانات ومحفوظات الموردين للمصنع</p>
           </div>
           <button
             onClick={() => { soundManager.play('openWindow'); setShowAddModal(true); }}
@@ -398,10 +398,10 @@ const Suppliers = () => {
           <div className="glass-card hover-lift  group cursor-pointer p-4 md:p-6 lg:p-8" style={{ animationDelay: '0.1s' }}>
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">إجمالي الموردين</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">{suppliers.length}</p>
+                <p className="text-xs md:text-sm font-medium text-[#006af8] dark:text-[#42a0ff] mb-1 md:mb-2 uppercase tracking-wide">إجمالي الموردين</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">{suppliers.length}</p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-black font-medium">موردون مسجلون</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">موردون مسجلون</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -413,12 +413,12 @@ const Suppliers = () => {
           <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">موردين VIP</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">
+                <p className="text-xs md:text-sm font-medium text-[#006af8] dark:text-[#42a0ff] mb-1 md:mb-2 uppercase tracking-wide">موردين VIP</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">
                   {suppliers.filter(c => c.status === 'VIP').length}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-black font-medium">موردون مميزون</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">موردون مميزون</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -430,12 +430,12 @@ const Suppliers = () => {
           <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">متوسط قيمة المشتريات</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">
+                <p className="text-xs md:text-sm font-medium text-[#006af8] dark:text-[#42a0ff] mb-1 md:mb-2 uppercase tracking-wide">متوسط قيمة المشتريات</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">
                   ${Math.round(suppliers.reduce((total, c) => safeMath.add(total, c.totalSpent), 0) / (suppliers.length || 1))}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-black font-medium">متوسط المشتريات</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">متوسط المشتريات</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -447,12 +447,12 @@ const Suppliers = () => {
           <div className="glass-card group cursor-pointer p-4 md:p-6 lg:p-8">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div className="flex-1">
-                <p className="text-xs md:text-sm font-medium text-[#006af8] mb-1 md:mb-2 uppercase tracking-wide">موردون جدد هذا الشهر</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2 md:mb-3">
+                <p className="text-xs md:text-sm font-medium text-[#006af8] dark:text-[#42a0ff] mb-1 md:mb-2 uppercase tracking-wide">موردون جدد هذا الشهر</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">
                   {suppliers.filter(c => c.status === 'جديد').length}
                 </p>
                 <div className="flex items-center text-xs md:text-sm">
-                  <span className="text-black font-medium">موردون جدد</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">موردون جدد</span>
                 </div>
               </div>
               <div className="p-3 md:p-4 lg:p-5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -465,31 +465,31 @@ const Suppliers = () => {
         {/* Top Suppliers */}
         <div className="glass-card mb-4 md:mb-6">
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h3 className="text-lg font-bold text-black">أفضل الموردين</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">أفضل الموردين</h3>
             <div className="p-2 bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg">
               <Star className="h-6 w-6 text-white" />
             </div>
           </div>
           <div className="space-y-3">
             {topSuppliers.map((supplier, index) => (
-              <div key={supplier.id} className="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg hover:bg-opacity-20 transition-all duration-300">
+              <div key={supplier.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 bg-opacity-10 dark:bg-opacity-30 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-opacity-20 transition-all duration-300">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
                     <span className="text-white font-bold text-sm">{index + 1}</span>
                   </div>
                   <div>
-                    <p className="font-bold text-black text-lg">{supplier.name}</p>
+                    <p className="font-bold text-slate-900 dark:text-white text-lg">{supplier.name}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <Phone className="h-3 w-3 text-green-400" />
-                      <p className="text-sm text-green-300 font-medium bg-green-500 bg-opacity-20 px-2 py-1 rounded-full">{supplier.phone}</p>
+                      <p className="text-sm text-green-700 dark:text-green-300 font-medium bg-green-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full">{supplier.phone}</p>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-emerald-400 bg-emerald-500 bg-opacity-20 px-3 py-1 rounded-full">
+                  <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500 bg-opacity-10 dark:bg-opacity-20 px-3 py-1 rounded-full">
                     ${supplier.totalSpent}
                   </div>
-                  <div className="text-xs text-orange-300 bg-orange-500 bg-opacity-20 px-2 py-1 rounded-full mt-1">
+                  <div className="text-xs text-orange-700 dark:text-orange-300 bg-orange-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full mt-1">
                     {supplier.orders} طلب
                   </div>
                 </div>
@@ -502,22 +502,22 @@ const Suppliers = () => {
         <div className="glass-card mb-4 md:mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-5 w-5" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 h-5 w-5" />
               <input
                 type="text"
                 placeholder="البحث بالاسم أو الهاتف أو البريد الإلكتروني..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10 pl-4 py-3 text-right bg-white bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-blue-300 focus:outline-none focus:border-blue-400 focus:border-opacity-60"
+                className="w-full pr-10 pl-4 py-3 text-right bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
             <div className="relative">
-              <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 h-5 w-5" />
+              <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-500 h-5 w-5" />
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="pr-10 pl-4 py-3 text-right appearance-none bg-white bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg text-slate-800 dark:text-white focus:outline-none focus:border-purple-400 focus:border-opacity-60"
+                className="pr-10 pl-4 py-3 text-right appearance-none bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               >
                 {statuses.map(status => (
                   <option key={status} value={status} className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100">{status}</option>
@@ -555,15 +555,15 @@ const Suppliers = () => {
               </thead>
               <tbody className="divide-y divide-white divide-opacity-20">
                 {filteredSuppliers.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-white hover:bg-opacity-10 transition-colors">
+                  <tr key={supplier.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-100 dark:border-slate-800">
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center ml-3 shadow-lg">
                           <User className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-black">{supplier.name}</div>
-                          <div className="text-xs text-blue-300 bg-blue-500 bg-opacity-20 px-2 py-1 rounded-full inline-block mt-1">
+                          <div className="text-sm font-bold text-slate-800 dark:text-white">{supplier.name}</div>
+                          <div className="text-xs text-blue-700 dark:text-blue-300 bg-blue-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full inline-block mt-1">
                             انضم: {supplier.joinDate}
                           </div>
                         </div>
@@ -573,35 +573,35 @@ const Suppliers = () => {
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Phone className="h-4 w-4 text-green-400" />
-                          <div className="text-sm font-semibold text-green-300 bg-green-500 bg-opacity-20 px-2 py-1 rounded-full">
+                          <div className="text-sm font-semibold text-green-700 dark:text-green-300 bg-green-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full">
                             {supplier.phone}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Mail className="h-4 w-4 text-purple-400" />
-                          <div className="text-sm font-medium text-slate-500 bg-purple-500 bg-opacity-20 px-2 py-1 rounded-full">
+                          <div className="text-sm font-medium text-slate-500 dark:text-slate-350 bg-purple-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full">
                             {supplier.email}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full inline-block">
+                      <div className="text-sm font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full inline-block">
                         {(supplier.totalSpent || 0).toLocaleString()} ج.م
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full inline-block">
+                      <div className="text-sm font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-100 dark:bg-emerald-950/20 px-3 py-1 rounded-full inline-block">
                         {(supplier.totalPaid || 0).toLocaleString()} ج.م
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-red-600 bg-red-100 px-3 py-1 rounded-full inline-block">
+                      <div className="text-sm font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/20 px-3 py-1 rounded-full inline-block">
                         {(supplier.totalRemaining || 0).toLocaleString()} ج.م
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden lg:table-cell">
-                      <div className="text-sm font-semibold text-orange-400 bg-orange-500 bg-opacity-20 px-3 py-1 rounded-full inline-block">
+                      <div className="text-sm font-semibold text-orange-700 dark:text-orange-300 bg-orange-500 bg-opacity-10 dark:bg-opacity-20 px-3 py-1 rounded-full inline-block">
                         {supplier.orders} طلب
                       </div>
                     </td>
@@ -650,85 +650,57 @@ const Suppliers = () => {
       {/* Add/Edit Supplier Modal - خارج الكارد الرئيسي تماماً */}
       {showAddModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] backdrop-blur-sm"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999
-          }}
-          onClick={(e) => {
-            if (false /* Prevent closing on backdrop click */) {
-              soundManager.play('closeWindow');
-              setShowAddModal(false);
-              setEditingSupplier(null);
-              setNewSupplier({
-                name: '',
-                phone: '',
-                email: '',
-                address: ''
-              });
-            }
-          }}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
         >
           <div
-            className="glass-card p-6 w-full max-w-md mx-4 "
+            className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4"
             style={{
-              position: 'relative',
-              zIndex: 10000,
-              backgroundColor: 'rgba(17, 24, 39, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
               maxHeight: '90vh',
               overflowY: 'auto'
             }}
           >
-            <h2 className="text-xl font-bold text-white mb-4">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-4">
               {editingSupplier ? 'تعديل بيانات المورد' : 'إضافة مورد جديد'}
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#006af8] mb-1">اسم المورد</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اسم المورد</label>
                 <input
                   type="text"
                   value={newSupplier.name}
                   onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
-                  className="input-modern w-full px-3 py-2 text-right"
+                  className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#006af8] mb-1">رقم الهاتف</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">رقم الهاتف</label>
                 <input
                   type="tel"
                   value={newSupplier.phone}
                   onChange={(e) => setNewSupplier({ ...newSupplier, phone: e.target.value })}
-                  className="input-modern w-full px-3 py-2 text-right"
+                  className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#006af8] mb-1">البريد الإلكتروني (اختياري)</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">البريد الإلكتروني (اختياري)</label>
                 <input
                   type="email"
                   value={newSupplier.email}
                   onChange={(e) => setNewSupplier({ ...newSupplier, email: e.target.value })}
-                  className="input-modern w-full px-3 py-2 text-right"
+                  className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#006af8] mb-1">العنوان</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">العنوان</label>
                 <textarea
                   value={newSupplier.address}
                   onChange={(e) => setNewSupplier({ ...newSupplier, address: e.target.value })}
                   rows={3}
-                  className="input-modern w-full px-3 py-2 text-right"
+                  className="w-full px-4 py-2.5 text-right border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5235E8] focus:border-transparent transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white"
                 />
               </div>
             </div>
@@ -746,7 +718,7 @@ const Suppliers = () => {
                     address: ''
                   });
                 }}
-                className="px-4 py-2 text-slate-300 hover:text-white transition-colors"
+                className="px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"
               >
                 إلغاء
               </button>
