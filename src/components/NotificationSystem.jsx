@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatDateTime, getCurrentDate } from '../utils/dateUtils.js';
 import { soundEngine } from '../utils/soundEngine.js';
+import { subscribe, EVENTS } from '../utils/observerManager.js';
 
 // أنواع الإشعارات
 export const NOTIFICATION_TYPES = {
@@ -454,6 +455,28 @@ export const NotificationProvider = ({ children }) => {
       duration: 4000
     });
   }, [addNotification]);
+
+  // الاشتراك في أحداث أخطاء المزامنة
+  useEffect(() => {
+    if (typeof subscribe !== 'function') return;
+
+    const handleSyncError = (payload) => {
+      const { op, error } = payload || {};
+      const opName = op ? `${op.service}.${op.method}` : 'غير معروفة';
+      notifyError(
+        'فشل مزامنة البيانات',
+        `تعذر مزامنة العملية: ${opName}`,
+        error || 'يرجى التحقق من اتصال الإنترنت أو التواصل مع الدعم.'
+      );
+    };
+
+    const unsubscribeSyncError = subscribe(EVENTS.SYNC_ERROR, handleSyncError);
+    return () => {
+      if (typeof unsubscribeSyncError === 'function') {
+        unsubscribeSyncError();
+      }
+    };
+  }, [notifyError]);
 
   const value = {
     notifications,

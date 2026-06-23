@@ -662,9 +662,9 @@ const SupplierDetails = () => {
                             <User className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-slate-850 dark:text-white mb-1">{supplier.name}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-black dark:text-white mb-1">{supplier.name}</h1>
                             <div className="flex flex-wrap items-center text-sm gap-3 font-medium">
-                                <span className="flex items-center text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/20 px-3 py-1 rounded-full border border-green-100 dark:border-green-900/50">
+                                <span className="flex items-center text-black dark:text-slate-200 bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-gray-300 dark:border-slate-700">
                                     <Phone className="h-3.5 w-3.5 ml-1" /> {supplier.phone}
                                 </span>
                                 {supplier.email && (

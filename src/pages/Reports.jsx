@@ -188,8 +188,9 @@ const Reports = () => {
         const activeShift = storageOptimizer.get('activeShift', null);
 
         // 3. Run Analytics
-        const dailySales = analyzeDailySales(allRevenueSources);
-        const monthlySales = analyzeMonthlySales(allRevenueSources);
+        const expenses = storageOptimizer.get('expenses', []) || [];
+        const dailySales = analyzeDailySales(allRevenueSources, products, expenses);
+        const monthlySales = analyzeMonthlySales(allRevenueSources, products, expenses);
         const topProducts = analyzeTopProducts(allRevenueSources, products);
         const categorySales = analyzeCategorySales(allRevenueSources);
         const customerData = analyzeCustomerData(allRevenueSources);
@@ -253,25 +254,54 @@ const Reports = () => {
   }, []);
 
   // تحليل المبيعات اليومية
-  const analyzeDailySales = (sales) => {
+  const analyzeDailySales = (sales, products, expenses) => {
     const last7Days = [];
     const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const productCostMap = new Map((products || []).map(p => [p.id, parseFloat(p.costPrice) || 0]));
 
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
+      
       const daySales = (sales || []).filter(sale => {
         const saleDate = new Date(sale.timestamp || sale.date);
         return saleDate.toDateString() === date.toDateString();
       });
 
+      const dayExpensesList = (expenses || []).filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate.toDateString() === date.toDateString();
+      });
+      const totalExpenses = dayExpensesList.reduce((sum, exp) => safeMath.add(sum, parseFloat(exp.amount) || 0), 0);
+
       const totalSales = daySales.reduce((sum, sale) => safeMath.add(sum, sale.total || 0), 0);
+
+      let totalCost = 0;
+      daySales.forEach(sale => {
+        if (sale.isProduction) {
+          const qty = parseFloat(sale.quantity) || 0;
+          const materialCost = parseFloat(sale.pricePerKg) || 0;
+          const printCost = parseFloat(sale.printingCostPerKg) || 0;
+          const cutCost = parseFloat(sale.cuttingCostPerKg) || 0;
+          totalCost = safeMath.add(totalCost, safeMath.multiply(safeMath.add(safeMath.add(materialCost, printCost), cutCost), qty));
+        } else {
+          const items = sale.items || [];
+          items.forEach(item => {
+            const cost = productCostMap.get(item.id) || 0;
+            totalCost = safeMath.add(totalCost, safeMath.multiply(cost, parseFloat(item.quantity) || 0));
+          });
+        }
+      });
+
       const totalOrders = daySales.length;
       const uniqueCustomers = new Set(daySales.map(sale => sale.customer?.name || 'عميل غير محدد')).size;
+      const netProfit = safeMath.subtract(totalSales, safeMath.add(totalCost, totalExpenses));
 
       last7Days.push({
         day: days[date.getDay()],
         sales: totalSales,
+        costs: totalCost + totalExpenses,
+        profit: netProfit,
         orders: totalOrders,
         customers: uniqueCustomers
       });
@@ -281,25 +311,54 @@ const Reports = () => {
   };
 
   // تحليل المبيعات الشهرية
-  const analyzeMonthlySales = (sales) => {
+  const analyzeMonthlySales = (sales, products, expenses) => {
     const monthlyData = [];
     const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const productCostMap = new Map((products || []).map(p => [p.id, parseFloat(p.costPrice) || 0]));
 
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
+      
       const monthSales = sales.filter(sale => {
-        const saleDate = new Date(sale.date);
+        const saleDate = new Date(sale.timestamp || sale.date);
         return saleDate.getMonth() === date.getMonth() && saleDate.getFullYear() === date.getFullYear();
       });
 
+      const monthExpensesList = (expenses || []).filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate.getMonth() === date.getMonth() && expDate.getFullYear() === date.getFullYear();
+      });
+      const totalExpenses = monthExpensesList.reduce((sum, exp) => safeMath.add(sum, parseFloat(exp.amount) || 0), 0);
+
       const totalSales = monthSales.reduce((sum, sale) => safeMath.add(sum, sale.total || 0), 0);
+
+      let totalCost = 0;
+      monthSales.forEach(sale => {
+        if (sale.isProduction) {
+          const qty = parseFloat(sale.quantity) || 0;
+          const materialCost = parseFloat(sale.pricePerKg) || 0;
+          const printCost = parseFloat(sale.printingCostPerKg) || 0;
+          const cutCost = parseFloat(sale.cuttingCostPerKg) || 0;
+          totalCost = safeMath.add(totalCost, safeMath.multiply(safeMath.add(safeMath.add(materialCost, printCost), cutCost), qty));
+        } else {
+          const items = sale.items || [];
+          items.forEach(item => {
+            const cost = productCostMap.get(item.id) || 0;
+            totalCost = safeMath.add(totalCost, safeMath.multiply(cost, parseFloat(item.quantity) || 0));
+          });
+        }
+      });
+
       const totalOrders = monthSales.length;
       const uniqueCustomers = new Set(monthSales.map(sale => sale.customer?.name || 'عميل غير محدد')).size;
+      const netProfit = safeMath.subtract(totalSales, safeMath.add(totalCost, totalExpenses));
 
       monthlyData.push({
         month: months[date.getMonth()],
         sales: totalSales,
+        costs: totalCost + totalExpenses,
+        profit: netProfit,
         orders: totalOrders,
         customers: uniqueCustomers
       });
@@ -313,6 +372,7 @@ const Reports = () => {
     const productSales = {};
     const idToName = new Map((products || []).map(p => [p.id, p.name]));
     const nameToName = new Map((products || []).map(p => [String(p.name || '').trim().toLowerCase(), p.name]));
+    const productCostMap = new Map((products || []).map(p => [p.id, parseFloat(p.costPrice) || 0]));
 
     (sales || []).forEach(sale => {
       (sale.items || []).forEach(item => {
@@ -325,9 +385,13 @@ const Reports = () => {
         const qty = Number(item.quantity) || 0;
         const price = Number(item.price) || 0;
         const itemTotal = safeMath.multiply(price, qty);
+        
         productSales[pid].sales += qty;
         productSales[pid].revenue = safeMath.add(productSales[pid].revenue, itemTotal);
-        productSales[pid].profit = safeMath.add(productSales[pid].profit, safeMath.calculatePercentage(itemTotal, 30));
+        
+        const costPrice = productCostMap.get(pid) || 0;
+        const itemProfit = costPrice > 0 ? safeMath.multiply(safeMath.subtract(price, costPrice), qty) : safeMath.calculatePercentage(itemTotal, 30);
+        productSales[pid].profit = safeMath.add(productSales[pid].profit, itemProfit);
       });
     });
 
@@ -1767,7 +1831,7 @@ const Reports = () => {
               </div>
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={realTimeData?.dailySales || []}>
+              <AreaChart data={selectedPeriod === 'week' ? realTimeData?.dailySales : realTimeData?.monthlySales}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis dataKey={selectedPeriod === 'week' ? 'day' : 'month'} stroke="rgba(255,255,255,0.7)" />
                 <YAxis stroke="rgba(255,255,255,0.7)" />
@@ -1780,12 +1844,23 @@ const Reports = () => {
                   }}
                 />
                 <Area
+                  name="المبيعات"
                   type="monotone"
                   dataKey="sales"
                   stroke="#6366f1"
                   fill="#6366f1"
-                  fillOpacity={0.6}
+                  fillOpacity={0.3}
                 />
+                {selectedReport === 'sales' && (
+                  <Area
+                    name="صافي الربح"
+                    type="monotone"
+                    dataKey="profit"
+                    stroke="#10b981"
+                    fill="#10b981"
+                    fillOpacity={0.4}
+                  />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -1956,7 +2031,9 @@ const Reports = () => {
                     {selectedReport === 'sales' && (
                       <>
                         <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">التاريخ</th>
-                        <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">المبيعات</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">المبيعات (الإيرادات)</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">التكاليف والمصروفات</th>
+                        <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">صافي الربح</th>
                         <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">الطلبات</th>
                         <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">العملاء</th>
                       </>
@@ -2147,7 +2224,9 @@ const Reports = () => {
                       return data.map((row, idx) => (
                         <tr key={idx} className="hover:bg-slate-200 hover:bg-opacity-20">
                           <td className="px-4 md:px-6 py-3 text-slate-800">{row.day || row.month}</td>
-                          <td className="px-4 md:px-6 py-3 text-green-300 font-semibold">{Number(row.sales || 0).toLocaleString('en-US')}</td>
+                          <td className="px-4 md:px-6 py-3 text-green-600 dark:text-green-400 font-semibold">{Number(row.sales || 0).toLocaleString('en-US')} ج.م</td>
+                          <td className="px-4 md:px-6 py-3 text-red-600 dark:text-red-400 font-semibold">{Number(row.costs || 0).toLocaleString('en-US')} ج.م</td>
+                          <td className={`px-4 md:px-6 py-3 font-bold ${Number(row.profit || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{Number(row.profit || 0).toLocaleString('en-US')} ج.م</td>
                           <td className="px-4 md:px-6 py-3 text-slate-800">{row.orders}</td>
                           <td className="px-4 md:px-6 py-3 text-slate-800">{row.customers}</td>
                         </tr>

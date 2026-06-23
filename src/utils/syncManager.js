@@ -161,6 +161,45 @@ class SyncManager {
             console.error('Error saving to failed queue', e);
         }
     }
+
+    /**
+     * Retry all failed operations by moving them back to the main sync queue
+     */
+    async retryFailed() {
+        try {
+            const failedQueue = JSON.parse(localStorage.getItem('pos_failed_sync') || '[]');
+            if (failedQueue.length === 0) return;
+
+            console.log(`🔄 Retrying failed operations (${failedQueue.length})...`);
+
+            const queue = this.getQueue();
+            const updatedQueue = [...queue, ...failedQueue.map(op => ({
+                ...op,
+                retryCount: 0 // Reset retry count
+            }))];
+
+            this.saveQueue(updatedQueue);
+            localStorage.setItem('pos_failed_sync', '[]');
+
+            // Trigger sync immediately if online
+            if (navigator.onLine) {
+                this.processQueue();
+            }
+        } catch (e) {
+            console.error('Error retrying failed operations', e);
+        }
+    }
+
+    /**
+     * Clear all failed operations
+     */
+    clearFailed() {
+        try {
+            localStorage.setItem('pos_failed_sync', '[]');
+        } catch (e) {
+            console.error('Error clearing failed queue', e);
+        }
+    }
 }
 
 export const syncManager = new SyncManager();

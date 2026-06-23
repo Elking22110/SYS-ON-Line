@@ -299,8 +299,8 @@ const ClicheSuppliers = () => {
                         <Layers className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800 dark:text-white hover:text-purple-650 transition-colors">{supplier.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{supplier.phone}</p>
+                        <p className="font-bold text-black dark:text-white hover:text-purple-650 transition-colors">{supplier.name}</p>
+                        <p className="text-xs text-black dark:text-slate-300 font-medium bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-md mt-1 inline-block">{supplier.phone}</p>
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap text-xs">

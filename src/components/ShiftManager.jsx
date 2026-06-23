@@ -851,7 +851,7 @@ const ShiftManager = () => {
                 ملاحظات الوردية
               </label>
               <textarea
-                value={currentShift.notes}
+                value={currentShift.notes ?? ''}
                 onChange={(e) => updateShiftNotes(e.target.value)}
                 className="input-modern w-full h-20 resize-none"
                 placeholder="أضف ملاحظات حول الوردية..."

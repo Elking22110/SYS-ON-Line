@@ -298,8 +298,8 @@ const ClicheSupplierDetails = () => {
               <Layers className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-800 dark:text-white">{supplier.name}</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{supplier.phone} {supplier.email && `· ${supplier.email}`}</p>
+              <h1 className="text-xl font-black text-black dark:text-white">{supplier.name}</h1>
+              <p className="text-sm text-black dark:text-slate-350">{supplier.phone} {supplier.email && `· ${supplier.email}`}</p>
               {supplier.address && <p className="text-xs text-slate-450 dark:text-slate-500 mt-0.5">{supplier.address}</p>}
             </div>
           </div>

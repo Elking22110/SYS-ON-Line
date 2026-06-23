@@ -1319,10 +1319,10 @@ ${logoBlock}
                                 <User className="h-7 w-7 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2">{customer.name}</h1>
+                                <h1 className="text-xl md:text-2xl font-black text-black dark:text-white mb-2">{customer.name}</h1>
                                 <div className="flex flex-wrap items-center gap-2 text-sm">
                                     {customer.phone && (
-                                        <span className="flex items-center gap-1.5 bg-green-100 border border-green-200 text-green-700 px-4 py-1.5 rounded-full font-bold shadow-sm">
+                                        <span className="flex items-center gap-1.5 bg-gray-100 border border-gray-300 text-black dark:text-slate-200 dark:bg-slate-800 dark:border-slate-700 px-4 py-1.5 rounded-full font-bold shadow-sm">
                                             <Phone className="h-3.5 w-3.5" /> {customer.phone}
                                         </span>
                                     )}

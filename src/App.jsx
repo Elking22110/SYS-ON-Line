@@ -34,6 +34,7 @@ import { hashPassword } from './utils/security.js';
 import { initTheme } from "./utils/themeUtils";
 import supabaseService from "./utils/supabaseService";
 import { Toaster } from 'react-hot-toast';
+import safeMath from "./utils/safeMath";
 
 function App() {
   const navigate = useNavigate();
@@ -149,14 +150,88 @@ function App() {
       DataValidator.createBackup();
     }, 60000); // كل دقيقة
 
-    // تنظيف البيانات القديمة يومياً
-    const cleanupInterval = setInterval(() => {
-      DataValidator.cleanupOldData();
-    }, 24 * 60 * 60 * 1000); // كل 24 ساعة
+    // الحفظ التلقائي للوردية النشطة كل 5 دقائق
+    const shiftAutoSaveInterval = setInterval(async () => {
+      try {
+        const activeShift = JSON.parse(localStorage.getItem('activeShift') || 'null');
+        if (activeShift && activeShift.status === 'active') {
+          console.log('🔄 Auto-saving active shift...');
+          
+          const allSales = JSON.parse(localStorage.getItem('sales') || '[]');
+          const allOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+          const allPayments = JSON.parse(localStorage.getItem('customer_payments') || '[]');
+          const allExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+          const shiftSales = allSales.filter(s => s.shiftId === activeShift.id);
+          const shiftOrders = allOrders.filter(o => o.status === 'CLOSED' && o.shiftId === activeShift.id);
+          const shiftPayments = allPayments.filter(p => p.shiftId === activeShift.id);
+          const shiftExpenses = allExpenses.filter(e => e.shiftId === activeShift.id);
+
+          // Calculate totals using the same logic
+          let totalReceived = 0;
+          let totalRefunds = 0;
+
+          // POS Sales
+          shiftSales.forEach(sale => {
+            const saleTotal = Number(sale.total) || 0;
+            const isRefund = sale.type === 'refund' || sale.isRefund === true || saleTotal < 0;
+            if (isRefund) {
+              totalRefunds += Math.abs(saleTotal);
+            } else if (sale.downPayment && sale.downPayment.enabled) {
+              totalReceived += Number(sale.downPayment.amount) || 0;
+            } else {
+              totalReceived += saleTotal;
+            }
+          });
+
+          // Customer Payments
+          shiftPayments.forEach(pay => {
+            totalReceived += Number(pay.amount) || 0;
+          });
+
+          const currentEndBalance = (activeShift.startBalance || 0) + totalReceived - totalRefunds;
+
+          const updatedShift = {
+            ...activeShift,
+            sales: shiftSales,
+            endBalance: currentEndBalance
+          };
+
+          // Update activeShift in localStorage
+          localStorage.setItem('activeShift', JSON.stringify(updatedShift));
+
+          // Update shifts list in localStorage
+          const shiftsList = JSON.parse(localStorage.getItem('shifts') || '[]');
+          const idx = shiftsList.findIndex(s => s.id === updatedShift.id);
+          if (idx !== -1) {
+            shiftsList[idx] = updatedShift;
+          } else {
+            shiftsList.push(updatedShift);
+          }
+          localStorage.setItem('shifts', JSON.stringify(shiftsList));
+
+          // Sync to Supabase
+          await supabaseService.startShift({
+            id: updatedShift.id,
+            startTime: updatedShift.startTime,
+            startBalance: updatedShift.startBalance || 0,
+            endBalance: updatedShift.endBalance || 0,
+            status: 'active',
+            userId: updatedShift.userId,
+            sales: updatedShift.sales
+          });
+          
+          console.log('✅ Active shift auto-saved successfully.');
+        }
+      } catch (error) {
+        console.error('❌ Active shift auto-save failed:', error);
+      }
+    }, 300000); // 5 minutes
 
     return () => {
       clearInterval(backupInterval);
       clearInterval(cleanupInterval);
+      clearInterval(shiftAutoSaveInterval);
     };
   }, []);
 
@@ -395,6 +470,11 @@ function App() {
                   <Route path="/settings" element={
                     <ProtectedRoute requiredRole="admin" requireShift={false}>
                       <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/products" element={
+                    <ProtectedRoute requireShift={false}>
+                      <Reports />
                     </ProtectedRoute>
                   } />
                   <Route path="/profile" element={

@@ -291,8 +291,8 @@ const InkSuppliers = () => {
                         <Droplets className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800 dark:text-white hover:text-cyan-600 transition-colors">{supplier.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-450">{supplier.phone}</p>
+                        <p className="font-bold text-black dark:text-white hover:text-cyan-600 transition-colors">{supplier.name}</p>
+                        <p className="text-xs text-black dark:text-slate-300 font-medium bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-md mt-1 inline-block">{supplier.phone}</p>
                       </div>
                     </div>
                     {/* Stats */}

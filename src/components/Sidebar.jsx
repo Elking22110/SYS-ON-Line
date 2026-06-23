@@ -13,7 +13,11 @@ import {
   X,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Wifi,
+  WifiOff,
+  Database,
+  RefreshCw
 } from "lucide-react";
 import soundManager from '../utils/soundManager.js';
 import { syncManager } from '../utils/syncManager';
@@ -211,9 +215,19 @@ const Sidebar = () => {
 
 const SyncStatus = () => {
   const [status, setStatus] = React.useState({ pendingCount: 0, isOnline: true });
+  const [showModal, setShowModal] = React.useState(false);
+  const [failedOps, setFailedOps] = React.useState([]);
+  const [pendingOps, setPendingOps] = React.useState([]);
+
+  const updateStatus = React.useCallback(() => {
+    setStatus(syncManager.getStatus());
+    try {
+      setFailedOps(JSON.parse(localStorage.getItem('pos_failed_sync') || '[]'));
+      setPendingOps(syncManager.getQueue());
+    } catch (_) {}
+  }, []);
 
   React.useEffect(() => {
-    const updateStatus = () => { setStatus(syncManager.getStatus()); };
     updateStatus();
     const interval = setInterval(updateStatus, 5000);
     window.addEventListener('online', updateStatus);
@@ -223,29 +237,150 @@ const SyncStatus = () => {
       window.removeEventListener('online', updateStatus);
       window.removeEventListener('offline', updateStatus);
     };
-  }, []);
+  }, [updateStatus]);
 
-  if (status.isOnline && status.pendingCount === 0) {
-    return (
-      <div className="flex items-center text-xs text-green-300 bg-white/5 p-2 rounded-xl">
-        <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
-        <span>متصل بالسحابة</span>
-      </div>
-    );
-  }
-  if (!status.isOnline) {
-    return (
-      <div className="flex items-center text-xs text-orange-300 bg-orange-500/10 p-2 rounded-xl">
-        <div className="w-2 h-2 rounded-full bg-orange-500 mr-2"></div>
-        <span>وضع الأوفلاين</span>
-      </div>
-    );
-  }
+  const handleRetry = () => {
+    soundManager.play('refresh');
+    syncManager.retryFailed?.();
+    syncManager.processQueue();
+    updateStatus();
+  };
+
+  const handleClear = () => {
+    if (window.confirm('هل أنت متأكد من مسح جميع العمليات الفاشلة؟ لن تتم مزامنتها مع السيرفر.')) {
+      soundManager.play('delete');
+      syncManager.clearFailed?.();
+      updateStatus();
+    }
+  };
+
   return (
-    <div className="flex items-center text-xs text-blue-300 bg-blue-500/10 p-2 rounded-xl">
-      <div className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-spin"></div>
-      <span>مزامنة {status.pendingCount} عناصر...</span>
-    </div>
+    <>
+      <div 
+        onClick={() => { soundManager.play('click'); setShowModal(true); }}
+        className="cursor-pointer hover:opacity-90 transition-opacity select-none"
+      >
+        {status.isOnline && status.pendingCount === 0 && (
+          <div className="flex items-center text-xs text-green-300 bg-white/5 p-2.5 rounded-xl border border-green-500/20">
+            <div className="w-2 h-2 rounded-full bg-green-500 ml-2 animate-pulse"></div>
+            <span>متصل بالسحابة</span>
+          </div>
+        )}
+        {!status.isOnline && (
+          <div className="flex items-center text-xs text-orange-300 bg-orange-500/10 p-2.5 rounded-xl border border-orange-500/20">
+            <div className="w-2 h-2 rounded-full bg-orange-500 ml-2"></div>
+            <span>وضع الأوفلاين ({status.pendingCount} معلق)</span>
+          </div>
+        )}
+        {status.isOnline && status.pendingCount > 0 && (
+          <div className="flex items-center text-xs text-blue-300 bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20">
+            <div className="w-2 h-2 rounded-full bg-blue-500 ml-2 animate-spin"></div>
+            <span>مزامنة {status.pendingCount} عناصر...</span>
+          </div>
+        )}
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl text-right text-white animate-slideInRight">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/10 flex-row-reverse">
+              <h3 className="text-base md:text-lg font-bold flex items-center gap-2 flex-row-reverse">
+                <Database className="h-5 w-5 text-purple-400" />
+                <span>حالة المزامنة والاتصال</span>
+              </h3>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-white p-1 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Connection Info */}
+            <div className="bg-white/5 rounded-xl p-4 mb-5 space-y-3">
+              <div className="flex justify-between items-center flex-row-reverse text-sm">
+                <span className="text-slate-400 flex items-center gap-1.5 flex-row-reverse">
+                  {status.isOnline ? <Wifi className="h-4 w-4 text-green-400" /> : <WifiOff className="h-4 w-4 text-orange-400" />}
+                  حالة الإنترنت:
+                </span>
+                <span className={`font-bold ${status.isOnline ? 'text-green-400' : 'text-orange-400'}`}>
+                  {status.isOnline ? 'متصل بالشبكة' : 'غير متصل (أوفلاين)'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center flex-row-reverse text-sm">
+                <span className="text-slate-400">العمليات المعلقة في الانتظار:</span>
+                <span className="font-bold text-blue-400">{pendingOps.length} عملية</span>
+              </div>
+              <div className="flex justify-between items-center flex-row-reverse text-sm">
+                <span className="text-slate-400">العمليات الفاشلة:</span>
+                <span className="font-bold text-red-400">{failedOps.length} عملية</span>
+              </div>
+            </div>
+
+            {/* Pending Queue List */}
+            {pendingOps.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-xs font-bold text-slate-400 mb-2 mr-1">العمليات المعلقة في الطابور:</h4>
+                <div className="max-h-32 overflow-y-auto space-y-2 custom-scrollbar bg-black/30 p-3 rounded-xl border border-white/5 text-xs text-right">
+                  {pendingOps.map(op => (
+                    <div key={op.id} className="flex justify-between items-center border-b border-white/5 pb-1.5 last:border-0 last:pb-0 flex-row-reverse">
+                      <span className="font-mono text-slate-200">{op.service}.{op.method}</span>
+                      <span className="text-slate-500">{new Date(op.timestamp).toLocaleTimeString('ar-EG')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Failed Queue List */}
+            {failedOps.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-xs font-bold text-red-400 mb-2 mr-1">العمليات التي فشلت مزامنتها:</h4>
+                <div className="max-h-40 overflow-y-auto space-y-2 custom-scrollbar bg-red-950/20 p-3 rounded-xl border border-red-500/10 text-xs text-right">
+                  {failedOps.map(op => (
+                    <div key={op.id} className="border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-center flex-row-reverse">
+                        <span className="font-bold text-red-400 font-mono">{op.service}.{op.method}</span>
+                        <span className="text-slate-500">{new Date(op.failedAt || op.timestamp).toLocaleTimeString('ar-EG')}</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1 break-all text-right leading-relaxed bg-black/20 p-1.5 rounded">{op.error}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2 justify-end mt-6 border-t border-white/10 pt-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl font-bold transition-all text-sm cursor-pointer"
+              >
+                إغلاق
+              </button>
+              {failedOps.length > 0 && (
+                <button
+                  onClick={handleClear}
+                  className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 py-2 px-4 rounded-xl font-bold transition-all text-sm cursor-pointer"
+                >
+                  مسح الأخطاء
+                </button>
+              )}
+              {status.isOnline && (pendingOps.length > 0 || failedOps.length > 0) && (
+                <button
+                  onClick={handleRetry}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl font-bold transition-all text-sm shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer flex-row-reverse"
+                >
+                  <RefreshCw className="h-4 w-4 animate-spin-slow" />
+                  <span>إعادة المحاولة فوراً</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -14,7 +14,8 @@ import {
   DollarSign,
   RefreshCw,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import soundManager from '../utils/soundManager.js';
@@ -43,6 +44,7 @@ const Dashboard = () => {
   const [yesterdayStats, setYesterdayStats] = useState({ sales: 0, orders: 0, customers: 0 });
   const [lastSync, setLastSync] = useState(new Date().toLocaleTimeString('ar-EG'));
   const [auditModal, setAuditModal] = useState({ isOpen: false, title: '', type: '', data: [] });
+  const [highDebts, setHighDebts] = useState({ customers: [], suppliers: [] });
 
   const calculateSupplierDebts = () => {
     const rawSuppliers = storageOptimizer.get('suppliers', []) || [];
@@ -392,6 +394,11 @@ const Dashboard = () => {
         todayNetQuantity: todayCLOSEDOrders.reduce((sum, o) => safeMath.add(sum, parseFloat(o.quantity) || 0), 0)
       });
 
+      setHighDebts({
+        customers: customerDebtsList.filter(c => c.netDebt >= 50000),
+        suppliers: supplierDebtsList.filter(s => s.netDebt >= 100000)
+      });
+
       setRecentOrders(recent);
       setLastSync(new Date().toLocaleTimeString('ar-EG'));
     } catch (error) {
@@ -580,6 +587,44 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* High Debt Warnings */}
+      {(highDebts.customers.length > 0 || highDebts.suppliers.length > 0) && (
+        <div className="mb-8 p-5 bg-red-50 border border-red-200 rounded-[28px] flex flex-col gap-3 shadow-md text-right">
+          <div className="flex items-center gap-2 text-red-800 font-bold text-sm justify-start flex-row-reverse">
+            <AlertTriangle className="w-5 h-5 text-red-600 animate-pulse" />
+            <span>تنبيه المديونيات المرتفعة (تجاوزت الحد الأقصى للمديونية الآمنة)</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-1">
+            {highDebts.customers.length > 0 && (
+              <div className="bg-white/50 border border-red-100 rounded-2xl p-4 text-xs">
+                <span className="font-bold text-red-700 block mb-2">⚠️ عملاء تجاوزوا حد مديونية 50,000 ج.م:</span>
+                <div className="max-h-32 overflow-y-auto space-y-1.5 custom-scrollbar pl-2">
+                  {highDebts.customers.map(c => (
+                    <div key={c.id} className="flex justify-between items-center border-b border-red-50/50 pb-1.5 flex-row-reverse">
+                      <span className="font-bold text-slate-800">{c.name}</span>
+                      <span className="font-black text-red-600">{c.netDebt.toLocaleString()} ج.م</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {highDebts.suppliers.length > 0 && (
+              <div className="bg-white/50 border border-red-100 rounded-2xl p-4 text-xs">
+                <span className="font-bold text-red-700 block mb-2">⚠️ موردين تجاوزوا حد مديونية 100,000 ج.م:</span>
+                <div className="max-h-32 overflow-y-auto space-y-1.5 custom-scrollbar pl-2">
+                  {highDebts.suppliers.map(s => (
+                    <div key={s.id} className="flex justify-between items-center border-b border-red-50/50 pb-1.5 flex-row-reverse">
+                      <span className="font-bold text-slate-800">{s.name}</span>
+                      <span className="font-black text-red-600">{s.netDebt.toLocaleString()} ج.م</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* --- 5 STATS CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6" style={{ overflow: 'visible' }}>

@@ -478,10 +478,10 @@ const Suppliers = () => {
                     <span className="text-white font-bold text-sm">{index + 1}</span>
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 dark:text-white text-lg">{supplier.name}</p>
+                    <p className="font-bold text-black dark:text-white text-lg">{supplier.name}</p>
                     <div className="flex items-center space-x-2 mt-1">
-                      <Phone className="h-3 w-3 text-green-400" />
-                      <p className="text-sm text-green-700 dark:text-green-300 font-medium bg-green-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full">{supplier.phone}</p>
+                      <Phone className="h-3 w-3 text-black dark:text-slate-400" />
+                      <p className="text-sm text-black dark:text-slate-200 font-medium bg-gray-200 dark:bg-slate-800 px-2 py-1 rounded-full">{supplier.phone}</p>
                     </div>
                   </div>
                 </div>
@@ -562,7 +562,7 @@ const Suppliers = () => {
                           <User className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-slate-800 dark:text-white">{supplier.name}</div>
+                          <div className="text-sm font-bold text-black dark:text-white">{supplier.name}</div>
                           <div className="text-xs text-blue-700 dark:text-blue-300 bg-blue-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full inline-block mt-1">
                             انضم: {supplier.joinDate}
                           </div>
@@ -572,8 +572,8 @@ const Suppliers = () => {
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4 text-green-400" />
-                          <div className="text-sm font-semibold text-green-700 dark:text-green-300 bg-green-500 bg-opacity-10 dark:bg-opacity-20 px-2 py-1 rounded-full">
+                          <Phone className="h-4 w-4 text-black dark:text-slate-400" />
+                          <div className="text-sm font-semibold text-black dark:text-slate-200 bg-gray-200 dark:bg-slate-800 px-2 py-1 rounded-full">
                             {supplier.phone}
                           </div>
                         </div>
